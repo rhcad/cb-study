@@ -38,6 +38,10 @@
     .task-step:not(.active) .step-content {
       display: none;
     }
+    .task-step a {
+      text-decoration: none;
+      cursor: pointer;
+    }
     .original {
       border-top: 1px solid #ddd;
       border-bottom: 1px solid #ddd;
@@ -93,6 +97,7 @@
             <li><a href="#" id="show-line-no" title="切换是否显示行号">行号</a></li>
             <li><a href="#" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
             {% if step > 1 %}
+            <li role="separator" class="divider"></li>
             <li><a href="#" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
             {% end %}
           </ul>
@@ -147,7 +152,7 @@
   <div class="task-step" data-step="2">
     <p class="step-title"><span>第3步</span>：完成制作</p>
     <div class="step-content">
-      <p>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</p>
+      <p>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。可 <a id="download-html">下载当前内容</a> 以便制作网页。</p>
     </div>
   </div>
 </div>
@@ -184,6 +189,7 @@
 
 <script src="{{static_url('js/jquery.min.js')}}"></script>
 <script src="{{static_url('js/sweetalert.min.js')}}"></script>
+<script src="{{static_url('js/download.js')}}"></script>
 <script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
 <script src="{{static_url('jstree/jstree.min.js')}}"></script>
 <script src="{{static_url('reader.js')}}"></script>
@@ -234,6 +240,18 @@
   $('#end-move-rows').click(() => {
     const html = $('#merged').html().replace(/ data-line-no="[^"<>]*"/g, '')
     $.post('/end-merge', {'html': html, id: '{{info["id"]}}'}, () => location.reload())
+  })
+  $('#download-html').click(() => {
+    const $content = $('#content').clone().appendTo($('body'))
+
+    $content.find(':hidden').remove()
+    $content.remove()
+
+    const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
+    const html = $content.html().trim()
+            .replace(/ style="display: block;"/g, '')
+            .replace(/><(p|div class="(cell|row))/g, s => s[0] + '\n' + space(s) + s.substr(1))
+    download(html, '{{info["id"]}}.html', 'text/html')
   })
 
   const errors = {

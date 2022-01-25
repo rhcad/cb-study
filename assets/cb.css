@@ -67,7 +67,7 @@ body {
   font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', 'Microsoft YaHei', arial, sans-serif;
 }
 
-.no-print, nav, footer, .note-tag {
+.no-print, nav, footer, .note-tag, .task-step {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;

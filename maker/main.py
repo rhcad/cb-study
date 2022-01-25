@@ -119,11 +119,12 @@ class HtmlDownloadHandler(BaseHandler):
         else:
             content = []
             for col in urls:
-                html = None
+                html = cache_file = None
                 for name in col:
                     name = name.strip()
                     if not name:
                         continue
+                    cache_file = cache_file or path.join(DATA_DIR, 'cache', name + '.html')
                     url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
                     try:
                         r = yield client.fetch(url, connect_timeout=5, request_timeout=5)
@@ -133,6 +134,8 @@ class HtmlDownloadHandler(BaseHandler):
                         return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(e)))
                     html = fix.convert_cb_html(html, to_basestring(r.body), name)
                 if html:
+                    with open(cache_file, 'w') as f:
+                        f.write(html)
                     content.append(html)
 
             if not content or len(content) > 12:
