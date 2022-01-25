@@ -1,0 +1,35 @@
+.note-p {
+  display: none;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: .5em;
+  text-indent: 0;
+  -moz-box-shadow: 1px 1px 1px #aaa;
+  box-shadow: 1px 1px 1px #aaa;
+}
+.org-text {
+  margin-right: 1em;
+  color: #99a;
+  font-weight: 300;
+}
+.note-text {
+  color: #444;
+}
+.note-item.active .note-text {
+  color: #33c;
+}
+.note-tag {
+  font-size: 13px;
+  color: #aaa;
+  cursor: pointer;
+}
+.note-tag.note-expanded {
+  color: #f00;
+}
+.note-tag:hover {
+  color: #00f;
+}
+.more {
+  cursor: pointer;
+}

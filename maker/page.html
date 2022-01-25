@@ -1,0 +1,243 @@
+<html lang=zh-CN>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>{{info['caption']}}制作</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="{{static_url('img/favicon.ico')}}"/>
+  <link rel="stylesheet" href="{{static_url('bootstrap/css/bootstrap.min.css')}}"/>
+  <link rel="stylesheet" href="{{static_url('jstree/jstree.min.css')}}"/>
+  <link href="{{static_url('cb.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('note.css')}}" rel="stylesheet"/>
+  <style>
+    @media screen {
+      body {
+        padding-bottom: 50px;
+        padding-top: 60px;
+      }
+    }
+    p {
+      text-indent: 0;
+    }
+    .original p {
+      text-indent: 2em;
+    }
+    #content {border-top: 1px solid #ddd;}
+    .task-step.active .step-title {
+      font-weight: bold;
+    }
+    .task-step:not(.active) .step-title {
+      color: #777;
+    }
+    .task-step:not(.active) .step-title > span:hover {
+      color: #0000a0;
+      cursor: pointer;
+    }
+    .step-content {
+      margin-bottom: 8px;
+    }
+    .task-step:not(.active) .step-content {
+      display: none;
+    }
+    .original {
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      margin-top: 10px;
+    }
+    .original + .original,
+    .row > div + div {
+      border-left: 1px solid #ddd;
+    }
+    .single-article .original {
+      padding: 10px;
+    }
+    #end-move-rows { float: right; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">经典页面制作</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">{{info['caption']}}</a></li>
+
+        {% if page.get('html') %}
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">显示 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#" id="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+            <li><a href="#" id="show-notes" title="切换是否显示全部注解">注解</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
+            <li><a href="#" id="reduce-font" title="减少正文字号">减少字号</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#" id="show-left" title="只显示左文、第1栏">左文</a></li>
+            <li><a href="#" id="show-right" title="只显示右文、第2栏">右文</a></li>
+            <li><a href="#" id="show-both" title="左右对照显示">对照</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
+            <li><a href="#" id="show-line-no" title="切换是否显示行号">行号</a></li>
+            <li><a href="#" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
+            {% if step > 1 %}
+            <li><a href="#" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
+            {% end %}
+          </ul>
+        </li>
+        {% end %}
+
+      </ul>
+
+      <div class="btn-group toggle-column" role="group">
+        <button type="button" class="btn btn-default btn-sm navbar-btn" id="show-xu">序</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">1</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">2</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">3</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">4</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">5</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">6</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">7</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">8</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">9</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">10</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">11</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">12</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn">全</button>
+      </div>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default btn-sm navbar-btn" title="增加正文字号" onclick="enlargeFont()">+</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn" title="减少正文字号" onclick="reduceFont()">-</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="task-step" data-step="0">
+    <p class="step-title"><span>第1步</span>：获取CBeta网页原文</p>
+    <div class="step-content">
+      <p>请输入要获取原文的<i>经号_卷号</i>，用“|”分隔需要左右对照的经文（最多12篇），用“+”分隔需要合并多卷的经文。</p>
+      <div class="input-group">
+        <input type="text" class="form-control" id="cb-download-url" value="{{cb_download_url}}">
+        <div class="input-group-btn">
+          <button type="button" class="btn btn-default" id="cb-download">获取原文</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="task-step" data-step="1">
+    <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配</p>
+    <div class="step-content">
+      <p>按右侧提示进行段落分组，如需拆分段落可在段落上点鼠标右键菜单。</p>
+    </div>
+  </div>
+  <div class="task-step" data-step="2">
+    <p class="step-title"><span>第3步</span>：完成制作</p>
+    <div class="step-content">
+      <p>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</p>
+    </div>
+  </div>
+</div>
+
+{% if step == 1 %}
+<div id="merged" class="container-fluid">
+</div>
+<div class="label-panel">
+   <div class="current-row">
+     <p class="bold">在左边红线下各栏中依次点击要同在一组的段落。</p>
+     {% for ic in range(info['cols']) %}
+     <div class="row">
+       <label class="col-xs-4">第{{ic + 1}}栏：</label>
+       <div class="col-xs-8 row-ids row-ids-{{ic}}"></div>
+     </div>
+     {% end %}
+     <button class="btn btn-default" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
+     <button class="btn btn-default" id="apply-rows" title="重新应用下面输入区域的分组设置">应用分组</button>
+     <button class="btn btn-default" id="end-move-rows" title="段落分组完成，进入下一步">分组完成</button>
+   </div>
+   <div class="row-pairs-div">
+     <textarea rows="5"></textarea>
+   </div>
+ </div>
+{% end %}
+
+<div id="content" class="container-fluid">
+  {% if page.get('html') and step > 0 %}
+    {% if step == 1 %}<div class="row">{% end %}
+    {% raw '\n'.join(page['html']) %}
+    {% if step == 1 %}</div>{% end %}
+  {% end %}
+</div>
+
+<script src="{{static_url('js/jquery.min.js')}}"></script>
+<script src="{{static_url('js/sweetalert.min.js')}}"></script>
+<script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+<script src="{{static_url('jstree/jstree.min.js')}}"></script>
+<script src="{{static_url('reader.js')}}"></script>
+<link href="{{static_url('js/jquery.contextMenu.css')}}" rel="stylesheet"/>
+<script src="{{static_url('js/jquery.contextMenu.js')}}"></script>
+{% if step == 1 %}
+<link href="{{static_url('label/label-panel.css')}}" rel="stylesheet"/>
+<script src="{{static_url('label/group-rows.js')}}"></script>
+<script>initGroupRows('{{rowPairs}}');</script>
+{% end %}
+
+<script>
+  toggleXu();
+  $(`.task-step[data-step="{{step}}"]`).addClass('active')
+  $('.task-step:not(.active) .step-title > span').click(e => {
+    const step = e.target.closest('.task-step').getAttribute('data-step')
+    location.href = location.pathname + '?step=' + (parseInt(step) + 1)
+  })
+
+  $('#cb-download').click(() => {
+    const down = () => {
+      const urls = $('#cb-download-url').val()
+      $.post('/cb/download', {urls: urls, id: '{{info["id"]}}'}, () => location.reload())
+              .error(xhr => showError('获取原文失败', errors[xhr.status] || xhr.statusText))
+    }
+    if ($('#content').text()) {
+      swal({
+        title: '重新获取原文',
+        text: '将删除页面内容和所有标注数据，确实要重新获取吗？',
+        buttons: ['取消', '重新获取']
+      }).then(result => result && down())
+    } else {
+      down()
+    }
+  })
+  function saveRowPairs() {
+    $.post('/row-pairs', {'pairs': window.rowPairs.join('||'), id: '{{info["id"]}}'})
+            .error(xhr => showError('保存失败', errors[xhr.status] || xhr.statusText))
+  }
+  function saveSplitParagraph(data) {
+    $.post('/split-p', {data: JSON.stringify(data), id: '{{info["id"]}}'})
+            .error(xhr => showError('保存失败', errors[xhr.status] || xhr.statusText) || location.reload())
+  }
+  $('#apply-rows').click(() => {
+    const pairs = $('.label-panel textarea').val().replace(/\n/g, '||')
+    $.post('/row-pairs', {'pairs': pairs, id: '{{info["id"]}}'}, () => location.reload())
+  })
+  $('#end-move-rows').click(() => {
+    const html = $('#merged').html().replace(/ data-line-no="[^"<>]*"/g, '')
+    $.post('/end-merge', {'html': html, id: '{{info["id"]}}'}, () => location.reload())
+  })
+
+  const errors = {
+  }
+</script>
+</body>
+</html>

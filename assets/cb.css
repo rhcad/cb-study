@@ -1,0 +1,262 @@
+#cbeta-copyright {
+  display: none;
+}
+.bold { font-weight: bold; }
+.byline {
+  color: #408080;
+  text-align: right;
+  text-indent: 0;
+}
+.cbeta { color: red; }
+.doube-line-note {
+  color: purple;
+  font-size: 0.7em;
+}
+.doube-line-note::before {content: "(";}
+.doube-line-note::after {content: ")";}
+.hide-div-xu .xu-more {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
+}
+.head {
+  font-size: larger;
+  color: #0000a0;
+}
+.juan {
+  font-size: larger;
+  color: #00f;
+  text-align: center;
+  text-indent: 0;
+}
+.juan-end {
+  text-align: right;
+  font-size: small;
+  color: #777;
+  text-indent: 0;
+}
+div.lg {
+  display: table;
+  color: #008040;
+  margin-left: 3em!important;
+}
+div.lg-cell {
+  display: table-cell;
+  word-break: keep-all;
+}
+div.lg-row { display: table-row; }
+div.lg + p { margin-top: .5em; }
+p { text-indent: 2em; }
+span.hint { color: blue; }
+
+p {
+  padding: 4px 0;
+  margin: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', 'Microsoft YaHei', arial, sans-serif;
+}
+
+.no-print, nav, footer, .note-tag {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+@media print {
+  .no-print, nav, footer, .note-tag {
+    display: none;
+  }
+}
+
+@media screen {
+  body {
+    background: #f5f5f5;
+  }
+}
+
+.navbar {
+  font-size: 14px;
+}
+
+.single-article {
+  margin-left: 15px;
+  margin-right: 10px;
+}
+
+#content > .row,
+#merged > .row {
+  display: flex;
+}
+
+#content > .row > div,
+#merged > .row > div {
+  flex: 1;
+}
+
+#content, #merged {
+  font-size: 20px;
+}
+[data-col-count="4"]#content,
+[data-col-count="5"]#content,
+[data-col-count="6"]#content {
+  font-size: 18px;
+}
+[data-col-count="7"]#content,
+[data-col-count="8"]#content,
+[data-col-count="9"]#content {
+  font-size: 17px;
+}
+[data-col-count="10"]#content,
+[data-col-count="11"]#content,
+[data-col-count="12"]#content {
+  font-size: 15px;
+}
+#content .row > div {
+  padding: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+#content .row > div::-webkit-scrollbar {
+  width: 0;
+}
+#content .row > div {
+  border-left: 1px solid #ddd;
+}
+#content:not(.single-article) .row {
+  border-bottom: 1px solid rgba(200, 200, 200, .4);
+}
+
+@media screen {
+  .show-line-no [data-line-no]::before {
+    content: attr(data-line-no);
+    font-size: 9px;
+    color: #999;
+  }
+
+  .show-line-no [data-line-no]:hover::before {
+    color: #00f;
+  }
+}
+.show-line-no div.lg {
+  margin-left: .5em!important;
+}
+
+.show-box .row {
+  border-bottom: 1px solid #aaa;
+}
+
+.show-box .row p {
+  border-bottom: 1px dotted #bbb;
+  margin: 1px;
+}
+
+.show-box .row p:last-child {
+  border-bottom: none;
+}
+
+body:not(.show-hide-txt) .hide-txt {
+  display: none;
+}
+
+
+footer {
+  position: fixed;
+  bottom: 0;
+  height: 40px;
+  width: 100%;
+  padding: 4px;
+  border-top: 1px solid #eee;
+  background-color: rgb(249, 249, 249);
+  white-space: nowrap;
+}
+
+footer a:hover {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+span[ke-pan] {
+  margin-right: .7em;
+  transition: alls .3s ease-in-out;
+}
+
+span[ke-pan] > .ke-pan-text {
+  font-size: .6em;
+  color: #777;
+}
+
+.hide-ke-pan-txt .ke-pan-text {
+  display: none;
+}
+
+.show-inline-ke-pan :not(.juan) > span[ke-pan] {
+  margin-right: 0;
+  display: block;
+}
+
+@media screen {
+  [ke-pan].active, [ke-pan]:hover, [ke-pan].hover, .highlight {
+    color: green;
+  }
+
+  [ke-pan].active, .highlight {
+    font-weight: 700;
+  }
+
+  [ke-pan].hover {
+    color: #008000;
+  }
+}
+.show-inline-ke-pan .row p:not(.xu-more):not(.byline):not(.head) {
+  margin-bottom: .5em;
+}
+
+.left-nav {
+  position: fixed;
+  left: 0;
+  top: 50px;
+  width: 25%;
+  height: calc(100% - 90px);
+  overflow: auto;
+}
+
+.hide-left-bar .left-nav {
+  display: none;
+}
+
+.hide-left-bar #content {
+  padding-left: 15px;
+}
+
+#content table {
+  width: 100%;
+  table-layout: fixed;
+}
+#content td {
+  padding: .5em;
+  font-size: 18px;
+}
+
+.dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover {
+  color: #222;
+  background-color: #e3f1f8;
+}
+.btn-group .btn-default:not(.active) {
+  background-color: white!important;
+}
+
+.btn-group.toggle-column {
+  margin-left: 10px;
+}

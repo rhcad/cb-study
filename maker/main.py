@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import re
+import json
+import logging
+from os import path
+from glob import glob
+import shutil
+import fix_util as fix
+from tornado import ioloop, gen
+from tornado.web import Application, RequestHandler
+from tornado.options import define, options
+from tornado.escape import to_basestring, json_decode, json_encode
+from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import HTTPError
+
+THIS_PATH = path.abspath(path.dirname(__file__))
+BASE_DIR = path.dirname(THIS_PATH)
+DATA_DIR = path.join(THIS_PATH, 'data')
+
+define('port', default=8002, help='run port', type=int)
+define('debug', default=True, help='the debug mode', type=bool)
+
+
+class BaseHandler(RequestHandler):
+    @staticmethod
+    def load_page(pid):
+        filename = path.join(DATA_DIR, pid + '.json')
+        with open(filename) as f:
+            return json.load(f)
+
+    @staticmethod
+    def save_page(page):
+        filename = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
+        with open(filename, 'w') as f:
+            json.dump(page, f, ensure_ascii=False, indent=2)
+
+
+class HomeHandler(BaseHandler):
+    URL = '/'
+
+    def get(self):
+        for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
+            if not path.exists(path.join(DATA_DIR, path.basename(fn))):
+                shutil.copy(fn, DATA_DIR)
+
+        files = sorted(glob(path.join(DATA_DIR, '*.json')))
+        pages = [json.load(open(fn)) for fn in files]
+        self.render('index.html', pages=[
+            dict(id=p['info']['id'], caption=p['info']['caption'], url='/page/' + p['info']['id'])
+            for p in pages])
+
+
+class PageNewHandler(BaseHandler):
+    URL = '/page/new'
+
+    def post(self):
+        pid = to_basestring(self.get_argument('id', ''))
+        caption = to_basestring(self.get_argument('caption', '')).strip()
+        if not re.match(r'^[A-Za-z0-9_]{2,8}$', pid):
+            return self.send_error(501, reason='invalid id')
+        if not caption or len(caption) > 10:
+            return self.send_error(502, reason='invalid caption')
+
+        filename = path.join(DATA_DIR, pid + '.json')
+        if path.exists(filename):
+            return self.send_error(503, reason='file exists')
+
+        self.save_page({'info': dict(id=pid, caption=caption), 'log': []})
+        self.write({'url': '/page/' + pid})
+
+
+class PageHandler(BaseHandler):
+    URL = '/page/([A-Za-z0-9_!]+)'
+
+    def get(self, pid):
+        page = self.load_page(pid)
+        info = page['info']
+        step = int(self.get_argument('step', 0))
+        if step > 0:
+            info['step'] = step - 1
+            self.save_page(page)
+            return self.redirect('/page/' + pid)
+
+        step = info.get('step', 0)
+        if step > 1:
+            if page.get('html_end'):
+                page['html'] = page['html_end']
+            else:
+                step = 1
+        if step > 0 and not page.get('html'):
+            step = 0
+
+        name = info['id'].split('_')[0]
+        juan = int((info['id'].split('_')[1:] or [1])[0])
+        cb_download_url = info.get('cb_download_url') or '{0}_{1:0>3d}'.format(name, juan)
+
+        self.render('page.html', page=page, info=info, step=step,
+                    rowPairs='||'.join(page.get('rowPairs', [])),
+                    cb_download_url=cb_download_url)
+
+
+class HtmlDownloadHandler(BaseHandler):
+    URL = '/cb/download'
+
+    @gen.coroutine
+    def post(self):
+        client = AsyncHTTPClient()
+        pid = to_basestring(self.get_argument('id', ''))
+        cb_download_url = to_basestring(self.get_argument('urls', ''))
+        urls = [s.split('+') for s in cb_download_url.split('|')] if cb_download_url else []
+
+        page = self.load_page(pid)
+        if urls and cb_download_url == page['info'].get('cb_download_url') and page.get('html_org'):
+            page['html'] = page['html_org'][:]
+            page['info']['step'] = 1
+            self.rollback(page)
+        else:
+            content = []
+            for col in urls:
+                html = None
+                for name in col:
+                    name = name.strip()
+                    if not name:
+                        continue
+                    url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
+                    try:
+                        r = yield client.fetch(url, connect_timeout=5, request_timeout=5)
+                        if r.error:
+                            return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(r.error)))
+                    except HTTPError as e:
+                        return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(e)))
+                    html = fix.convert_cb_html(html, to_basestring(r.body), name)
+                if html:
+                    content.append(html)
+
+            if not content or len(content) > 12:
+                return self.send_error(505, reason='only support 1~12 columns')
+
+            page['info'].update(dict(step=1, cols=len(content), cb_download_url=cb_download_url))
+            content = fix.merge_cb_html(content)
+            page['html'] = page['html_org'] = content.split('\n')
+            page['log'] = []
+
+        self.save_page(page)
+
+        self.write({})
+        self.finish()
+
+    @staticmethod
+    def rollback(page):
+        if page.get('html_org') and page.get('log'):
+            page['html'] = page['html_org'][:]
+            new_c = {}
+            for log in page['log']:
+                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+): (.+@.*)$', log)
+                if m:
+                    pid, index, text = m.group(1), m.group(2), m.group(3)
+                    bid, index = re.sub('[a-z]$', '', pid), int(index)
+                    html0 = page['html'][index]
+                    if pid not in html0:
+                        t0 = text.split('@')[0]
+                        idx = html0.index(t0) if t0 in html0 else 20
+                        logging.warning(pid + ' not in ' + html0[: idx + len(t0)])
+                    assert text.replace('@', '') in html0
+                    texts = text.split('@')
+                    r = [{'text': texts[0]}]
+                    for text in texts[1:]:
+                        new_c[bid] = chr(ord(new_c.get(bid, 'a')) + 1)
+                        r.append({'id': bid + new_c[bid], 'text': text})
+                    SplitParagraphHandler.split_p(index, r, page)
+
+
+class RowPairsHandler(BaseHandler):
+    URL = '/row-pairs'
+
+    def post(self):
+        pid = to_basestring(self.get_argument('id'))
+        pairs = self.get_argument('pairs').split('||')
+
+        page = self.load_page(pid)
+        page['rowPairs'] = pairs
+        self.save_page(page)
+        self.write({})
+
+
+class SplitParagraphHandler(BaseHandler):
+    URL = '/split-p'
+
+    def post(self):
+        pid = to_basestring(self.get_argument('id'))
+        data = json_decode(self.get_argument('data'))
+        page = self.load_page(pid)
+
+        index, log = -1, None
+        for (i, text) in enumerate(page['html']):
+            prefix = "<p id='{}'".format(data['id'])
+            if prefix in text:
+                index = i
+                log = 'Split paragraph #{0} at {1}: {2}'.format(data['id'], i, data['text'])
+                logging.info(log)
+                assert text.index(prefix) == 0
+                self.split_p(i, data['result'], page)
+                break
+
+        if index >= 0:
+            page['log'].append(log)
+            self.save_page(page)
+        self.write(dict(index=index))
+
+    @staticmethod
+    def split_p(i, result, page):
+        page['html'][i] = re.sub(r'>.+</p>', '>{}</p>'.format(result[0]['text']), page['html'][i])
+        for j in range(len(result) - 1, 0, -1):
+            page['html'].insert(i + 1, "<p id='{0}'>{1}</p>".format(result[j]['id'], result[j]['text']))
+
+
+class EndMergeHandler(BaseHandler):
+    URL = '/end-merge'
+
+    def post(self):
+        pid = to_basestring(self.get_argument('id'))
+        html = self.get_argument('html').split('\n')
+
+        page = self.load_page(pid)
+        page['html_end'] = html
+        page['info'].update(step=2)
+        self.save_page(page)
+        self.write({})
+
+
+def make_app():
+    handlers = [HomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler,
+                RowPairsHandler, SplitParagraphHandler, EndMergeHandler]
+    return Application(
+        [(c.URL, c) for c in handlers],
+        debug=options.debug,
+        compiled_template_cache=False,
+        static_path=path.join(BASE_DIR, 'assets'),
+        template_path=THIS_PATH
+    )
+
+
+if __name__ == '__main__':
+    options.parse_command_line()
+    app = make_app()
+    app.listen(options.port)
+    logging.info('Start the service on http://localhost:%d' % (options.port,))
+    ioloop.IOLoop.current().start()
