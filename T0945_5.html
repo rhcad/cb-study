@@ -180,7 +180,7 @@
   $(document).on('mouseenter', '[data-nid]', function (e) {
     const id = e.target.getAttribute('data-nid'),
             p = $(`.note-tag[data-nid=${id}]`), title = p.attr('title') || '';
-    $('footer > p').text(`${p.attr('data-tag')}${id}: ${title}`);
+    $('footer > p').text(`${p.attr('data-tag')}: ${title}`);
   });
 </script>
 </body>
