@@ -9,6 +9,7 @@
 ## 在线预览
 - [《起信论》](http://ggbstudy.top/cb/T1666.html): 梁唐译文对照，有科判导航，嵌入義記、裂網疏的注解
 - [《心经》](http://ggbstudy.top/cb/T0251.html): 七种版本对照
+- [《楞嚴經 卷五》](http://ggbstudy.top/cb/T0945_5.html): 嵌入正脉疏、文句注解
 
 ## 制作工具(maker)
 
@@ -35,11 +36,13 @@
   
   ![step2](doc/step2.jpg)
 
-  3. 对合并后的页面内容进行更多处理或导出网页
+  3. 对合并后的页面内容进行注解嵌入等更多处理，或导出网页
   
   ![step3](doc/step3.jpg)
 
-  TODO: 加入注解的自动嵌入、科判标引功能
+  ![step4](doc/step4.jpg)
+
+  TODO: 加入科判标引功能
 
 ## 开源协议
 

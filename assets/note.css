@@ -19,10 +19,18 @@
 .note-item.active .note-text {
   color: #33c;
 }
+.note-from {
+  font-size: .7em;
+  color: #99a;
+  display: inline-block;
+}
 .note-tag {
-  font-size: 13px;
   color: #aaa;
   cursor: pointer;
+  font-size: .7em;
+}
+.note-tag[data-tag]::after {
+  content: attr(data-tag);
 }
 .note-tag.note-expanded {
   color: #f00;
@@ -32,4 +40,7 @@
 }
 .more {
   cursor: pointer;
+}
+note.note-expanded {
+  color: #229;
 }

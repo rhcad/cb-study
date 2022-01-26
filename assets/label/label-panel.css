@@ -1,17 +1,23 @@
 #content, #merged {
-  margin-right: 25%;
+  margin-right: 30%;
 }
 .label-panel {
   position: fixed;
   right: 0;
   top: 0;
-  width: 25%;
+  width: 30%;
   min-height: 100%;
   padding: 10px;
   margin: 40px 0 10px;
   border: 1px solid #ddd;
   background: #fff;
   z-index: 1000;
+}
+body[data-step="3"] #content {
+  margin-right: 400px;
+}
+body[data-step="3"] .label-panel {
+  width: 400px;
 }
 .label-panel > div.items {
   height: 700px;
@@ -65,4 +71,20 @@ textarea {outline: none;}
 }
 .in-cur-row, .in-cur-row-sel {
   background-color: #dedddc;
+}
+
+.label-panel-bar {
+  text-align: right;
+  border-bottom: 1px solid #ddd;
+  padding: 5px 0;
+  margin-bottom: 5px;
+}
+
+#content:not(.single-article) .row > div {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+#content:not(.single-article) .row > div::-webkit-scrollbar {
+  width: 0;
 }

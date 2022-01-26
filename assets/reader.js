@@ -54,7 +54,6 @@ function showLeftColumn() {
   const $left = $('.cell-0,.original#body0'), $right = $('.cell,.original');
   $right.hide();
   $left.show();
-  $left.parent().parent().addClass('single-article');
   updateColumnStatus();
 }
 
@@ -65,7 +64,6 @@ function showRightColumn() {
   const $left = $('.cell,.original'), $right = $('.cell-1,.original#body1');
   $left.hide();
   $right.show();
-  $left.parent().parent().addClass('single-article');
   updateColumnStatus();
 }
 
@@ -78,34 +76,49 @@ function showTwoColumns() {
       count = $($col[0]).closest('.row').children('div').length;
 
   $col.show();
-  $root.removeClass('single-article').attr('data-col-count', count);
+  $root.attr('data-col-count', count);
   updateColumnStatus();
 }
 
+/**
+ * 得到可见栏的栏序
+ */
+function getVisibleColumns() {
+  const $cols = $( $('.cell,.original')[0]).closest('.row').children('.cell:visible');
+  return $cols.map(function () {
+    const m = Array.from(this.className.matchAll(/cell-(\d+)/g))[0];
+    return parseInt(m && m[1]);
+  }).get().filter(v => !isNaN(v));
+}
+
+/**
+ * 更新按钮和菜单状态
+ */
 function updateColumnStatus() {
-  const liXu = $('#hide-xu').closest('li'), $showXu = $('#show-xu'),
+  const liXu = $('.hide-xu').closest('li'), $showXu = $('.show-xu'),
       $xu = $('.div-xu'), $more = $('#content .xu-more');
 
   liXu.toggleClass('disabled', !$xu.length && !$more.length);
-  liXu.toggleClass('active', $xu.is(':hidden') || $('body').hasClass('hide-div-xu'));
+  liXu.toggleClass('active', $('body').hasClass('hide-div-xu'));
   $showXu.toggleClass('disabled', !$xu.length && !$more.length);
-  $showXu.toggleClass('active', $xu.is(':visible') && !$('body').hasClass('hide-div-xu'));
+  $showXu.toggleClass('active', !$('body').hasClass('hide-div-xu'));
 
   const $left = $('.cell-0,.original#body0'),
       $right = $('.cell-1,.original#body-1'),
-      $col = $('.cell,.original'),
-      allCol = $col.filter((_, c) => $(c).is(':visible')).length === $col.length;
+      $all = $('.cell,.original'),
+      n = $all.filter((_, c) => $(c).is(':visible')).length;
 
   $('#show-left').closest('li').toggleClass('active', $left.is(':visible') && $right.is(':hidden'));
   $('#show-right').closest('li').toggleClass('active', $left.is(':hidden') && $right.is(':visible'));
-  $('#show-both').closest('li').toggleClass('active', allCol);
+  $('#show-both').closest('li').toggleClass('active', n === $all.length);
+  $all.closest('#content,#merged').toggleClass('single-article', n === 1);
 
   $('.toggle-column > button').each(function () {
     const $btn = $(this), text = $btn.text(), idx = parseInt(text) - 1,
         $col = $(`.cell-${idx},.original#body${idx}`);
 
     if (text === '全') {
-      $btn.toggleClass('active', allCol);
+      $btn.toggleClass('active', n === $all.length);
     } else if (idx >= 0) {
       $btn.toggleClass('active', $col.is(':visible'));
       $btn.toggle($col.length > 0);
@@ -289,7 +302,7 @@ function convertToSpanWithTag(tag, value, text) {
  * 切换显隐正文内的科判标记，段内各项分行显示
  */
 function showInlineKePan() {
-  const tree = $.jstree.reference('#judgments');
+  const tree = $.jstree && $.jstree.reference('#judgments');
 
   $('body').toggleClass('show-inline-ke-pan').removeClass('hide-ke-pan-txt');
   $('[ke-pan]').each((i, s) => {
@@ -324,9 +337,12 @@ function showInlineWithoutKePan() {
  * @returns {jQuery} 对应的正文span片段
  */
 function highlightKePan(kePanId, scroll, level) {
-  const tree = $.jstree.reference('#judgments');
+  const tree = $.jstree && $.jstree.reference('#judgments');
   let $s = $('[ke-pan="' + kePanId + '"], [ke-pan^="' + kePanId + 'p"]');
 
+  if (!tree) {
+    return;
+  }
   $s.addClass('highlight');
   if ($s[0]) {
     setTimeout(() => {
@@ -378,7 +394,7 @@ function highlightKePan(kePanId, scroll, level) {
  * @param {string|number} kePanId 科判编号
  */
 function showKePanPath(kePanId) {
-  const tree = $.jstree.reference('#judgments');
+  const tree = $.jstree && $.jstree.reference('#judgments');
   const node = tree && tree.get_node(kePanId);
   let texts = [];
 
@@ -416,24 +432,30 @@ function getKePanId(el) {
 
 /**
  * 根据注解锚点插入注解段落
- * @param {jQuery} $side 占一栏的正文
+ * @param {jQuery} $side 占一栏的正文，如果只有一栏就可为 null
  * @param {Array[]} notes 每个注解元素为一个数组，其元素个数为三的整数倍，依次为注解ID、原文、注解内容
+ * @param {string} [desc] 注解来源
  */
-function insertNotes($side, notes) {
+function insertNotes($side, notes, desc) {
+  $side = $side || $('#content');
   $side.find('.note-tag').each(function() {
     let $tag = $(this),
-      id = parseInt($tag.attr('data-note-id')),
-      note = notes.filter(item => item[0] == id)[0],
-      $judg = $tag.closest('[ke-pan]'),
+      id = parseInt($tag.attr('data-nid')),
+      note = notes.filter(item => item[0] === id)[0],
+      $judg = $tag.closest('[ke-pan],p,.lg'),
       title = [], rows = [];
 
+    if (!note) {
+      return;
+    }
     console.assert(note && note.length % 3 === 0, id + ' mismatch');
     for (let i = 0; i + 2 < note.length; i += 3) {
       title.push(note[i + 1]);
       rows.push('<span class="note-item"><span class="org-text">' +
         (note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
           '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
-        '</span><span class="note-text">' + note[i + 2] + '</span></span>');
+          '</span><span class="note-text">' + note[i + 2] + '</span> ' +
+          (desc ? '<span class="note-from">' + desc + '</span>' : '') + '</span>');
     }
     if (rows.length > 1 && 0) {
       console.log(rows);
@@ -441,10 +463,7 @@ function insertNotes($side, notes) {
       setTimeout(() => $tag.click() );
     }
     $tag.attr('title', title.join('\n'));
-    // s = title.join('|')
-    // if (s.length > 20) s = s.substring(0, 8) + '…<b style="color:#333;">' + s.substring(s.length - 8) + '</b>';
-    // $tag.html($tag.text() + s);
-    $('<p class="note-p" data-note-id="' + id + '">' + rows.join('<br>') + '</p>')
+    $(`<p class="note-p" data-nid="${id}">${ rows.join('<br>') }</p>`)
       .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
   });
 }
@@ -453,7 +472,7 @@ function insertNotes($side, notes) {
 // 在正文有科判标记的span上鼠标掠过
 $(document).on('mouseover', '[ke-pan]', function (e) {
   let kePanId = getKePanId(e.target),
-      tree = $.jstree.reference('#judgments'),
+      tree = $.jstree && $.jstree.reference('#judgments'),
       node = tree && tree.get_node(kePanId),
       sel = 'span[ke-pan="' + kePanId + '"]',
       spans = $(sel),
@@ -501,7 +520,7 @@ $('.ke-pan-ratio a').on('click', function () {
 });
 
 $('#show-line-no').click(toggleLineNo);
-$('#hide-xu').click(toggleXu);
+$('.hide-xu').click(toggleXu);
 $('#show-box').click(toggleParaBox);
 
 $('#show-hide-txt').click(function() {
@@ -515,11 +534,12 @@ $('.toggle-column > button').click(function () {
   if (text === '序') {
     return toggleXu();
   }
-  if (text === '全') {
-    const $col = $('.cell,.original'), all = $col.filter((_, c) => $(c).is(':visible')).length === $col.length;
-    $col.toggle(!all);
-  } else {
+
+  if (idx >= 0) {
     $(`.cell-${idx},.original#body${idx}`).toggle(100);
+  } else {
+    const $all = $('.cell,.original'), n = $all.filter((_, c) => $(c).is(':visible')).length;
+    $all.toggle(n !== $all.length);
   }
   setTimeout(() => updateColumnStatus(), 100);
 });
@@ -536,22 +556,27 @@ $('#show-inline-no-ke-pan').click(showInlineWithoutKePan);
 
 // 单击注解锚点标记则展开注解段落
 $(document).on('click', '.note-tag', function (e) {
-  let $this = $(e.target),
-    id = $this.attr('data-note-id'),
-    $p = $this.closest('.cell-0, .cell-1').find('.note-p[data-note-id=' + id + ']');
+  const $this = $(e.target),
+      id = $this.attr('data-nid'),
+      $cell = $this.closest('.cell,.original'),
+      $p = $cell.find(`.note-p[data-nid=${id}]`);
 
   $p.toggle();
   $this.toggleClass('note-expanded');
+  $cell.find(`note[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
   e.stopPropagation();
 });
 
 // 双击注解段落则收起隐藏
 $(document).on('dblclick', '.note-p', function (e) {
-  let $p = $(e.target).closest('.note-p'),
-    id = $p.attr('data-note-id'),
-    $tag = $p.closest('.cell-0, .cell-1').find('.note-tag[data-note-id=' + id + ']');
+  const $p = $(e.target).closest('.note-p'),
+      id = $p.attr('data-nid'),
+      $cell = $p.closest('.cell,.original'),
+      $tag = $cell.find(`.note-tag[data-nid=${id}]`);
+
   $p.toggle();
   $tag.toggleClass('note-expanded');
+  $cell.find(`note[data-nid=${id}]`).toggleClass('note-expanded', $tag.hasClass('note-expanded'));
   e.stopPropagation();
 });
 
@@ -566,14 +591,14 @@ $('#show-notes').click(function() {
   const $tag = $('.note-tag'), expanded = $('.note-tag.note-expanded').length;
   if ($tag.length) {
     $('.note-p').toggle(!expanded);
-    $('.note-tag').toggleClass('note-expanded', !expanded);
+    $('.note-expanded').toggleClass('note-expanded', !expanded);
     $(this).closest('li').toggleClass('active');
   }
 });
 
 // 单击注释切换当前条
 $(document).on('click', '.note-text', function (e) {
-  $(e.target).closest('.cell-0, .cell-1').find('.note-item').removeClass('active');
+  $(e.target).closest('.cell,.original').find('.note-item').removeClass('active');
   $(e.target).closest('.note-item').addClass('active');
 });
 

@@ -47,7 +47,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
              aria-expanded="false">显示 <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#" id="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+            <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
             <li><a href="#" id="show-notes" title="切换是否显示全部注解">注解</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
@@ -66,7 +66,7 @@
       </ul>
 
       <div class="btn-group toggle-column" role="group">
-        <button type="button" class="btn btn-default btn-sm navbar-btn" id="show-xu">序</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn show-xu">序</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">1</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">2</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">3</button>
@@ -86,20 +86,20 @@
 
 <div class="phone-bar">
   <div class="btn-group toggle-column" role="group">
-      <button type="button" class="btn btn-default btn-sm" id="show-xu">序</button>
-      <button type="button" class="btn btn-default btn-sm">1</button>
-      <button type="button" class="btn btn-default btn-sm">2</button>
-      <button type="button" class="btn btn-default btn-sm">3</button>
-      <button type="button" class="btn btn-default btn-sm">4</button>
-      <button type="button" class="btn btn-default btn-sm">5</button>
-      <button type="button" class="btn btn-default btn-sm">6</button>
-      <button type="button" class="btn btn-default btn-sm">7</button>
-      <button type="button" class="btn btn-default btn-sm">全</button>
-    </div>
-    <div class="btn-group" role="group">
-      <button type="button" class="btn btn-default btn-sm" title="增加正文字号" onclick="enlargeFont()">+</button>
-      <button type="button" class="btn btn-default btn-sm" title="减少正文字号" onclick="reduceFont()">-</button>
-    </div>
+    <button type="button" class="btn btn-default btn-sm show-xu">序</button>
+    <button type="button" class="btn btn-default btn-sm">1</button>
+    <button type="button" class="btn btn-default btn-sm">2</button>
+    <button type="button" class="btn btn-default btn-sm">3</button>
+    <button type="button" class="btn btn-default btn-sm">4</button>
+    <button type="button" class="btn btn-default btn-sm">5</button>
+    <button type="button" class="btn btn-default btn-sm">6</button>
+    <button type="button" class="btn btn-default btn-sm">7</button>
+    <button type="button" class="btn btn-default btn-sm">全</button>
+  </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-default btn-sm" title="增加正文字号" onclick="enlargeFont()">+</button>
+    <button type="button" class="btn btn-default btn-sm" title="减少正文字号" onclick="reduceFont()">-</button>
+  </div>
 </div>
 
 <div id="content" class="container-fluid">
@@ -107,7 +107,7 @@
     <div class="cell cell-0"></div>
     <div class="cell cell-1"></div>
     <div class="cell cell-2">
-      <p id="p31" data-head-level="1" class="head">大明太祖高皇帝御製般若心經序</p>
+      <p id="p31" data-head-level="1" class="head div-xu">大明太祖高皇帝御製般若心經序</p>
       <p id="p32" class="xu-more">二儀久判，萬物備周，子民者君君，育民者法其法也。三綱五常以示天下，亦以五刑輔弼之。有等凶頑不循教者，往往有趨火赴淵之為，終不自省。是凶頑者，非特中國有之，盡天下莫不亦然。俄西域生佛，號曰釋迦，其為佛也，行深願重，始終不二。於是出世間脫苦趣為其效也，仁慈忍辱務明心以立命，執此道而為之，意在人皆在此利濟群生。今時之人罔知佛之所以，每云法空虛而不實，何以導君子、訓小人。以朕言之則不然。佛之教實而不虛，正欲去愚迷之虛，立本性之實，特挺身苦行，外其教而異其名，脫苦有情。昔佛在時，侍從聽從者皆聰明之士，演說者乃三綱五常之性理也。既聞之後，人各獲福白。佛入滅之後，其法流入中國，間有聰明者動演人天小果猶能化凶頑為善，何況聰明者知大乘而識宗旨者乎。如心經每言空不言實，所言之空乃相空耳。除空之外，所存者本性也。所以相空有六，謂口空說相，眼空色相，耳空聽相，鼻空嗅相，舌空味相，身空樂相。其六空之相又非真相之空，乃妄想之相為之空相，是空相愚及世人禍及今古，往往愈墮彌深不知其幾。斯空相，前代帝王被所惑而幾喪天下者，周之穆王，漢之武帝，唐之玄宗，蕭梁武帝，元魏主燾，李後主，宋徽宗。此數帝廢國怠政，惟蕭梁武帝、宋之徽宗以及殺身，皆由妄想飛升及入佛天之地。其佛天之地未嘗渺茫，此等快樂世嘗有之，為人性貪而不覺，而又取其樂人世有之者，何且佛天之地如。為國君及王侯者，若不作非為，善能保守此境，非佛天者何如。不能保守而偽為，用妄想之心即入空虛之境，故有如是，斯空相，富者被纏則婬欲並生喪富矣，貧者被纏則諸詐並作殞身矣，其將賢未賢之人被纏則非仁人君子也，其僧道被纏則不能立本性而見宗旨者也。所以本經題云心經者，正欲去心之邪念以歸正道，豈佛教之妄耶。朕特述此，使聰明者觀二儀之覆載，日月之循環，虛實之孰取，保命者何如。若取有道、保有方，豈不佛法之良哉！色空之妙乎！</p></div>
     <div class="cell cell-3"></div>
     <div class="cell cell-4"></div>
@@ -117,8 +117,8 @@
     <div class="cell cell-0"></div>
     <div class="cell cell-1"></div>
     <div class="cell cell-2">
-      <p id="p33" data-head-level="1" class="head">般若波羅蜜多心經序</p>
-      <p id="p34" class="byline">唐釋慧忠撰</p>
+      <p id="p33" data-head-level="1" class="head div-xu">般若波羅蜜多心經序</p>
+      <p id="p34" class="byline div-xu">唐釋慧忠撰</p>
       <p id="p35" class="xu-more">夫法性無邊，豈藉心之所度；真如非相，詎假言之所詮。是故眾生浩浩無窮，法海茫茫何極。若也廣尋文義，猶如鏡裏求形，更乃息念觀空，又似日中逃影。茲經喻如大地，何物不從地之所生，諸佛唯指一心，何法不因心之所立。但了心地，故號總持，悟法無生，名為妙覺。一念超越，豈在繁論者爾。</p></div>
     <div class="cell cell-3"></div>
     <div class="cell cell-4"></div>
@@ -156,155 +156,155 @@
       <p id="p82" class="byline">國大德三藏法師沙門法成譯</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p3" class="">如是我聞：</p></div>
+      <p id="p3">如是我聞：</p></div>
     <div class="cell cell-1"></div>
     <div class="cell cell-2"></div>
     <div class="cell cell-3">
-      <p id="p48" class="">如是我聞：</p></div>
+      <p id="p48">如是我聞：</p></div>
     <div class="cell cell-4">
-      <p id="p59" class="">如是我聞：</p></div>
+      <p id="p59">如是我聞：</p></div>
     <div class="cell cell-5">
-      <p id="p71" class="">如是我聞：</p></div>
+      <p id="p71">如是我聞：</p></div>
     <div class="cell cell-6">
-      <p id="p83" class="">如是我聞：</p></div></div>
+      <p id="p83">如是我聞：</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p4" class="">一時，佛在王舍城鷲峯山中，有無數大苾芻眾，復十俱胝童子相菩薩摩訶薩。</p></div>
+      <p id="p4">一時，佛在王舍城鷲峯山中，有無數大苾芻眾，復十俱胝童子相菩薩摩訶薩。</p></div>
     <div class="cell cell-1"></div>
     <div class="cell cell-2"></div>
     <div class="cell cell-3">
-      <p id="p49" class="">一時佛在王舍大城靈鷲山中，與大比丘眾滿百千人，菩薩摩訶薩七萬七千人俱，其名曰觀世音菩薩、文殊師利菩薩、彌勒菩薩等，以為上首。皆得三昧總持，住不思議解脫。</p>
-      <p id="p50" class="">爾時觀自在菩薩摩訶薩在彼敷坐，於其眾中即從座起，詣世尊所。面向合掌，曲躬恭敬，瞻仰尊顏而白佛言：「世尊！我欲於此會中，說諸菩薩普遍智藏般若波羅蜜多心。唯願世尊聽我所說，為諸菩薩宣祕法要。」</p></div>
+      <p id="p49">一時佛在王舍大城靈鷲山中，與大比丘眾滿百千人，菩薩摩訶薩七萬七千人俱，其名曰觀世音菩薩、文殊師利菩薩、彌勒菩薩等，以為上首。皆得三昧總持，住不思議解脫。</p>
+      <p id="p50">爾時觀自在菩薩摩訶薩在彼敷坐，於其眾中即從座起，詣世尊所。面向合掌，曲躬恭敬，瞻仰尊顏而白佛言：「世尊！我欲於此會中，說諸菩薩普遍智藏般若波羅蜜多心。唯願世尊聽我所說，為諸菩薩宣祕法要。」</p></div>
     <div class="cell cell-4">
-      <p id="p60" class="">一時佛在王舍城耆闍崛山中，與大比丘眾及菩薩眾俱。時佛世尊即入三昧，名廣大甚深。</p></div>
+      <p id="p60">一時佛在王舍城耆闍崛山中，與大比丘眾及菩薩眾俱。時佛世尊即入三昧，名廣大甚深。</p></div>
     <div class="cell cell-5">
-      <p id="p72" class="">一時薄誐梵住王舍城鷲峯山中，與大苾蒭眾及大菩薩眾俱。爾時，世尊入三摩地，名廣大甚深照見。</p></div>
+      <p id="p72">一時薄誐梵住王舍城鷲峯山中，與大苾蒭眾及大菩薩眾俱。爾時，世尊入三摩地，名廣大甚深照見。</p></div>
     <div class="cell cell-6">
-      <p id="p84" class="">一時薄伽梵住王舍城鷲峯山中，與大苾蒭眾及諸菩薩摩訶薩俱。爾時，世尊等入甚深明了三摩地法之異門。</p></div></div>
+      <p id="p84">一時薄伽梵住王舍城鷲峯山中，與大苾蒭眾及諸菩薩摩訶薩俱。爾時，世尊等入甚深明了三摩地法之異門。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p5" class="">爾時，世尊告帝釋天主：「憍尸迦！此般若波羅蜜，其義甚深。非一非異，非相非無相，非取非捨，非增非損，非有煩惱非無煩惱，非捨非不捨，非住非不住，非相應非不相應，非煩惱非不煩惱，非緣非不緣，非實非不實，非法非不法，非有所歸非無所歸，非實際非不實際。</p></div>
+      <p id="p5">爾時，世尊告帝釋天主：「憍尸迦！此般若波羅蜜，其義甚深。非一非異，非相非無相，非取非捨，非增非損，非有煩惱非無煩惱，非捨非不捨，非住非不住，非相應非不相應，非煩惱非不煩惱，非緣非不緣，非實非不實，非法非不法，非有所歸非無所歸，非實際非不實際。</p></div>
     <div class="cell cell-1">
-      <p id="p23" class="">觀世音菩薩行深般若波羅蜜時，照見五陰空，度一切苦厄。</p></div>
+      <p id="p23">觀世音菩薩行深般若波羅蜜時，照見五陰空，度一切苦厄。</p></div>
     <div class="cell cell-2">
-      <p id="p38" class="">觀自在菩薩行深般若波羅蜜多時，照見五蘊皆空，度一切苦厄。</p></div>
+      <p id="p38">觀自在菩薩行深般若波羅蜜多時，照見五蘊皆空，度一切苦厄。</p></div>
     <div class="cell cell-3">
-      <p id="p50b" class="">爾時，世尊以妙梵音告觀自在菩薩摩訶薩言：「善哉，善哉！具大悲者。聽汝所說，與諸眾生作大光明。」</p>
-      <p id="p51" class="">於是觀自在菩薩摩訶薩蒙佛聽許，佛所護念，入於慧光三昧正受。入此定已，以三昧力行深般若波羅蜜多時，照見五蘊自性皆空。</p></div>
+      <p id="p50b">爾時，世尊以妙梵音告觀自在菩薩摩訶薩言：「善哉，善哉！具大悲者。聽汝所說，與諸眾生作大光明。」</p>
+      <p id="p51">於是觀自在菩薩摩訶薩蒙佛聽許，佛所護念，入於慧光三昧正受。入此定已，以三昧力行深般若波羅蜜多時，照見五蘊自性皆空。</p></div>
     <div class="cell cell-4">
-      <p id="p61" class="">爾時眾中有菩薩摩訶薩，名觀自在，行深般若波羅蜜多時，照見五蘊皆空，離諸苦厄。</p></div>
+      <p id="p61">爾時眾中有菩薩摩訶薩，名觀自在，行深般若波羅蜜多時，照見五蘊皆空，離諸苦厄。</p></div>
     <div class="cell cell-5">
-      <p id="p72b" class="">時眾中有一菩薩摩訶薩，名觀世音自在。行甚深般若波羅蜜多行時，照見五蘊自性皆空。</p></div>
+      <p id="p72b">時眾中有一菩薩摩訶薩，名觀世音自在。行甚深般若波羅蜜多行時，照見五蘊自性皆空。</p></div>
     <div class="cell cell-6">
-      <p id="p84b" class="">復於爾時，觀自在菩薩摩訶薩行深般若波羅蜜多時，觀察照見五蘊體性悉皆是空。</p></div></div>
+      <p id="p84b">復於爾時，觀自在菩薩摩訶薩行深般若波羅蜜多時，觀察照見五蘊體性悉皆是空。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p6" class="">「憍尸迦！如是一切法平等，般若波羅蜜亦平等；一切法寂靜，般若波羅蜜亦寂靜；一切法不動，般若波羅蜜亦不動；一切法分別，般若波羅蜜亦分別；一切法怖畏，般若波羅蜜亦怖畏；一切法了知，般若波羅蜜亦了知；一切法一味，般若波羅蜜亦一味；一切法不生，般若波羅蜜亦不生；一切法不滅，般若波羅蜜亦不滅；一切法虛空妄想，般若波羅蜜亦虛空妄想。</p>
-      <p id="p6b" class="">色無邊，般若波羅蜜亦無邊；如是受、想、行、識無邊，般若波羅蜜亦無邊。</p></div>
+      <p id="p6">「憍尸迦！如是一切法平等，般若波羅蜜亦平等；一切法寂靜，般若波羅蜜亦寂靜；一切法不動，般若波羅蜜亦不動；一切法分別，般若波羅蜜亦分別；一切法怖畏，般若波羅蜜亦怖畏；一切法了知，般若波羅蜜亦了知；一切法一味，般若波羅蜜亦一味；一切法不生，般若波羅蜜亦不生；一切法不滅，般若波羅蜜亦不滅；一切法虛空妄想，般若波羅蜜亦虛空妄想。</p>
+      <p id="p6b">色無邊，般若波羅蜜亦無邊；如是受、想、行、識無邊，般若波羅蜜亦無邊。</p></div>
     <div class="cell cell-1">
-      <p id="p24" class="">「舍利弗！色空故無惱壞相，受空故無受相，想空故無知相，行空故無作相，識空故無覺相。何以故？舍利弗！非色異空，非空異色。色即是空，空即是色。受、想、行、識亦如是。</p></div>
+      <p id="p24">「舍利弗！色空故無惱壞相，受空故無受相，想空故無知相，行空故無作相，識空故無覺相。何以故？舍利弗！非色異空，非空異色。色即是空，空即是色。受、想、行、識亦如是。</p></div>
     <div class="cell cell-2">
-      <p id="p39" class="">「舍利子！色不異空，空不異色，色即是空，空即是色；受、想、行、識，亦復如是。</p></div>
+      <p id="p39">「舍利子！色不異空，空不異色，色即是空，空即是色；受、想、行、識，亦復如是。</p></div>
     <div class="cell cell-3">
-      <p id="p51b" class="">彼了知五蘊自性皆空，從彼三昧安詳而起。即告慧命舍利弗言：「善男子！菩薩有般若波羅蜜多心，名普遍智藏。汝今諦聽，善思念之。吾當為汝分別解說。」作是語已。慧命舍利弗白觀自在菩薩摩訶薩言：「唯，大淨者！願為說之。今正是時。」</p>
-      <p id="p52" class="">於斯告舍利弗：「諸菩薩摩訶薩應如是學。色性是空，空性是色。色不異空，空不異色。色即是空，空即是色。受、想、行、識亦復如是。識性是空，空性是識。識不異空，空不異識。識即是空，空即是識。</p></div>
+      <p id="p51b">彼了知五蘊自性皆空，從彼三昧安詳而起。即告慧命舍利弗言：「善男子！菩薩有般若波羅蜜多心，名普遍智藏。汝今諦聽，善思念之。吾當為汝分別解說。」作是語已。慧命舍利弗白觀自在菩薩摩訶薩言：「唯，大淨者！願為說之。今正是時。」</p>
+      <p id="p52">於斯告舍利弗：「諸菩薩摩訶薩應如是學。色性是空，空性是色。色不異空，空不異色。色即是空，空即是色。受、想、行、識亦復如是。識性是空，空性是識。識不異空，空不異識。識即是空，空即是識。</p></div>
     <div class="cell cell-4">
-      <p id="p61b" class="">即時舍利弗承佛威力，合掌恭敬白觀自在菩薩摩訶薩言：「善男子！若有欲學甚深般若波羅蜜多行者，云何修行？」如是問已。</p>
-      <p id="p62" class="">爾時觀自在菩薩摩訶薩告具壽舍利弗言：「舍利子！若善男子、善女人行甚深般若波羅蜜多行時，應觀五蘊性空。舍利子！色不異空，空不異色。色即是空，空即是色。受、想、行、識亦復如是。</p></div>
+      <p id="p61b">即時舍利弗承佛威力，合掌恭敬白觀自在菩薩摩訶薩言：「善男子！若有欲學甚深般若波羅蜜多行者，云何修行？」如是問已。</p>
+      <p id="p62">爾時觀自在菩薩摩訶薩告具壽舍利弗言：「舍利子！若善男子、善女人行甚深般若波羅蜜多行時，應觀五蘊性空。舍利子！色不異空，空不異色。色即是空，空即是色。受、想、行、識亦復如是。</p></div>
     <div class="cell cell-5">
-      <p id="p73" class="">即時具壽舍利子，承佛威神，合掌恭敬，白觀世音自在菩薩摩訶薩言：「聖者！若有欲學甚深般若波羅蜜多行，云何修行？」如是問已。</p>
-      <p id="p74" class="">爾時，觀世音自在菩薩摩訶薩告具壽舍利子言：「舍利子！若有善男子、善女人，行甚深般若波羅蜜多行時，應照見五蘊自性皆空，離諸苦厄。舍利子！色空，空性見色。色不異空，空不異色。是色即空，是空即色。受、想、行、識亦復如是。</p></div>
+      <p id="p73">即時具壽舍利子，承佛威神，合掌恭敬，白觀世音自在菩薩摩訶薩言：「聖者！若有欲學甚深般若波羅蜜多行，云何修行？」如是問已。</p>
+      <p id="p74">爾時，觀世音自在菩薩摩訶薩告具壽舍利子言：「舍利子！若有善男子、善女人，行甚深般若波羅蜜多行時，應照見五蘊自性皆空，離諸苦厄。舍利子！色空，空性見色。色不異空，空不異色。是色即空，是空即色。受、想、行、識亦復如是。</p></div>
     <div class="cell cell-6">
-      <p id="p85" class="">時，具壽舍利子，承佛威力，白聖者觀自在菩薩摩訶薩曰：「若善男子欲修行甚深般若波羅蜜多者，復當云何修學？」作是語已。</p>
-      <p id="p86" class="">觀自在菩薩摩訶薩答具壽舍利子言：「若善男子及善女人，欲修行甚深般若波羅蜜多者，彼應如是觀察，五蘊體性皆空。色即是空，空即是色。色不異空，空不異色。如是受、想、行、識亦復皆空。</p></div></div>
+      <p id="p85">時，具壽舍利子，承佛威力，白聖者觀自在菩薩摩訶薩曰：「若善男子欲修行甚深般若波羅蜜多者，復當云何修學？」作是語已。</p>
+      <p id="p86">觀自在菩薩摩訶薩答具壽舍利子言：「若善男子及善女人，欲修行甚深般若波羅蜜多者，彼應如是觀察，五蘊體性皆空。色即是空，空即是色。色不異空，空不異色。如是受、想、行、識亦復皆空。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p6c" class="">地界無邊，般若波羅蜜亦無邊；如是水界、火界、風界、空界、識界無邊，般若波羅蜜亦無邊。</p></div>
+      <p id="p6c">地界無邊，般若波羅蜜亦無邊；如是水界、火界、風界、空界、識界無邊，般若波羅蜜亦無邊。</p></div>
     <div class="cell cell-1">
-      <p id="p25" class="">「舍利弗！是諸法空相，不生不滅，不垢不淨，不增不減。是空法，非過去、非未來、非現在。</p></div>
+      <p id="p25">「舍利弗！是諸法空相，不生不滅，不垢不淨，不增不減。是空法，非過去、非未來、非現在。</p></div>
     <div class="cell cell-2">
-      <p id="p40" class="">「舍利子！是諸法空相，不生不滅，不垢不淨，不增不減。</p></div>
+      <p id="p40">「舍利子！是諸法空相，不生不滅，不垢不淨，不增不減。</p></div>
     <div class="cell cell-3">
-      <p id="p52b" class="">舍利子！是諸法空相，不生不滅、不垢不淨、不增不減。</p></div>
+      <p id="p52b">舍利子！是諸法空相，不生不滅、不垢不淨、不增不減。</p></div>
     <div class="cell cell-4">
-      <p id="p62b" class="">舍利子！是諸法空相，不生不滅、不垢不淨、不增不減。</p></div>
+      <p id="p62b">舍利子！是諸法空相，不生不滅、不垢不淨、不增不減。</p></div>
     <div class="cell cell-5">
-      <p id="p74b" class="">舍利子！是諸法性相空，不生不滅、不垢不淨、不減不增。</p></div>
+      <p id="p74b">舍利子！是諸法性相空，不生不滅、不垢不淨、不減不增。</p></div>
     <div class="cell cell-6">
-      <p id="p86b" class="">是故舍利子！一切法空性無相，無生無滅，無垢離垢，無減無增。</p></div></div>
+      <p id="p86b">是故舍利子！一切法空性無相，無生無滅，無垢離垢，無減無增。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p6d" class="">金剛平等，般若波羅蜜亦平等。一切法不壞，般若波羅蜜亦不壞；一切法性不可得，般若波羅蜜亦不可得；一切法性平等，般若波羅蜜亦平等；一切法無性，般若波羅蜜亦無性；一切法不思議，般若波羅蜜亦不思議。</p></div>
+      <p id="p6d">金剛平等，般若波羅蜜亦平等。一切法不壞，般若波羅蜜亦不壞；一切法性不可得，般若波羅蜜亦不可得；一切法性平等，般若波羅蜜亦平等；一切法無性，般若波羅蜜亦無性；一切法不思議，般若波羅蜜亦不思議。</p></div>
     <div class="cell cell-1">
-      <p id="p25b" class="">是故空中無色，無受、想、行、識，</p></div>
+      <p id="p25b">是故空中無色，無受、想、行、識，</p></div>
     <div class="cell cell-2">
-      <p id="p40b" class="">是故，空中無色，無受、想、行、識；</p></div>
+      <p id="p40b">是故，空中無色，無受、想、行、識；</p></div>
     <div class="cell cell-3">
-      <p id="p52c" class="">是故空中無色，無受、想、行、識，</p></div>
+      <p id="p52c">是故空中無色，無受、想、行、識，</p></div>
     <div class="cell cell-4">
-      <p id="p62c" class="">是故空中無色，無受、想、行、識，</p></div>
+      <p id="p62c">是故空中無色，無受、想、行、識，</p></div>
     <div class="cell cell-5">
-      <p id="p74c" class="">是故空中無色，無受、想、行、識，</p></div>
+      <p id="p74c">是故空中無色，無受、想、行、識，</p></div>
     <div class="cell cell-6">
-      <p id="p86c" class="">舍利子！是故爾時空性之中，無色、無受、無想、無行亦無有識。</p></div></div>
+      <p id="p86c">舍利子！是故爾時空性之中，無色、無受、無想、無行亦無有識。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p6e" class="">如是布施波羅蜜、持戒波羅蜜、忍辱波羅蜜、精進波羅蜜、禪定波羅蜜、方便波羅蜜、願波羅蜜力波羅蜜，智波羅蜜亦不可思議。三業清淨，般若波羅蜜亦清淨。如是般若波羅蜜，其義無邊。</p></div>
+      <p id="p6e">如是布施波羅蜜、持戒波羅蜜、忍辱波羅蜜、精進波羅蜜、禪定波羅蜜、方便波羅蜜、願波羅蜜力波羅蜜，智波羅蜜亦不可思議。三業清淨，般若波羅蜜亦清淨。如是般若波羅蜜，其義無邊。</p></div>
     <div class="cell cell-1">
-      <p id="p25c" class="">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界，</p></div>
+      <p id="p25c">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界，</p></div>
     <div class="cell cell-2">
-      <p id="p40c" class="">無眼、耳、鼻、舌、身、意；無色、聲、香、味、觸、法；無眼界，乃至無意識界；</p></div>
+      <p id="p40c">無眼、耳、鼻、舌、身、意；無色、聲、香、味、觸、法；無眼界，乃至無意識界；</p></div>
     <div class="cell cell-3">
-      <p id="p52d" class="">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界。</p></div>
+      <p id="p52d">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界。</p></div>
     <div class="cell cell-4">
-      <p id="p62d" class="">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界。</p></div>
+      <p id="p62d">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界。</p></div>
     <div class="cell cell-5">
-      <p id="p74d" class="">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界。</p></div>
+      <p id="p74d">無眼、耳、鼻、舌、身、意，無色、聲、香、味、觸、法，無眼界乃至無意識界。</p></div>
     <div class="cell cell-6">
-      <p id="p86d" class="">無眼、無耳、無鼻、無舌、無身、無意。無色、無聲、無香、無味、無觸、無法。無眼界乃至無意識界。</p></div></div>
+      <p id="p86d">無眼、無耳、無鼻、無舌、無身、無意。無色、無聲、無香、無味、無觸、無法。無眼界乃至無意識界。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p7" class="">「復次，憍尸迦！所有十八空。何等十八空？內空、外空、內外空、空空、大空、勝義空、有為空、無為空、無際空、無變異空、無始空、本性空、自相空、無相空、無性空、自性空、無性自性空、一切法空。頌曰：</p></div>
+      <p id="p7">「復次，憍尸迦！所有十八空。何等十八空？內空、外空、內外空、空空、大空、勝義空、有為空、無為空、無際空、無變異空、無始空、本性空、自相空、無相空、無性空、自性空、無性自性空、一切法空。頌曰：</p></div>
     <div class="cell cell-1">
-      <p id="p25d" class="">無無明亦無無明盡，乃至無老死無老死盡，</p></div>
+      <p id="p25d">無無明亦無無明盡，乃至無老死無老死盡，</p></div>
     <div class="cell cell-2">
-      <p id="p40d" class="">無無明亦無無明盡，乃至無老死亦無老死盡；</p></div>
+      <p id="p40d">無無明亦無無明盡，乃至無老死亦無老死盡；</p></div>
     <div class="cell cell-3">
-      <p id="p52e" class="">無無明亦無無明盡，乃至無老死亦無老死盡。</p></div>
+      <p id="p52e">無無明亦無無明盡，乃至無老死亦無老死盡。</p></div>
     <div class="cell cell-4">
-      <p id="p62e" class="">無無明亦無無明盡，乃至無老死亦無老死盡。</p></div>
+      <p id="p62e">無無明亦無無明盡，乃至無老死亦無老死盡。</p></div>
     <div class="cell cell-5">
-      <p id="p74e" class="">無無明亦無無明盡，乃至無老死盡。</p></div>
+      <p id="p74e">無無明亦無無明盡，乃至無老死盡。</p></div>
     <div class="cell cell-6">
-      <p id="p86e" class="">無無明亦無無明盡，乃至無老死亦無老死盡。</p></div></div>
+      <p id="p86e">無無明亦無無明盡，乃至無老死亦無老死盡。</p></div></div>
   <div class="row">
     <div class="cell cell-0"></div>
     <div class="cell cell-1">
-      <p id="p25e" class="">無苦、集、滅、道，無智亦無得。</p></div>
+      <p id="p25e">無苦、集、滅、道，無智亦無得。</p></div>
     <div class="cell cell-2">
-      <p id="p40e" class="">無苦、集、滅、道；無智，亦無得。</p></div>
+      <p id="p40e">無苦、集、滅、道；無智，亦無得。</p></div>
     <div class="cell cell-3">
-      <p id="p52f" class="">無苦、集、滅道，無智亦無得。</p></div>
+      <p id="p52f">無苦、集、滅道，無智亦無得。</p></div>
     <div class="cell cell-4">
-      <p id="p62f" class="">無苦、集、滅、道，無智亦無得。</p></div>
+      <p id="p62f">無苦、集、滅、道，無智亦無得。</p></div>
     <div class="cell cell-5">
-      <p id="p74f" class="">無苦、集、滅、道，無智證無得。</p></div>
+      <p id="p74f">無苦、集、滅、道，無智證無得。</p></div>
     <div class="cell cell-6">
-      <p id="p86f" class="">無苦、集、滅、道，無智無得亦無不得。</p></div></div>
+      <p id="p86f">無苦、集、滅、道，無智無得亦無不得。</p></div></div>
   <div class="row">
     <div class="cell cell-0"></div>
     <div class="cell cell-1">
-      <p id="p26" class="">「以無所得故，菩薩依般若波羅蜜故，心無罣礙。無罣礙故，無有恐怖，離一切顛倒夢想苦惱，究竟涅槃。三世諸佛依般若波羅蜜故，得阿耨多羅三藐三菩提。</p></div>
+      <p id="p26">「以無所得故，菩薩依般若波羅蜜故，心無罣礙。無罣礙故，無有恐怖，離一切顛倒夢想苦惱，究竟涅槃。三世諸佛依般若波羅蜜故，得阿耨多羅三藐三菩提。</p></div>
     <div class="cell cell-2">
-      <p id="p41" class="">「以無所得故，菩提薩埵依般若波羅蜜多故，心無罣礙；無罣礙故，無有恐怖，遠離顛倒夢想，究竟涅槃。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提。</p></div>
+      <p id="p41">「以無所得故，菩提薩埵依般若波羅蜜多故，心無罣礙；無罣礙故，無有恐怖，遠離顛倒夢想，究竟涅槃。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提。</p></div>
     <div class="cell cell-3">
-      <p id="p52g" class="">以無所得故，菩提薩埵依般若波羅蜜多故，心無罣礙。無罣礙故，無有恐怖，遠離顛倒夢想，究竟涅槃。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提。</p></div>
+      <p id="p52g">以無所得故，菩提薩埵依般若波羅蜜多故，心無罣礙。無罣礙故，無有恐怖，遠離顛倒夢想，究竟涅槃。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提。</p></div>
     <div class="cell cell-4">
-      <p id="p62g" class="">以無所得故，菩提薩埵依般若波羅蜜多故心無罣礙。無罣礙故，無有恐怖，遠離顛倒夢想，究竟涅槃。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提。</p></div>
+      <p id="p62g">以無所得故，菩提薩埵依般若波羅蜜多故心無罣礙。無罣礙故，無有恐怖，遠離顛倒夢想，究竟涅槃。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提。</p></div>
     <div class="cell cell-5">
-      <p id="p74g" class="">以無所得故，菩提薩埵依般若波羅蜜多住，心無障礙。心無障礙故，無有恐怖，遠離顛倒夢想，究竟寂然。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提，現成正覺。</p></div>
+      <p id="p74g">以無所得故，菩提薩埵依般若波羅蜜多住，心無障礙。心無障礙故，無有恐怖，遠離顛倒夢想，究竟寂然。三世諸佛依般若波羅蜜多故，得阿耨多羅三藐三菩提，現成正覺。</p></div>
     <div class="cell cell-6">
-      <p id="p86g" class="">是故舍利子！以無所得故，諸菩薩眾依止般若波羅蜜多，心無障礙，無有恐怖，超過顛倒，究竟涅槃。三世一切諸佛亦皆依般若波羅蜜多故，證得無上正等菩提。</p></div></div>
+      <p id="p86g">是故舍利子！以無所得故，諸菩薩眾依止般若波羅蜜多，心無障礙，無有恐怖，超過顛倒，究竟涅槃。三世一切諸佛亦皆依般若波羅蜜多故，證得無上正等菩提。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
       <div id="g1" class="lg">
@@ -320,44 +320,44 @@
         <div id="g1-10" class="lg-row"><div class="lg-cell">供養諸如來，　　大明真祕密。</div></div>
       </div></div>
     <div class="cell cell-1">
-      <p id="p27" class="">「故知般若波羅蜜是大明呪、無上明呪、無等等明呪，能除一切苦，真實不虛。故說般若波羅蜜呪。」</p></div>
+      <p id="p27">「故知般若波羅蜜是大明呪、無上明呪、無等等明呪，能除一切苦，真實不虛。故說般若波羅蜜呪。」</p></div>
     <div class="cell cell-2">
-      <p id="p42" class="">「故知般若波羅蜜多是大神咒、是大明咒、是無上咒、是無等等咒，能除一切苦，真實不虛，故說般若波羅蜜多咒。」</p></div>
+      <p id="p42">「故知般若波羅蜜多是大神咒、是大明咒、是無上咒、是無等等咒，能除一切苦，真實不虛，故說般若波羅蜜多咒。」</p></div>
     <div class="cell cell-3">
-      <p id="p52h" class="">故知般若波羅蜜多是大神呪、是大明呪、是無上呪、是無等等呪，能除一切苦，真實不虛。故說般若波羅蜜多呪。」</p></div>
+      <p id="p52h">故知般若波羅蜜多是大神呪、是大明呪、是無上呪、是無等等呪，能除一切苦，真實不虛。故說般若波羅蜜多呪。」</p></div>
     <div class="cell cell-4">
-      <p id="p62h" class="">故知般若波羅蜜多是大神呪、是大明呪、是無上呪、是無等等呪，能除一切苦，真實不虛。故說般若波羅蜜多呪。」</p></div>
+      <p id="p62h">故知般若波羅蜜多是大神呪、是大明呪、是無上呪、是無等等呪，能除一切苦，真實不虛。故說般若波羅蜜多呪。」</p></div>
     <div class="cell cell-5">
-      <p id="p74h" class="">故知般若波羅蜜多是大真言、是大明真言、是無上真言、是無等等真言，能除一切苦，真實不虛。故說般若波羅蜜多真言。」</p></div>
+      <p id="p74h">故知般若波羅蜜多是大真言、是大明真言、是無上真言、是無等等真言，能除一切苦，真實不虛。故說般若波羅蜜多真言。」</p></div>
     <div class="cell cell-6">
-      <p id="p86h" class="">舍利子！是故當知般若波羅蜜多大密咒者，是大明咒，是無上咒，是無等等咒。能除一切諸苦之咒，真實無倒。故知般若波羅蜜多是祕密咒。」</p></div></div>
+      <p id="p86h">舍利子！是故當知般若波羅蜜多大密咒者，是大明咒，是無上咒，是無等等咒。能除一切諸苦之咒，真實無倒。故知般若波羅蜜多是祕密咒。」</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p8" class="">「真言曰：</p></div>
+      <p id="p8">「真言曰：</p></div>
     <div class="cell cell-1">
-      <p id="p28" class="">即說呪曰：</p></div>
+      <p id="p28">即說呪曰：</p></div>
     <div class="cell cell-2">
-      <p id="p43" class="">即說咒曰：</p></div>
+      <p id="p43">即說咒曰：</p></div>
     <div class="cell cell-3">
-      <p id="p53" class="">即說呪曰：</p></div>
+      <p id="p53">即說呪曰：</p></div>
     <div class="cell cell-4">
-      <p id="p63" class="">即說呪曰：</p></div>
+      <p id="p63">即說呪曰：</p></div>
     <div class="cell cell-5">
-      <p id="p75" class="">即說真言：</p></div>
+      <p id="p75">即說真言：</p></div>
     <div class="cell cell-6">
-      <p id="p87" class="">即說般若波羅蜜多咒曰：</p></div></div>
+      <p id="p87">即說般若波羅蜜多咒曰：</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p9" class="">「怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>倪鉢囉<span class="doube-line-note">二合</span>倪　摩賀<span class="doube-line-note">引</span>鉢囉<span class="doube-line-note">二合</span>倪鉢囉<span class="doube-line-note">二合</span>倪嚩婆<span class="doube-line-note">引</span>細　鉢囉<span class="doube-line-note">二合</span>倪魯迦迦哩<span class="doube-line-note">引</span>阿倪也<span class="doube-line-note">二合</span>曩尾馱摩儞<span class="doube-line-note">去</span>　悉提<span class="doube-line-note">引</span>　蘇悉提　悉𠆙<span class="doube-line-note">切身</span>覩𤚥婆誐嚩帝　薩哩鑁<span class="doube-line-note">二合、引</span>誐遜那哩<span class="doube-line-note">去</span>　跋訖帝<span class="doube-line-note">二合</span>晚娑隷<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>娑<span class="doube-line-note">引</span>哩多賀悉帝<span class="doube-line-note">二合、引</span>三摩<span class="doube-line-note">引</span>娑嚩<span class="doube-line-note">二合</span>娑迦哩　悉𠆙<span class="doube-line-note">切身</span>悉𠆙<span class="doube-line-note">切身</span>　沒𠆙沒𠆙　劍波劍波　左攞左攞　囉<span class="doube-line-note">引</span>嚩囉<span class="doube-line-note">引</span>嚩　阿<span class="doube-line-note">引</span>誐蹉阿<span class="doube-line-note">引</span>誐蹉　婆誐嚩帝摩<span class="doube-line-note">引</span>尾攞　莎娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p10" class="">「曩謨達哩謨<span class="doube-line-note">二合</span>捺誐<span class="doube-line-note">二合</span>多寫冒地薩埵寫　摩賀<span class="doube-line-note">引</span>薩埵寫　摩賀<span class="doube-line-note">引</span>迦嚕尼迦寫　曩謨娑那<span class="doube-line-note">引</span>鉢囉<span class="doube-line-note">二合</span>嚕禰怛寫冒地薩埵寫　摩賀<span class="doube-line-note">引</span>薩埵寫　摩賀<span class="doube-line-note">引</span>迦嚕尼迦寫　曩謨<span class="doube-line-note">入</span>鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他牟儞達哩彌<span class="doube-line-note">二合、引</span>　僧誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合</span>　阿努誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合</span>　尾目訖多<span class="doube-line-note">二合</span>達哩彌<span class="doube-line-note">二合</span>薩埵<span class="doube-line-note">引</span>努誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合</span>　吠室囉<span class="doube-line-note">二合</span>嚩拏達哩彌<span class="doube-line-note">二合</span>　三滿多<span class="doube-line-note">引</span>努波哩嚩哩多<span class="doube-line-note">二合</span>曩達哩彌<span class="doube-line-note">二合、引</span>虞拏誐囉<span class="doube-line-note">二合</span>賀僧誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合、引</span>　薩哩嚩<span class="doube-line-note">二合</span>怛囉<span class="doube-line-note">二合、引</span>努誐多達哩彌<span class="doube-line-note">二合、引</span>　薩哩嚩<span class="doube-line-note">二合</span>迦<span class="doube-line-note">引</span>羅波哩鉢囉<span class="doube-line-note">二合、引</span>波拏達哩彌<span class="doube-line-note">二合、引</span>　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>　阿佉儞曩佉儞阿佉曩儞佉儞阿嚩羅晚馱儞半那儞半那儞鉢捺哩　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p11" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>昂誐<span class="doube-line-note">引</span>昂誐<span class="doube-line-note">引</span>曩帝囉<span class="doube-line-note">引</span>昂誐<span class="doube-line-note">引</span>曩帝曩<span class="doube-line-note">引</span>嚩婆<span class="doube-line-note">引</span>娑昂誐<span class="doube-line-note">引</span>娑嚩<span class="doube-line-note">二合、引</span>賀</p>
-      <p id="p12" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>　室哩<span class="doube-line-note">二合</span>曳<span class="doube-line-note">引</span>室哩<span class="doube-line-note">二合</span>曳<span class="doube-line-note">引</span>　牟儞室哩<span class="doube-line-note">二合</span>曳<span class="doube-line-note">引</span>　牟儞室哩<span class="doube-line-note">二合</span>野細　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他　唵<span class="doube-line-note">引</span>　嚩<span class="gaiji" data-gid="CB00759">𭍒</span><span class="doube-line-note">二合</span>　未隷<span class="doube-line-note">引</span>　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p13" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉禰多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>唵紇凌<span class="doube-line-note">二合</span>室凌<span class="doube-line-note">二合</span>特凌<span class="doube-line-note">二合</span>室嚕<span class="doube-line-note">二合</span>帝特哩<span class="doube-line-note">二合</span>帝娑蜜哩<span class="doube-line-note">二合</span>誐帝尾曳<span class="doube-line-note">引</span>惹娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p14" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>鑁嚩哩鑁嚩哩摩賀<span class="doube-line-note">引</span>鑁嚩哩度嚕度嚕摩賀<span class="doube-line-note">引</span>度嚕娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p15" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>虎帝虎帝虎多<span class="doube-line-note">引</span>設儞薩哩嚩<span class="doube-line-note">二合</span>迦哩摩<span class="doube-line-note">二合</span>嚩囉拏儞娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p16" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>唵<span class="doube-line-note">引</span>阿嚕黎迦娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p17" class="">「曩謨鉢囉倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>唵<span class="doube-line-note">引</span>薩哩嚩<span class="doube-line-note">二合</span>尾覩<span class="doube-line-note">入聲</span>娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
-      <p id="p18" class="">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>誐帝誐帝波<span class="doube-line-note">引</span>囕誐帝波<span class="doube-line-note">引</span>囉僧誐帝冒地娑嚩<span class="doube-line-note">二合、引</span>賀」</p></div>
+      <p id="p9">「怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>倪鉢囉<span class="doube-line-note">二合</span>倪　摩賀<span class="doube-line-note">引</span>鉢囉<span class="doube-line-note">二合</span>倪鉢囉<span class="doube-line-note">二合</span>倪嚩婆<span class="doube-line-note">引</span>細　鉢囉<span class="doube-line-note">二合</span>倪魯迦迦哩<span class="doube-line-note">引</span>阿倪也<span class="doube-line-note">二合</span>曩尾馱摩儞<span class="doube-line-note">去</span>　悉提<span class="doube-line-note">引</span>　蘇悉提　悉𠆙<span class="doube-line-note">切身</span>覩𤚥婆誐嚩帝　薩哩鑁<span class="doube-line-note">二合、引</span>誐遜那哩<span class="doube-line-note">去</span>　跋訖帝<span class="doube-line-note">二合</span>晚娑隷<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>娑<span class="doube-line-note">引</span>哩多賀悉帝<span class="doube-line-note">二合、引</span>三摩<span class="doube-line-note">引</span>娑嚩<span class="doube-line-note">二合</span>娑迦哩　悉𠆙<span class="doube-line-note">切身</span>悉𠆙<span class="doube-line-note">切身</span>　沒𠆙沒𠆙　劍波劍波　左攞左攞　囉<span class="doube-line-note">引</span>嚩囉<span class="doube-line-note">引</span>嚩　阿<span class="doube-line-note">引</span>誐蹉阿<span class="doube-line-note">引</span>誐蹉　婆誐嚩帝摩<span class="doube-line-note">引</span>尾攞　莎娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p10">「曩謨達哩謨<span class="doube-line-note">二合</span>捺誐<span class="doube-line-note">二合</span>多寫冒地薩埵寫　摩賀<span class="doube-line-note">引</span>薩埵寫　摩賀<span class="doube-line-note">引</span>迦嚕尼迦寫　曩謨娑那<span class="doube-line-note">引</span>鉢囉<span class="doube-line-note">二合</span>嚕禰怛寫冒地薩埵寫　摩賀<span class="doube-line-note">引</span>薩埵寫　摩賀<span class="doube-line-note">引</span>迦嚕尼迦寫　曩謨<span class="doube-line-note">入</span>鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他牟儞達哩彌<span class="doube-line-note">二合、引</span>　僧誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合</span>　阿努誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合</span>　尾目訖多<span class="doube-line-note">二合</span>達哩彌<span class="doube-line-note">二合</span>薩埵<span class="doube-line-note">引</span>努誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合</span>　吠室囉<span class="doube-line-note">二合</span>嚩拏達哩彌<span class="doube-line-note">二合</span>　三滿多<span class="doube-line-note">引</span>努波哩嚩哩多<span class="doube-line-note">二合</span>曩達哩彌<span class="doube-line-note">二合、引</span>虞拏誐囉<span class="doube-line-note">二合</span>賀僧誐囉<span class="doube-line-note">二合</span>賀達哩彌<span class="doube-line-note">二合、引</span>　薩哩嚩<span class="doube-line-note">二合</span>怛囉<span class="doube-line-note">二合、引</span>努誐多達哩彌<span class="doube-line-note">二合、引</span>　薩哩嚩<span class="doube-line-note">二合</span>迦<span class="doube-line-note">引</span>羅波哩鉢囉<span class="doube-line-note">二合、引</span>波拏達哩彌<span class="doube-line-note">二合、引</span>　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>　阿佉儞曩佉儞阿佉曩儞佉儞阿嚩羅晚馱儞半那儞半那儞鉢捺哩　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p11">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>昂誐<span class="doube-line-note">引</span>昂誐<span class="doube-line-note">引</span>曩帝囉<span class="doube-line-note">引</span>昂誐<span class="doube-line-note">引</span>曩帝曩<span class="doube-line-note">引</span>嚩婆<span class="doube-line-note">引</span>娑昂誐<span class="doube-line-note">引</span>娑嚩<span class="doube-line-note">二合、引</span>賀</p>
+      <p id="p12">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>　室哩<span class="doube-line-note">二合</span>曳<span class="doube-line-note">引</span>室哩<span class="doube-line-note">二合</span>曳<span class="doube-line-note">引</span>　牟儞室哩<span class="doube-line-note">二合</span>曳<span class="doube-line-note">引</span>　牟儞室哩<span class="doube-line-note">二合</span>野細　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span>　鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>　曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他　唵<span class="doube-line-note">引</span>　嚩<span class="gaiji" data-gid="CB00759">𭍒</span><span class="doube-line-note">二合</span>　未隷<span class="doube-line-note">引</span>　娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p13">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉禰多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>唵紇凌<span class="doube-line-note">二合</span>室凌<span class="doube-line-note">二合</span>特凌<span class="doube-line-note">二合</span>室嚕<span class="doube-line-note">二合</span>帝特哩<span class="doube-line-note">二合</span>帝娑蜜哩<span class="doube-line-note">二合</span>誐帝尾曳<span class="doube-line-note">引</span>惹娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p14">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>鑁嚩哩鑁嚩哩摩賀<span class="doube-line-note">引</span>鑁嚩哩度嚕度嚕摩賀<span class="doube-line-note">引</span>度嚕娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p15">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>虎帝虎帝虎多<span class="doube-line-note">引</span>設儞薩哩嚩<span class="doube-line-note">二合</span>迦哩摩<span class="doube-line-note">二合</span>嚩囉拏儞娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p16">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>唵<span class="doube-line-note">引</span>阿嚕黎迦娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p17">「曩謨鉢囉倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳<span class="doube-line-note">引</span>怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>唵<span class="doube-line-note">引</span>薩哩嚩<span class="doube-line-note">二合</span>尾覩<span class="doube-line-note">入聲</span>娑嚩<span class="doube-line-note">二合、引</span>賀<span class="doube-line-note">引</span></p>
+      <p id="p18">「曩謨鉢囉<span class="doube-line-note">二合</span>倪也<span class="doube-line-note">二合</span>波<span class="doube-line-note">引</span>囉彌多<span class="doube-line-note">引</span>曳怛儞也<span class="doube-line-note">二合</span>他<span class="doube-line-note">引</span>誐帝誐帝波<span class="doube-line-note">引</span>囕誐帝波<span class="doube-line-note">引</span>囉僧誐帝冒地娑嚩<span class="doube-line-note">二合、引</span>賀」</p></div>
     <div class="cell cell-1">
       <p id="p29" class="dharani">「竭帝　竭帝　波羅竭帝　波羅僧竭帝　菩提　僧莎呵」</p></div>
     <div class="cell cell-2">
@@ -372,23 +372,23 @@
       <p id="p88" class="dharani">「峩帝　峩帝　波囉峩帝　波囉僧峩帝　菩提　莎訶</p></div></div>
   <div class="row">
     <div class="cell cell-0">
-      <p id="p19" class="">爾時，世尊說此經已，帝釋天主及諸菩薩摩訶薩、天、人、乾闥婆、阿修羅等，一切大眾，聞佛所說，皆大歡喜，信受奉行。</p></div>
+      <p id="p19">爾時，世尊說此經已，帝釋天主及諸菩薩摩訶薩、天、人、乾闥婆、阿修羅等，一切大眾，聞佛所說，皆大歡喜，信受奉行。</p></div>
     <div class="cell cell-1"></div>
     <div class="cell cell-2"></div>
     <div class="cell cell-3">
-      <p id="p55" class="">佛說是經已，諸比丘及菩薩眾，一切世間天、人、阿脩羅、乾闥婆等，聞佛所說，皆大歡喜，信受奉行。</p></div>
+      <p id="p55">佛說是經已，諸比丘及菩薩眾，一切世間天、人、阿脩羅、乾闥婆等，聞佛所說，皆大歡喜，信受奉行。</p></div>
     <div class="cell cell-4">
-      <p id="p65" class="">「如是，舍利弗！諸菩薩摩訶薩於甚深般若波羅蜜多行，應如是行。」如是說已。</p>
-      <p id="p66" class="">即時，世尊從廣大甚深三摩地起，讚觀自在菩薩摩訶薩言：「善哉，善哉！善男子！如是，如是！如汝所說。甚深般若波羅蜜多行，應如是行。如是行時，一切如來皆悉隨喜。」</p>
-      <p id="p67" class="">爾時世尊說是語已，具壽舍利弗大喜充遍，觀自在菩薩摩訶薩亦大歡喜。時彼眾會天、人、阿修羅、乾闥婆等，聞佛所說，皆大歡喜，信受奉行。</p></div>
+      <p id="p65">「如是，舍利弗！諸菩薩摩訶薩於甚深般若波羅蜜多行，應如是行。」如是說已。</p>
+      <p id="p66">即時，世尊從廣大甚深三摩地起，讚觀自在菩薩摩訶薩言：「善哉，善哉！善男子！如是，如是！如汝所說。甚深般若波羅蜜多行，應如是行。如是行時，一切如來皆悉隨喜。」</p>
+      <p id="p67">爾時世尊說是語已，具壽舍利弗大喜充遍，觀自在菩薩摩訶薩亦大歡喜。時彼眾會天、人、阿修羅、乾闥婆等，聞佛所說，皆大歡喜，信受奉行。</p></div>
     <div class="cell cell-5">
-      <p id="p77" class="">「如是，舍利子！諸菩薩摩訶薩，於甚深般若波羅蜜多行，應如是學。」</p>
-      <p id="p78" class="">爾時，世尊從三摩地安祥而起，讚觀世音自在菩薩摩訶薩言：「善哉，善哉！善男子！如是，如是！如汝所說。甚深般若波羅蜜多行，應如是行。如是行時，一切如來悉皆隨喜。」</p>
-      <p id="p79" class="">爾時世尊如是說已，具壽舍利子，觀世音自在菩薩，及彼眾會一切世間天、人、阿蘇囉、巘䭾嚩等，聞佛所說，皆大歡喜，信受奉行。</p></div>
+      <p id="p77">「如是，舍利子！諸菩薩摩訶薩，於甚深般若波羅蜜多行，應如是學。」</p>
+      <p id="p78">爾時，世尊從三摩地安祥而起，讚觀世音自在菩薩摩訶薩言：「善哉，善哉！善男子！如是，如是！如汝所說。甚深般若波羅蜜多行，應如是行。如是行時，一切如來悉皆隨喜。」</p>
+      <p id="p79">爾時世尊如是說已，具壽舍利子，觀世音自在菩薩，及彼眾會一切世間天、人、阿蘇囉、巘䭾嚩等，聞佛所說，皆大歡喜，信受奉行。</p></div>
     <div class="cell cell-6">
-      <p id="p89" class="">「舍利子！菩薩摩訶薩應如是修學甚深般若波羅蜜多。」</p>
-      <p id="p90" class="">爾時，世尊從彼定起，告聖者觀自在菩薩摩訶薩曰：「善哉，善哉！善男子！如是，如是！如汝所說。彼當如是修學般若波羅蜜多。一切如來亦當隨喜。」</p>
-      <p id="p91" class="">時薄伽梵說是語已。具壽舍利子，聖者觀自在菩薩摩訶薩，一切世間天、人、阿蘇羅、乾闥婆等，聞佛所說，皆大歡喜，信受奉行。</p></div></div>
+      <p id="p89">「舍利子！菩薩摩訶薩應如是修學甚深般若波羅蜜多。」</p>
+      <p id="p90">爾時，世尊從彼定起，告聖者觀自在菩薩摩訶薩曰：「善哉，善哉！善男子！如是，如是！如汝所說。彼當如是修學般若波羅蜜多。一切如來亦當隨喜。」</p>
+      <p id="p91">時薄伽梵說是語已。具壽舍利子，聖者觀自在菩薩摩訶薩，一切世間天、人、阿蘇羅、乾闥婆等，聞佛所說，皆大歡喜，信受奉行。</p></div></div>
   <div class="row">
     <div class="cell cell-0">
       <p id="p20" class="juan juan-end">佛說帝釋般若波羅蜜多心經</p></div>

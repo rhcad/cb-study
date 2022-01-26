@@ -36,120 +36,160 @@ class BaseHandler(RequestHandler):
         with open(filename, 'w') as f:
             json.dump(page, f, ensure_ascii=False, indent=2)
 
+    @gen.coroutine
+    def fetch_cb(self, name):
+        cache_file = path.join(DATA_DIR, 'cache', name + '.html')
+        if path.exists(cache_file):
+            return open(cache_file).read()
+
+        url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
+        client = AsyncHTTPClient()
+        try:
+            r = yield client.fetch(url, connect_timeout=5, request_timeout=5)
+            if r.error:
+                return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(r.error)))
+
+            r = to_basestring(r.body)
+            with open(cache_file, 'w') as f:
+                f.write(r)
+            return r
+        except HTTPError as e:
+            return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(e)))
+
+    def on_error(self, e):
+        self.send_error(500, reason=str(e))
+
 
 class HomeHandler(BaseHandler):
     URL = '/'
 
     def get(self):
-        for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
-            if not path.exists(path.join(DATA_DIR, path.basename(fn))):
-                shutil.copy(fn, DATA_DIR)
+        try:
+            for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
+                if not path.exists(path.join(DATA_DIR, path.basename(fn))):
+                    shutil.copy(fn, DATA_DIR)
 
-        files = sorted(glob(path.join(DATA_DIR, '*.json')))
-        pages = [json.load(open(fn)) for fn in files]
-        self.render('index.html', pages=[
-            dict(id=p['info']['id'], caption=p['info']['caption'], url='/page/' + p['info']['id'])
-            for p in pages])
+            files = sorted(glob(path.join(DATA_DIR, '*.json')))
+            pages = [json.load(open(fn)) for fn in files]
+            self.render('index.html', pages=[
+                dict(id=p['info']['id'], caption=p['info']['caption'], url='/page/' + p['info']['id'])
+                for p in pages])
+        except Exception as e:
+            self.on_error(e)
 
 
 class PageNewHandler(BaseHandler):
     URL = '/page/new'
 
     def post(self):
-        pid = to_basestring(self.get_argument('id', ''))
-        caption = to_basestring(self.get_argument('caption', '')).strip()
-        if not re.match(r'^[A-Za-z0-9_]{2,8}$', pid):
-            return self.send_error(501, reason='invalid id')
-        if not caption or len(caption) > 10:
-            return self.send_error(502, reason='invalid caption')
+        try:
+            pid = to_basestring(self.get_argument('id', ''))
+            caption = to_basestring(self.get_argument('caption', '')).strip()
+            if not re.match(r'^[A-Za-z0-9_]{2,8}$', pid):
+                return self.send_error(501, reason='invalid id')
+            if not caption or len(caption) > 10:
+                return self.send_error(502, reason='invalid caption')
 
-        filename = path.join(DATA_DIR, pid + '.json')
-        if path.exists(filename):
-            return self.send_error(503, reason='file exists')
+            filename = path.join(DATA_DIR, pid + '.json')
+            if path.exists(filename):
+                return self.send_error(503, reason='file exists')
 
-        self.save_page({'info': dict(id=pid, caption=caption), 'log': []})
-        self.write({'url': '/page/' + pid})
+            self.save_page({'info': dict(id=pid, caption=caption), 'log': []})
+            self.write({'url': '/page/' + pid})
+        except Exception as e:
+            self.on_error(e)
 
 
 class PageHandler(BaseHandler):
-    URL = '/page/([A-Za-z0-9_!]+)'
+    URL = '/page/([A-Za-z0-9_]+)'
 
     def get(self, pid):
-        page = self.load_page(pid)
-        info = page['info']
-        step = int(self.get_argument('step', 0))
-        if step > 0:
-            info['step'] = step - 1
-            self.save_page(page)
-            return self.redirect('/page/' + pid)
+        try:
+            page = self.load_page(pid)
+            info = page['info']
+            step = int(self.get_argument('step', 0))
+            if step > 0:
+                info['step'] = step - 1
+                self.save_page(page)
+                return self.redirect('/page/' + pid)
 
-        step = info.get('step', 0)
-        if step > 1:
-            if page.get('html_end'):
-                page['html'] = page['html_end']
-            else:
-                step = 1
-        if step > 0 and not page.get('html'):
-            step = 0
+            step = info.get('step', 0)
+            if step > 1:
+                if page.get('html_end'):
+                    page['html'] = page['html_end']
+                else:
+                    step = 1
+            if step > 0 and not page.get('html'):
+                step = 0
 
-        name = info['id'].split('_')[0]
-        juan = int((info['id'].split('_')[1:] or [1])[0])
-        cb_download_url = info.get('cb_download_url') or '{0}_{1:0>3d}'.format(name, juan)
+            name = info['id'].split('_')[0]
+            juan = int((info['id'].split('_')[1:] or [1])[0])
+            cb_download_url = info.get('cb_download_url') or '{0}_{1:0>3d}'.format(name, juan)
 
-        self.render('page.html', page=page, info=info, step=step,
-                    rowPairs='||'.join(page.get('rowPairs', [])),
-                    cb_download_url=cb_download_url)
+            self.render('page.html', page=page, info=info, step=step, id=info['id'],
+                        rowPairs='||'.join(page.get('rowPairs', [])),
+                        cb_download_url=cb_download_url)
+        except Exception as e:
+            self.on_error(e)
+
+    def post(self, pid):
+        try:
+            page = self.load_page(pid)
+            html = to_basestring(self.get_argument('html', '')).strip()
+            step = int(self.get_argument('step', page['info']['step']))
+            field = 'html_end' if step > 1 and page.get('html_end') else 'html'
+
+            if re.search('<p id', html) and html != '\n'.join(page[field]):
+                logging.info('save html')
+                page[field] = html.split('\n')
+                self.save_page(page)
+                self.write({})
+        except Exception as e:
+            self.on_error(e)
 
 
 class HtmlDownloadHandler(BaseHandler):
-    URL = '/cb/download'
+    URL = '/cb/download/([A-Za-z0-9_]+)'
 
     @gen.coroutine
-    def post(self):
-        client = AsyncHTTPClient()
-        pid = to_basestring(self.get_argument('id', ''))
-        cb_download_url = to_basestring(self.get_argument('urls', ''))
-        urls = [s.split('+') for s in cb_download_url.split('|')] if cb_download_url else []
+    def post(self, pid):
+        try:
+            cb_download_url = to_basestring(self.get_argument('urls', ''))
+            urls = [s.split('+') for s in cb_download_url.split('|')] if cb_download_url else []
 
-        page = self.load_page(pid)
-        if urls and cb_download_url == page['info'].get('cb_download_url') and page.get('html_org'):
-            page['html'] = page['html_org'][:]
-            page['info']['step'] = 1
-            self.rollback(page)
-        else:
-            content = []
-            for col in urls:
-                html = cache_file = None
-                for name in col:
-                    name = name.strip()
-                    if not name:
-                        continue
-                    cache_file = cache_file or path.join(DATA_DIR, 'cache', name + '.html')
-                    url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
-                    try:
-                        r = yield client.fetch(url, connect_timeout=5, request_timeout=5)
-                        if r.error:
-                            return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(r.error)))
-                    except HTTPError as e:
-                        return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(e)))
-                    html = fix.convert_cb_html(html, to_basestring(r.body), name)
-                if html:
-                    with open(cache_file, 'w') as f:
-                        f.write(html)
-                    content.append(html)
+            page = self.load_page(pid)
+            if urls and cb_download_url == page['info'].get('cb_download_url') and page.get('html_org'):
+                page['html'] = page['html_org'][:]
+                page['info']['step'] = 1
+                self.rollback(page)
+            else:
+                content = []
+                for col in urls:
+                    html = None
+                    for name in col:
+                        name = name.strip()
+                        if not name:
+                            continue
+                        r = self.fetch_cb(name)
+                        if not r:
+                            return
+                        html = fix.convert_cb_html(html, r, name)
+                    if html:
+                        content.append(html)
 
-            if not content or len(content) > 12:
-                return self.send_error(505, reason='only support 1~12 columns')
+                if not content or len(content) > 12:
+                    return self.send_error(505, reason='only support 1~12 columns')
 
-            page['info'].update(dict(step=1, cols=len(content), cb_download_url=cb_download_url))
-            content = fix.merge_cb_html(content)
-            page['html'] = page['html_org'] = content.split('\n')
-            page['log'] = []
+                page['info'].update(dict(step=1, cols=len(content), cb_download_url=cb_download_url))
+                content = fix.merge_cb_html(content)
+                page['html'] = page['html_org'] = content.split('\n')
+                page['log'] = []
 
-        self.save_page(page)
-
-        self.write({})
-        self.finish()
+            self.save_page(page)
+            self.write({})
+            self.finish()
+        except Exception as e:
+            self.on_error(e)
 
     @staticmethod
     def rollback(page):
@@ -176,41 +216,45 @@ class HtmlDownloadHandler(BaseHandler):
 
 
 class RowPairsHandler(BaseHandler):
-    URL = '/row-pairs'
+    URL = '/row-pairs/([A-Za-z0-9_]+)'
 
-    def post(self):
-        pid = to_basestring(self.get_argument('id'))
-        pairs = self.get_argument('pairs').split('||')
+    def post(self, pid):
+        try:
+            pairs = self.get_argument('pairs').split('||')
 
-        page = self.load_page(pid)
-        page['rowPairs'] = pairs
-        self.save_page(page)
-        self.write({})
+            page = self.load_page(pid)
+            page['rowPairs'] = pairs
+            self.save_page(page)
+            self.write({})
+        except Exception as e:
+            self.on_error(e)
 
 
 class SplitParagraphHandler(BaseHandler):
-    URL = '/split-p'
+    URL = '/split-p/([A-Za-z0-9_]+)'
 
-    def post(self):
-        pid = to_basestring(self.get_argument('id'))
-        data = json_decode(self.get_argument('data'))
-        page = self.load_page(pid)
+    def post(self, pid):
+        try:
+            data = json_decode(self.get_argument('data'))
+            page = self.load_page(pid)
 
-        index, log = -1, None
-        for (i, text) in enumerate(page['html']):
-            prefix = "<p id='{}'".format(data['id'])
-            if prefix in text:
-                index = i
-                log = 'Split paragraph #{0} at {1}: {2}'.format(data['id'], i, data['text'])
-                logging.info(log)
-                assert text.index(prefix) == 0
-                self.split_p(i, data['result'], page)
-                break
+            index, log = -1, None
+            for (i, text) in enumerate(page['html']):
+                prefix = "<p id='{}'".format(data['id'])
+                if prefix in text:
+                    index = i
+                    log = 'Split paragraph #{0} at {1}: {2}'.format(data['id'], i, data['text'])
+                    logging.info(log)
+                    assert text.index(prefix) == 0
+                    self.split_p(i, data['result'], page)
+                    break
 
-        if index >= 0:
-            page['log'].append(log)
-            self.save_page(page)
-        self.write(dict(index=index))
+            if index >= 0:
+                page['log'].append(log)
+                self.save_page(page)
+            self.write(dict(index=index))
+        except Exception as e:
+            self.on_error(e)
 
     @staticmethod
     def split_p(i, result, page):
@@ -220,22 +264,86 @@ class SplitParagraphHandler(BaseHandler):
 
 
 class EndMergeHandler(BaseHandler):
-    URL = '/end-merge'
+    URL = '/end-merge/([A-Za-z0-9_]+)'
 
-    def post(self):
-        pid = to_basestring(self.get_argument('id'))
-        html = self.get_argument('html').split('\n')
+    def post(self, pid):
+        try:
+            html = self.get_argument('html', '').strip()
+            page = self.load_page(pid)
+            page['html_end'] = html.split('\n') if html else page['html']
+            page['info'].update(step=2)
+            self.save_page(page)
+            self.write({})
+        except Exception as e:
+            self.on_error(e)
 
-        page = self.load_page(pid)
-        page['html_end'] = html
-        page['info'].update(step=2)
-        self.save_page(page)
-        self.write({})
+
+class FetchHtmlHandler(BaseHandler):
+    URL = '/fetch-cb-html/(\w+_\d+)'
+
+    @gen.coroutine
+    def get(self, name):
+        try:
+            html = yield self.fetch_cb(name)
+            if html: self.write(dict(html=html))
+            self.finish()
+        except Exception as e:
+            self.on_error(e)
+
+
+class PageNoteHandler(BaseHandler):
+    URL = '/page_note/([A-Za-z0-9_]+)'
+
+    def get(self, pid):
+        try:
+            tag = self.get_argument('tag')
+            page = self.load_page(pid)
+            notes = page.get('notes', {}).get(tag, {})
+            self.write(notes)
+        except Exception as e:
+            self.on_error(e)
+
+    def post(self, pid):
+        try:
+            tag = self.get_argument('tag')
+            name = self.get_argument('name')
+            desc = self.get_argument('desc', '')
+            col = int(self.get_argument('col', 0) or 0)
+            lines = json_decode(self.get_argument('lines'))
+
+            page = self.load_page(pid)
+            nid = page['info'].get('note_id', 0)
+            page['notes'] = page.get('notes', {})
+
+            assert tag not in page['notes'], 'tag exists'
+            notes, orig = [], ''
+            for r in lines:
+                if not r.get('text'):
+                    continue
+                if r['orig']:
+                    orig = r['text']
+                else:
+                    if not orig:
+                        logging.warning('ignore comment: ' + r['text'])
+                    nid += 1
+                    notes.append([nid, orig, r['text']])
+                    orig = None
+
+            if notes:
+                nid = int((nid + 19) / 10) * 10
+                page['notes'][tag] = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
+                page['info']['note_id'] = nid
+
+            logging.info('{0}: add {1} comments'.format(tag, len(notes)))
+            self.save_page(page)
+            self.write(dict(tag=tag, count=len(notes)))
+        except Exception as e:
+            self.on_error(e)
 
 
 def make_app():
-    handlers = [HomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler,
-                RowPairsHandler, SplitParagraphHandler, EndMergeHandler]
+    handlers = [HomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
+                SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
     return Application(
         [(c.URL, c) for c in handlers],
         debug=options.debug,

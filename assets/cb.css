@@ -102,6 +102,7 @@ body {
 #content > .row > div,
 #merged > .row > div {
   flex: 1;
+  min-width: 10px;
 }
 
 #content, #merged {
@@ -122,16 +123,10 @@ body {
 [data-col-count="12"]#content {
   font-size: 15px;
 }
-#content .row > div {
-  padding: 6px;
-  max-height: 400px;
-  overflow-y: auto;
-  scrollbar-width: none;
+#content:not(.single-article) .row > div {
+  padding: 0 6px;
 }
-#content .row > div::-webkit-scrollbar {
-  width: 0;
-}
-#content .row > div {
+#content:not(.single-article) .row > div {
   border-left: 1px solid #ddd;
 }
 #content:not(.single-article) .row {
