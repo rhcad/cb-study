@@ -61,6 +61,8 @@ function _selectForCurrent() {
       endSign = /[:;!?})\]。：；！？】）》」』’”]+/g,
       $lp = $(_panelCls + ' p:not(.linked)'),
       title = ($lp.attr('data-title') || '').replace(sign, '');
+
+  let t = 0;
   const check = (text, title, pos) => {
     const i = pos.length - 1;
     let idx = text.indexOf(title[i], pos[i]);
@@ -73,7 +75,10 @@ function _selectForCurrent() {
       if (pos.length === title.length) {
         const res = text.substring(pos[0], pos[i] + 1);
         if (res.replace(sign, '') !== title) {
-          console.log('skip ' + res);
+          if (++t > 10) {
+            throw [];
+          }
+          // console.log('skip ' + res);
           idx = text.indexOf(title[i], idx + 1);
           if (idx < 0) {
             return false;
@@ -93,6 +98,8 @@ function _selectForCurrent() {
         return false;
       }
     }
+
+    return false;
   };
 
   window.getSelection().removeAllRanges();
@@ -103,8 +110,10 @@ function _selectForCurrent() {
         try {
           const pos = [index];
           check(text, title, pos);
-        } catch (pos) { // found
-          selectInParagraph(p, pos[0], pos[pos.length - 1] + 1);
+        } catch (pos) {
+          if (pos.length) {
+            selectInParagraph(p, pos[0], pos[pos.length - 1] + 1);
+          }
         }
       }
     });
@@ -123,7 +132,6 @@ function selectInParagraph(el, startOffset, endOffset) {
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset);
     selection.addRange(range);
-    scrollToVisible(el);
   }
 }
 
