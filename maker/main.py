@@ -45,7 +45,7 @@ class BaseHandler(RequestHandler):
         url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
         client = AsyncHTTPClient()
         try:
-            r = yield client.fetch(url, connect_timeout=5, request_timeout=5)
+            r = yield client.fetch(url, connect_timeout=15, request_timeout=15)
             if r.error:
                 return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(r.error)))
 

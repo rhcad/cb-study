@@ -5,10 +5,12 @@
   border-radius: 4px;
   padding: .5em;
   text-indent: 0;
+  font-size: .8em;
   -moz-box-shadow: 1px 1px 1px #aaa;
   box-shadow: 1px 1px 1px #aaa;
   transition: background-color 200ms ease-out,display 200ms ease-out;
 }
+.note-p + .note-p { margin-top: 4px; }
 .org-text {
   margin-right: 1em;
   color: #99a;
@@ -21,6 +23,7 @@
   font-size: .7em;
   color: #99a;
   display: inline-block;
+  cursor: pointer;
 }
 .note-tag {
   color: #aaa;
