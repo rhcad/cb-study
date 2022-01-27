@@ -159,7 +159,7 @@
     <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配</p>
     <div class="step-content">
       {% if info.get('cols', 1) > 1 %}
-      <p>按右侧提示进行段落分组，如需拆分段落可在段落上点鼠标右键菜单。</p>
+      <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮。如需拆分段落可在段落上点鼠标右键菜单。</p>
       {% else %}
       <p>如需拆分段落可在段落上点鼠标右键菜单，完成可进入 <a class="end-move-rows"><b>下一步</b></a>。</p>
       {% end %}
@@ -199,7 +199,6 @@
 <div id="merged" class="container-fluid"></div>
 <div class="label-panel">
    <div class="current-row">
-     <p class="bold">在左边红线下各栏中依次点击要同组的段落。</p>
      {% for ic in range(info['cols']) %}
      <div class="row">
        <label class="col-xs-4">第{{ic + 1}}栏：</label>
@@ -208,7 +207,7 @@
      {% end %}
      <button class="btn btn-default" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
      <button class="btn btn-default" id="apply-rows" title="重新应用下面输入区域的分组设置">应用分组</button>
-     <button class="btn btn-default end-move-rows" title="段落分组完成，进入下一步">分组完成</button>
+     <button class="btn btn-default end-move-rows" title="段落分组完成，进入下一步">完成</button>
    </div>
    <div class="row-pairs-div">
      <textarea rows="5"></textarea>
@@ -290,7 +289,7 @@
 
   const reload = () => location.reload()
   function ajaxError(title, op) {
-    return xhr => showError(title, `[${xhr.status}] ${xhr.statusText}`) || op && op()
+    return xhr => showError(title, `[${xhr.status}] ${xhr.statusText}`, op)
   }
 
   // 第二步保存段落分组数据，给“移为一组”按钮用

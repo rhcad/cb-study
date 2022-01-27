@@ -101,7 +101,7 @@ function splitParagraph($p) {
           const $new = $(`<p id="${id}" data-line-no="[${id}]">${text.trim()}</p>`);
           $new.insertAfter($last);
           $last = $new;
-          saveData.text += '@' + id + text;
+          saveData.text += '@' + text;
           saveData.result.push({id: id, text: text.trim()});
         }
       });

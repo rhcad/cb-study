@@ -195,23 +195,23 @@ class HtmlDownloadHandler(BaseHandler):
     def rollback(page):
         if page.get('html_org') and page.get('log'):
             page['html'] = page['html_org'][:]
-            new_c = {}
             for log in page['log']:
-                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+): (.+@.*)$', log)
+                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+) as result #([^:]+): (.+@.*)$', log)
                 if m:
-                    pid, index, text = m.group(1), m.group(2), m.group(3)
-                    bid, index = re.sub('[a-z]$', '', pid), int(index)
+                    pid, index_s, new_ids, text = m.group(1), m.group(2), m.group(3), m.group(4)
+                    new_ids, index = new_ids.split(','), int(index_s)
+                    print(text)
                     html0 = page['html'][index]
                     if pid not in html0:
                         t0 = text.split('@')[0]
                         idx = html0.index(t0) if t0 in html0 else 20
-                        logging.warning(pid + ' not in ' + html0[: idx + len(t0)])
-                    assert text.replace('@', '') in html0
+                        logging.warning(pid + ' not at index ' + index_s)
+
                     texts = text.split('@')
                     r = [{'text': texts[0]}]
-                    for text in texts[1:]:
-                        new_c[bid] = chr(ord(new_c.get(bid, 'a')) + 1)
-                        r.append({'id': bid + new_c[bid], 'text': text})
+                    for (i, text) in enumerate(texts[1:]):
+                        r.append({'id': new_ids[i], 'text': text})
+                    print(r, texts)
                     SplitParagraphHandler.split_p(index, r, page)
 
 
@@ -236,6 +236,7 @@ class SplitParagraphHandler(BaseHandler):
     def post(self, pid):
         try:
             data = json_decode(self.get_argument('data'))
+            result = data['result']
             page = self.load_page(pid)
 
             index, log = -1, None
@@ -243,10 +244,11 @@ class SplitParagraphHandler(BaseHandler):
                 prefix = "<p id='{}'".format(data['id'])
                 if prefix in text:
                     index = i
-                    log = 'Split paragraph #{0} at {1}: {2}'.format(data['id'], i, data['text'])
+                    log = 'Split paragraph #{0} at {1} as result #{2}: {3}'.format(
+                        data['id'], i, ','.join(str(r['id']) for r in result[1:]), data['text'])
                     logging.info(log)
                     assert text.index(prefix) == 0
-                    self.split_p(i, data['result'], page)
+                    self.split_p(i, result, page)
                     break
 
             if index >= 0:

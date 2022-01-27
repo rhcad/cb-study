@@ -8,10 +8,17 @@
   width: 30%;
   min-height: 100%;
   padding: 10px;
-  margin: 40px 0 10px;
+  margin: 47px 0 10px;
   border: 1px solid #ddd;
   background: #fff;
   z-index: 1000;
+}
+body[data-step="1"] #content,
+body[data-step="1"] #merged {
+  margin-right: 254px;
+}
+body[data-step="1"] .label-panel {
+  width: 250px;
 }
 body[data-step="3"] #content {
   margin-right: 420px;
@@ -86,11 +93,15 @@ textarea {outline: none;}
   color: gray;
 }
 
-#content:not(.single-article) .row > div {
+body[data-step="1"] #content p {
+  text-indent: 0;
+}
+
+body:not([data-step="1"]) #content:not(.single-article) .row > div {
   max-height: 400px;
   overflow-y: auto;
   scrollbar-width: none;
 }
-#content:not(.single-article) .row > div::-webkit-scrollbar {
+body:not([data-step="1"]) #content:not(.single-article) .row > div::-webkit-scrollbar {
   width: 0;
 }

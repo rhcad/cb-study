@@ -5,7 +5,7 @@ import re
 
 def convert_cb_html(content, html, name):
     def fix_juan(text):
-        text = re.sub(r"'body'>\n[^\n]+?<p ", lambda _: _.group() + "title='{}' ".format(name), text)
+        text = re.sub(r"'body'>\n[^\n]*?<p ", lambda _: _.group() + "title='{}' ".format(name), text)
         text = text.strip().replace('><p', '>\n<p')
         text = re.sub(r"'body'>[\s\n]*(No[^<>]+)<", lambda _: _.group().replace(_.group(1), ''), text)
         text = re.sub(r"<span class='lineInfo' line='[^'>]+'></span>| class=\"\"", '', text)
@@ -27,8 +27,6 @@ def convert_cb_html(content, html, name):
 
 
 def merge_cb_html(content):
-    widths = [0, 12, 6, 4, 3]
-    width = 2 if len(content) > len(widths) else widths[len(content)]
 
     def sub_p(m):
         ids['pid'] += 1
@@ -54,4 +52,4 @@ def merge_cb_html(content):
     html = re.sub(r'<(p)[ >]', sub_p, html)
     html = re.sub(r'<div (class="lg[ "])', sub_g, html)
     html = re.sub(r'<div( id=\'g\d+\')? class="(lg|lg-row)[ "]', sub_lg_row, html)
-    return html.replace('col-xs-6', 'col-xs-%d' % width)
+    return html

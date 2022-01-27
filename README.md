@@ -47,3 +47,10 @@
 ## 开源协议
 
 没有任何版权限制，欢迎共同完善、改编和分享。
+
+## 参考资料
+
+- [Bootstrap 组件说明](https://v3.bootcss.com/components/)
+- [Tornado 官方文档中文版](https://tornado-zh.readthedocs.io/zh/latest/)
+- [SweetAlert 消息框文档](https://sweetalert.js.org)
+- [jQuery contextMenu 文档](https://swisnl.github.io/jQuery-contextMenu/docs.html)
