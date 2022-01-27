@@ -14,14 +14,10 @@
   z-index: 1000;
 }
 body[data-step="3"] #content {
-  margin-right: 400px;
+  margin-right: 420px;
 }
 body[data-step="3"] .label-panel {
-  width: 400px;
-}
-.label-panel > div.items {
-  height: 700px;
-  overflow-y: auto;
+  width: 420px;
 }
 .row-pairs-div {
   margin-top: 10px;
@@ -31,16 +27,22 @@ textarea {outline: none;}
   width: 100%;
   padding: 4px;
 }
-.label-panel p {
+.label-panel > .notes {
+  max-height: 700px;
+  overflow-y: auto;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+.label-panel > .notes > p {
   text-indent: 0;
   font-size: 14px;
   overflow: hidden;
   white-space: nowrap;
 }
-.label-panel p > span:first-child {
+.label-panel > .notes > p > span:first-child {
   font-weight: 700;
 }
-.label-panel p:first-child > span:first-child {
+.label-panel > .notes > p:first-child > span:first-child {
   color: #00f;
 }
 .label-panel .linked {
@@ -80,7 +82,7 @@ textarea {outline: none;}
   margin-bottom: 5px;
 }
 
-.gray-linked note[cur-tag] {
+.gray-linked note[cur-tag]:not(.note-expanded) {
   color: gray;
 }
 

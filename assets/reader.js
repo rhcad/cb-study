@@ -456,7 +456,7 @@ function insertNotes($side, notes, desc) {
     let $tag = $(this),
       id = parseInt($tag.attr('data-nid')),
       note = notes.filter(item => item[0] === id)[0],
-      $judg = $tag.closest('[ke-pan],p,.lg'),
+      $judg = $tag.closest('[ke-pan],p,.lg-row,.lg'),
       title = [], rows = [];
 
     if (!note) {
@@ -485,7 +485,7 @@ function insertNotes($side, notes, desc) {
     }
     if (!$exist.length) {
       $(`<p class="note-p" data-nid="${id}">${rows.join('<br>')}</p>`)
-          .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
+          .insertAfter($judg.closest('.lg-row,.lg').length ? $judg.closest('.lg-row,.lg') : $judg);
     }
   });
 }
@@ -580,12 +580,12 @@ $('#show-inline-no-ke-pan').click(showInlineWithoutKePan);
 $(document).on('click', '.note-tag', function (e) {
   const $this = $(e.target),
       id = $this.attr('data-nid'),
-      $p = $(`.note-p[data-nid=${id}]`);
+      $p = $(`.note-p[data-nid=${id}]`),
+      show = !$this.hasClass('note-expanded');
 
-  $p.toggle(100);
-  $this.toggleClass('note-expanded');
-  $(`note-tag[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
-  $(`note[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
+  $p.toggle(100, null, show);
+  $(`.note-tag[data-nid=${id}]`).toggleClass('note-expanded', show);
+  $(`note[data-nid=${id}]`).toggleClass('note-expanded', show);
   e.stopPropagation();
 });
 
