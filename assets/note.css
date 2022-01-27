@@ -7,6 +7,7 @@
   text-indent: 0;
   -moz-box-shadow: 1px 1px 1px #aaa;
   box-shadow: 1px 1px 1px #aaa;
+  transition: background-color 200ms ease-out,display 200ms ease-out;
 }
 .org-text {
   margin-right: 1em;
@@ -15,9 +16,6 @@
 }
 .note-text {
   color: #444;
-}
-.note-item.active .note-text {
-  color: #33c;
 }
 .note-from {
   font-size: .7em;

@@ -430,6 +430,10 @@ function getKePanId(el) {
   }
 }
 
+if (window.innerWidth < 900) {
+  $('#root > .note-panel').remove();
+}
+
 /**
  * 根据注解锚点插入注解段落
  * @param {jQuery} $side 占一栏的正文，如果只有一栏就可为 null
@@ -442,7 +446,8 @@ function insertNotes($side, notes, desc) {
     let $tag = $(this),
       id = parseInt($tag.attr('data-nid')),
       note = notes.filter(item => item[0] === id)[0],
-      $judg = $tag.closest('[ke-pan],p,.lg'),
+      $panel = $('#root > .note-panel'),
+      $judg = !$panel.length && $tag.closest('[ke-pan],p,.lg'),
       title = [], rows = [];
 
     if (!note) {
@@ -455,7 +460,7 @@ function insertNotes($side, notes, desc) {
         (note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
           '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
           '</span><span class="note-text">' + note[i + 2] + '</span> ' +
-          (desc ? '<span class="note-from">' + desc + '</span>' : '') + '</span>');
+          (desc ? '<span class="note-from" title="双击注解块隐藏">' + desc + ' ×</span>' : '') + '</span>');
     }
     if (rows.length > 1 && 0) {
       console.log(rows);
@@ -463,8 +468,14 @@ function insertNotes($side, notes, desc) {
       setTimeout(() => $tag.click() );
     }
     $tag.attr('title', title.join('\n'));
-    $(`<p class="note-p" data-nid="${id}">${ rows.join('<br>') }</p>`)
-      .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
+
+    const $noteP = $(`<p class="note-p" data-nid="${id}">${ rows.join('<br>') }</p>`);
+    if ($panel.length) {
+      $panel.append($noteP);
+      $noteP.find('.more').click();
+    } else {
+      $noteP.insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
+    }
   });
 }
 
@@ -558,27 +569,28 @@ $('#show-inline-no-ke-pan').click(showInlineWithoutKePan);
 $(document).on('click', '.note-tag', function (e) {
   const $this = $(e.target),
       id = $this.attr('data-nid'),
-      $cell = $this.closest('.cell,.original'),
-      $p = $cell.find(`.note-p[data-nid=${id}]`);
+      $p = $(`.note-p[data-nid=${id}]`);
 
-  $p.toggle();
+  $p.toggle(100);
   $this.toggleClass('note-expanded');
-  $cell.find(`note[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
+  $(`note[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
   e.stopPropagation();
 });
 
-// 双击注解段落则收起隐藏
-$(document).on('dblclick', '.note-p', function (e) {
+function toggleNoteP(e) {
   const $p = $(e.target).closest('.note-p'),
       id = $p.attr('data-nid'),
-      $cell = $p.closest('.cell,.original'),
-      $tag = $cell.find(`.note-tag[data-nid=${id}]`);
+      $tag = $(`.note-tag[data-nid=${id}]`);
 
-  $p.toggle();
+  $p.toggle(100);
   $tag.toggleClass('note-expanded');
-  $cell.find(`note[data-nid=${id}]`).toggleClass('note-expanded', $tag.hasClass('note-expanded'));
+  $(`note[data-nid=${id}]`).toggleClass('note-expanded', $tag.hasClass('note-expanded'));
   e.stopPropagation();
-});
+}
+
+// 双击注解段落则收起隐藏
+$(document).on('dblclick', '.note-p', toggleNoteP);
+$(document).on('click', '.note-p .note-from', toggleNoteP);
 
 // 单击 … 展开文字
 $(document).on('click', '.more', function (e) {
@@ -591,15 +603,10 @@ $('#show-notes').click(function() {
   const $tag = $('.note-tag'), expanded = $('.note-tag.note-expanded').length;
   if ($tag.length) {
     $('.note-p').toggle(!expanded);
+    $tag.toggleClass('note-expanded', !expanded);
     $('.note-expanded').toggleClass('note-expanded', !expanded);
-    $(this).closest('li').toggleClass('active');
+    $(this).closest('li').toggleClass('active', !expanded);
   }
-});
-
-// 单击注释切换当前条
-$(document).on('click', '.note-text', function (e) {
-  $(e.target).closest('.cell,.original').find('.note-item').removeClass('active');
-  $(e.target).closest('.note-item').addClass('active');
 });
 
 $.fn.changeElementType = function(newType) {
