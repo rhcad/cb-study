@@ -170,7 +170,7 @@ class HtmlDownloadHandler(BaseHandler):
                         name = name.strip()
                         if not name:
                             continue
-                        r = self.fetch_cb(name)
+                        r = yield self.fetch_cb(name)
                         if not r:
                             return
                         html = fix.convert_cb_html(html, r, name)

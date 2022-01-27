@@ -373,7 +373,7 @@
     download(getHtml(), '{{id}}.html', 'text/html')
   })
   $('#download-notes').click(() => {
-    {% for tag, v in page['notes'].items() %}
+    {% for tag, v in page.get('notes', {}).items() %}
     $.get('/page_note/{{id}}', {tag: '{{tag}}'}, r => {
       const name = r.name.replace(/_.+$/, ''), head = `// ${r.desc || r.name}\n const ${name}Notes = `
       download(head + JSON.stringify(r.notes, null, 2), `{{id}}-${name}.json.js`, 'text/plain')

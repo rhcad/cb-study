@@ -460,7 +460,7 @@ function insertNotes($side, notes, desc) {
         (note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
           '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
           '</span><span class="note-text">' + note[i + 2] + '</span> ' +
-          (desc ? '<span class="note-from" title="双击注解块隐藏">' + desc + ' ×</span>' : '') + '</span>');
+          (desc ? '<span class="note-from" title="双击隐藏注解块">' + desc + ' ×</span>' : '') + '</span>');
     }
     if (rows.length > 1 && 0) {
       console.log(rows);
