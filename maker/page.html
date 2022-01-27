@@ -161,7 +161,7 @@
       {% if info.get('cols', 1) > 1 %}
       <p>按右侧提示进行段落分组，如需拆分段落可在段落上点鼠标右键菜单。</p>
       {% else %}
-      <p>如需拆分段落可在段落上点鼠标右键菜单，完成可进入 <a class="end-move-rows">下一步</a>。</p>
+      <p>如需拆分段落可在段落上点鼠标右键菜单，完成可进入 <a class="end-move-rows"><b>下一步</b></a>。</p>
       {% end %}
     </div>
   </div>
@@ -183,7 +183,7 @@
     <p class="step-title"><span>第4步</span>：合并注解到论文</p>
     <div class="step-content">
       <p>在正文中选择标注面板的第一条注解对应的文本（双击第一条也会自动选中文本），按回车键插入注解。</p>
-      <p>如果按下了Shift或Ctrl键，则按回车键时不自动切换到下一条，可以将其余正文段落与此注解关联。</p>
+      <p>如果按下了Shift或Ctrl键，则按回车键时不自动切换到下一条，可以将多个连续段落与此注解关联。</p>
       <div class="input-group note-tag-group">
         <input type="text" class="form-control" placeholder="按“标记字 注解的经号_卷号 可选的注解名称”格式输入，例如“義 T1846”">
         <div class="input-group-btn">
@@ -224,7 +224,7 @@
   {% end %}
 </div>
 
-<footer><p/></footer>
+<footer><p></p></footer>
 
 <script src="{{static_url('js/jquery.min.js')}}"></script>
 <script src="{{static_url('js/sweetalert.min.js')}}"></script>
@@ -245,11 +245,18 @@
   <div class="label-panel-bar">
     <button class="btn btn-default btn-sm" id="skip-top">跳过第一条</button>
     <button class="btn btn-default btn-sm save-html">保存</button>
+    <button class="btn btn-default btn-sm" id="gray-linked">已标变灰</button>
   </div>
   <div class="notes"></div>
 </div>
 <link href="{{static_url('label/label-panel.css')}}" rel="stylesheet"/>
 <script src="{{static_url('label/label-panel.js')}}"></script>
+<script>
+  $('#gray-linked').click(function () {
+    $('body').toggleClass('gray-linked');
+    $(this).toggleClass('active');
+  }).click();
+</script>
 {% end %}
 
 <script>
@@ -355,11 +362,12 @@
     $content.find('.div-xu').show()
     $content.find(':hidden,.note-p').remove()
     $content.find('.note-tag').removeAttr('title')
+    $content.find('[cur-tag]').removeAttr('cur-tag')
     $content.remove()
 
     const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
     return $content.html().trim()
-            .replace(/ style="display: block;"| class=""| style="padding-left: 0px;"/g, '')
+            .replace(/ style="display: block;"| class=""| style="padding-left: 0px;"|<note [^<>]+><\/note>/g, '')
             .replace(/><(p|div class="(cell|row))/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
 

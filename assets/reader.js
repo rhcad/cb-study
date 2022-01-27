@@ -341,7 +341,7 @@ function highlightKePan(kePanId, scroll, level) {
   let $s = $('[ke-pan="' + kePanId + '"], [ke-pan^="' + kePanId + 'p"]');
 
   if (!tree) {
-    return;
+    return $s;
   }
   $s.addClass('highlight');
   if ($s[0]) {
@@ -370,13 +370,7 @@ function highlightKePan(kePanId, scroll, level) {
   }
 
   if (scroll && scroll !== 'click' && $s[0]) {
-    const box = $s[0].getBoundingClientRect();
-    let st = document.body.scrollTop, h = document.body.clientHeight;
-
-    if (box.y < 100 || box.y + box.height + 200 > h) {
-      st += box.y < 100 ? box.y - 100 : box.y + box.height + 200 - h;
-      $('html,body').animate({scrollTop: st}, 500);
-    }
+    scrollToVisible($s[0]);
   }
   if (scroll && scroll !== 'nav') {
     if (scroll !== 'footer') {
@@ -388,6 +382,26 @@ function highlightKePan(kePanId, scroll, level) {
 
   return $s;
 }
+
+/**
+ * 让一个元素滚动到可见区域
+ * @param {HTMLElement} element
+ */
+function scrollToVisible(element) {
+  const box = element && element.getBoundingClientRect();
+  if (box) {
+    clearTimeout(_scrollTm);
+    _scrollTm = setTimeout(() => {
+      let st = document.body.scrollTop, h = document.body.clientHeight;
+
+      if (box.y < 100 || box.y + box.height + 200 > h) {
+        st += box.y < 100 ? box.y - 100 : box.y + box.height + 200 - h;
+        $('html,body').animate({scrollTop: st}, 500);
+      }
+    }, 50);
+  }
+}
+let _scrollTm;
 
 /**
  * 在状态栏显示科判路径
@@ -464,8 +478,15 @@ function insertNotes($side, notes, desc) {
     }
     $tag.attr('title', title.join('\n'));
 
-    $(`<p class="note-p" data-nid="${id}">${ rows.join('<br>') }</p>`)
-        .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
+    const $exist = $(`.note-p[data-nid="${id}"]`);
+    if ($exist.length && $exist.offset().top < $tag.offset().top) {
+      $exist.remove();
+      $exist.length = 0;
+    }
+    if (!$exist.length) {
+      $(`<p class="note-p" data-nid="${id}">${rows.join('<br>')}</p>`)
+          .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
+    }
   });
 }
 
@@ -563,6 +584,7 @@ $(document).on('click', '.note-tag', function (e) {
 
   $p.toggle(100);
   $this.toggleClass('note-expanded');
+  $(`note-tag[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
   $(`note[data-nid=${id}]`).toggleClass('note-expanded', $this.hasClass('note-expanded'));
   e.stopPropagation();
 });

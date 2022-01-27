@@ -17,6 +17,7 @@ function initNotes(notes, noteTag, cellClass, desc) {
   // 切换导航条的标记高亮状态
   $('.init-notes-btn').parent().removeClass('active');
   $(`.init-notes-btn[data-tag="${noteTag.replace(/[\[\]]/g, '')}"]`).parent().addClass('active');
+  _label.$cells.find('note').removeAttr('cur-tag');
 
   // 设置标注面板的内容
   const makeText = t => t.length < 25 ? t : t.substr(0, 14) + '…' + t.substr(t.length - 10);
@@ -29,9 +30,10 @@ function initNotes(notes, noteTag, cellClass, desc) {
     const title = titles.join('\n');
 
     _labelMap['' + note[0]] = note;
-    return '<p id="note' + note[0] + '" class="' + ($tag.length ? 'linked' : '') + '" data-title="' + titles[0] +
-        '">' + note[0] + ': <span title="' + (title.indexOf('\n') > 0 || title.length > 20 ? title : '') + '">'
-       + makeText(note[1]) + '</span><br/>' + note[2] + '</p>';
+    _label.$cells.find(`note[data-nid="${note[0]}"]`).attr('cur-tag', true);
+
+    return `<p data-note-id="${note[0]}" class="${($tag.length ? 'linked' : '')}" data-title="${titles[0]}">${note[0]}: ` +
+        `<span title="${ title.indexOf('\n') > 0 || title.length > 20 ? title : ''}">${makeText(note[1])}</span><br/>${note[2]}</p>`;
   }).join('\n'));
 
   // 为正文中已标记处设置title属性为注解对应的原文
@@ -55,8 +57,9 @@ function initNotes(notes, noteTag, cellClass, desc) {
 
 // 在正文中选中第一条注解对应的文本
 function _selectForCurrent() {
-  const sign = /[\s.,:;!?{}()[\]，。、：；！？．【】（）《》「」『』‘’“”]/g,
-      $lp = $(_panelCls + ':not(.linked)'),
+  const sign = /[\s.,:;!?{}()[\]，。、：；！？．【】（）《》「」『』‘’“”]+/g,
+      endSign = /[:;!?})\]。：；！？】）》」』’”]+/g,
+      $lp = $(_panelCls + ' p:not(.linked)'),
       title = ($lp.attr('data-title') || '').replace(sign, '');
   const check = (text, title, pos) => {
     const i = pos.length - 1;
@@ -77,7 +80,7 @@ function _selectForCurrent() {
           }
           continue;
         }
-        while (sign.test(text[ pos[i] + 1])) {
+        while (endSign.test(text[ pos[i] + 1])) {
           pos[i]++;
         }
         throw pos;
@@ -100,7 +103,7 @@ function _selectForCurrent() {
         try {
           const pos = [index];
           check(text, title, pos);
-        } catch (pos) {
+        } catch (pos) { // found
           selectInParagraph(p, pos[0], pos[pos.length - 1] + 1);
         }
       }
@@ -120,6 +123,7 @@ function selectInParagraph(el, startOffset, endOffset) {
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset);
     selection.addRange(range);
+    scrollToVisible(el);
   }
 }
 
@@ -167,6 +171,7 @@ $('#skip-top').click(function() {
   function remove(first) {
     const $p = $(_panelCls + ' p:first-child');
     if (first || $p.hasClass('linked')) {
+      scrollToVisible(_label.$cells.find(`.note-tag[data-nid=${$p.attr('data-note-id')}]`)[0]);
       $p.fadeOut(Math.max(ms -= 5, 5), function() {
         $p.remove();
         remove();
@@ -178,12 +183,16 @@ $('#skip-top').click(function() {
   remove(true);
 });
 
-// 在标注面板双击注解行，高亮显示正文有此引用处
-$(document).on('dblclick', _panelCls + ' p.linked', function (e) {
-  const $p = $(e.target).closest('p'),
-      id = $p.attr('id').substring(4),
+// 在标注面板点击注解行，高亮显示正文有此引用处
+$(document).on('click', _panelCls + ' p.linked', function (e) {
+  const id = $(e.target).closest('p').attr('data-note-id') || '-',
       $tag = _label.$cells.find(`.note-tag[data-nid=${id}]`);
+
   if ($tag.length) {
+    scrollToVisible($tag[0]);
+    $('note').removeClass('note-expanded');
+    $(`note[data-nid=${id}]`).addClass('note-expanded');
+
     const $kePan = $tag.closest('[ke-pan]');
     highlightKePan($kePan.attr('ke-pan'), $kePan[0]);
   }
@@ -206,29 +215,34 @@ function _addNote(id) {
 
   if (range && _inCell(selection.anchorNode) && _inCell(selection.focusNode)) {
     const testDiv = document.createElement('div'),
-        el = document.createElement('note'),
-        tagEl = document.createElement('sup');
+        el = document.createElement('note');
 
     testDiv.appendChild(range.cloneContents());
-    if (/<(p|div|td)[ >]/i.test(testDiv.innerHTML)) {
+    if (/<(p|div|td)[ >]/i.test(testDiv.innerHTML)) { // 跨段落选择
       return showError('获取选择', '不能跨段落选择。');
     }
 
+    // 将选中文本移入 note 节点
     el.appendChild(range.extractContents());
     el.setAttribute('data-nid', id);
+    el.toggleAttribute('cur-tag', true);
     range.insertNode(el);
 
-    // 注解锚点标记
-    if (!$(`.note-tag[data-nid="${id}"]`).length) {
-      tagEl.classList.add('note-tag');
-      tagEl.setAttribute('data-tag', '[' + _label.noteTag + ']');
-      tagEl.setAttribute('data-nid', id);
-      tagEl.setAttribute('title', note[1]);
-      $(tagEl).insertAfter(el);
-    }
+    // 在 note 节点后插入注解锚点标记，允许一个注解有多个注解锚点标记
+    const tagEl = document.createElement('sup');
+    tagEl.classList.add('note-tag');
+    tagEl.setAttribute('data-tag', '[' + _label.noteTag + ']');
+    tagEl.setAttribute('data-nid', id);
+    tagEl.setAttribute('title', note[1]);
+    $(tagEl).insertAfter(el);
 
-    // 注解段落
-    if (!$(`.note-p[data-nid="${id}"]`).length) {
+    // 在 note 节点所在段落后插入注解段落，自动移到靠下的位置
+    const $exist = $(`.note-p[data-nid="${id}"]`);
+    if ($exist.length && $exist.offset().top < $(el).offset().top) {
+      $exist.remove();
+      $exist.length = 0;
+    }
+    if (!$exist.length) {
       $(`<p class="note-p" data-nid="${id}"><span class="org-text">${note[1]}</span> ` +
         `<span class="note-text">${note[2]}</span> <span class="note-from">${_label.desc}</span></p>`)
         .insertAfter(el.closest('p,.lg'));
@@ -240,18 +254,23 @@ function _addNote(id) {
   }
 }
 
-// 按回车插入注解
+function addNote(autoSwitch) {
+  const $p = $(_panelCls + ' p:first-child:not(.linked)'),
+      id = $p.attr('data-note-id');
+
+  if (id && _addNote(id)) {
+    window.getSelection().removeAllRanges();
+    if (autoSwitch) {
+      $p.remove();
+      _selectForCurrent();
+    }
+  }
+}
+
+// 按回车插入注解，未按Shift、Ctrl时自动切换到下一条注解
 $(document).on('keyup', function (e) {
   if (e.keyCode === 13) {
-    const $p = $(_panelCls + ' p:first-child:not(.linked)'),
-        id = ($p.attr('id') || '').substring(4);
-
-    if (id && _addNote(id)) {
-      if (!e.ctrlKey && !e.shiftKey) {
-        $p.remove();
-        _selectForCurrent();
-      }
-    }
+    addNote(!e.ctrlKey && !e.shiftKey);
   }
 });
 

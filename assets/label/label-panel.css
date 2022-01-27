@@ -80,6 +80,10 @@ textarea {outline: none;}
   margin-bottom: 5px;
 }
 
+.gray-linked note[cur-tag] {
+  color: gray;
+}
+
 #content:not(.single-article) .row > div {
   max-height: 400px;
   overflow-y: auto;

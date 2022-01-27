@@ -9,7 +9,7 @@
 ## 在线预览
 - [《起信论》](http://ggbstudy.top/cb/T1666.html): 梁唐译文对照，有科判导航，嵌入義記、裂網疏的注解
 - [《心经》](http://ggbstudy.top/cb/T0251.html): 七种版本对照
-- [《楞嚴經 卷五》](http://ggbstudy.top/cb/T0945_5.html): 嵌入正脉疏、文句的注解
+- [《楞嚴經 卷四》](http://ggbstudy.top/cb/T0945_4.html) [《卷五》](http://ggbstudy.top/cb/T0945_5.html): 嵌入正脉疏、文句的注解
 
 ## 制作工具(maker)
 
