@@ -8,10 +8,11 @@ function initGroupRows(pairs) {
   (pairs || '').split('||').filter(s => s).forEach(p => rowPairs.push(p));
   rowPairs.forEach(movePairs);
   showRowPairs();
+  setTimeout(verifyParaOrders, 100);
 }
 
 function showRowPairs() {
-  $('.label-panel textarea').text(rowPairs.join('\n'));
+  $('#row-pairs-area').text(rowPairs.join('\n'));
 }
 
 // 在原始段落上单击，切换是否属于当前组，按Shift点击标记移动原文（编号末尾加星号）
@@ -42,6 +43,7 @@ $('#move-row').click(function () {
     window.rowPairs.push(ids.join(' | '));
     showRowPairs();
     saveRowPairs();
+    verifyParaOrders();
   }
 });
 
@@ -111,3 +113,62 @@ function splitParagraph($p) {
     }
   });
 }
+
+function verifyParaOrders() {
+  const colCount = parseInt($('body').attr('data-col-count') || 1),
+    message = [], paraIds = window.paraIds || [];
+
+  for (let i = 0; i < colCount; i++) {
+    const indexes = [];
+    const colIds = $(`.cell-${i} p[id]:visible`).map((_, p) => p.getAttribute('id')).get(),
+      orgIds = paraIds.filter(d => colIds.indexOf(d) >= 0);
+
+    $(`#merged .cell-${i} p[id]:visible`).each(function () {
+      const id = this.getAttribute('id'), text = this.innerText,
+        pid = id.replace(/\d[a-z]/, s => s[0]),
+        moved = /moved/.test(this.className),
+        index = paraIds.indexOf(id),
+        endIndex = indexes[indexes.length - 1];
+
+      if (moved) {
+        const orgIdx = orgIds.indexOf(id);
+        message.push(`<div data-moved><span data-id="${id}"><b>${id}</b> 已标记移动位置</span><div>${text}</div>
+            <div>原始位置：<span data-id="${orgIds[orgIdx + 1]}">${orgIds[orgIdx + 1] ? orgIds[orgIdx + 1] + '之前' : ''}</span>
+                <span data-id="${orgIds[orgIdx - 1]}">${orgIdx > 0 ? orgIds[orgIdx - 1] + '之后' : ''}</span> </div></div>`);
+      } else if (indexes.length && index < endIndex) {
+        message.push(`<div><span data-id="${id}"><b>${id}</b> 应先于 ${paraIds[endIndex]}</span><div>${text}</div></div>`);
+      }
+      if (!moved) {
+        indexes.push(index);
+      }
+    });
+  }
+  $('#verify-errors').html(message.join(''));
+}
+
+function selectInPairsArea(id) {
+  const area = document.getElementById('row-pairs-area'),
+    start0 = area.value.search('[^\s|]' + id + '[|\s$*-]'),
+    start = area.value.indexOf(id, start0);
+
+  if (start >= 0) {
+    setTimeout(() => {
+      area.focus();
+      area.selectionStart = start;
+      area.selectionEnd = start + id.length;
+    }, 50);
+  }
+}
+
+$(document).on('click', '#merged [id]', function (e) {
+  selectInPairsArea(e.target.getAttribute('id'));
+});
+
+$(document).on('click', '#verify-errors span[data-id]', function (e) {
+  const id = e.target.closest('[data-id]').getAttribute('data-id'), $p = $('#' + id);
+
+  selectInPairsArea(id);
+  scrollToVisible($p[0]);
+  $p.addClass('highlight');
+  setTimeout(() => $p.removeClass('highlight'), 500);
+});

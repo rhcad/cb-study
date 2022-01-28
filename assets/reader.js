@@ -72,11 +72,10 @@ function showRightColumn() {
  */
 function showTwoColumns() {
   const $col = $('.cell,.original'),
-      $root = $col.parent().parent(),
       count = $($col[0]).closest('.row').children('div').length;
 
   $col.show();
-  $root.attr('data-col-count', count);
+  $('body').attr('data-col-count', count);
   updateColumnStatus();
 }
 
@@ -243,17 +242,17 @@ function movePairs(ids) {
   colIds.forEach((ids, col) => {
     let $lg;
     for (let id of ids) {
-      let id2 = id.replace(/[*-]$/, ''), // 编号末尾有减号表示转为隐藏文本
+      let id2 = id.replace(/[*-]+$/, ''), // 编号末尾有减号表示转为隐藏文本
           $el = $(id2, $articles[col]),
           parent = $el.parent();
 
       console.assert($el.length, id2 + ' not found: ' + ids);
       if ($el.length) {
         $el.remove();
-        if (/\*$/.test(id)) {
+        if (/\*/.test(id)) {
           $el.addClass('moved');
         }
-        if (/-$/.test(id)) {
+        if (/-[*]?$/.test(id)) {
           $el.addClass('hide-txt');
         } else {
           count++;
@@ -391,18 +390,18 @@ function highlightKePan(kePanId, scroll, level) {
  * @param {HTMLElement} element
  */
 function scrollToVisible(element) {
-  const box = element && element.getBoundingClientRect();
-  if (box) {
-    clearTimeout(_scrollTm);
-    _scrollTm = setTimeout(() => {
-      let st = document.body.scrollTop, h = document.body.clientHeight;
-
-      if (box.y < 100 || box.y + box.height + 200 > h) {
-        st += box.y < 100 ? box.y - 100 : box.y + box.height + 200 - h;
-        $('html,body').animate({scrollTop: st}, 500);
+  clearTimeout(_scrollTm);
+  _scrollTm = setTimeout(() => {
+    const r = element && element.getBoundingClientRect();
+    if (r && r.height) {
+      if (r.top < 50) {
+        window.scrollBy(0, r.top - 50);
       }
-    }, 50);
-  }
+      if (r.bottom > window.innerHeight - 50) {
+        window.scrollBy(0, r.bottom - window.innerHeight + 50);
+      }
+    }
+  }, 50);
 }
 let _scrollTm;
 
@@ -646,7 +645,7 @@ $('#to-table').click(() => {
 
   let $table = $('#content table'),
     $rows = $('#content > .row'),
-    colCount = parseInt($('#content').attr('data-col-count')) || 2,
+    colCount = parseInt($('body').attr('data-col-count')) || 2,
     w = Math.floor(1000 / colCount) / 10;
 
   $rows.find('[ke-pan]').each((i, el) => {

@@ -157,6 +157,7 @@ class PageHandler(BaseHandler):
 
             self.render('page.html', page=page, info=info, step=step, id=info['id'],
                         rowPairs='||'.join(page.get('rowPairs', [])),
+                        paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         cb_download_url=cb_download_url)
         except Exception as e:
             self.on_error(e)
@@ -236,6 +237,22 @@ class RowPairsHandler(BaseHandler):
             self.write({})
         except Exception as e:
             self.on_error(e)
+
+
+class ParagraphOrderHandler(BaseHandler):
+    URL = '/p-order/([A-Za-z0-9_]+)'
+
+    def get(self, pid):
+        try:
+            page = self.load_page(pid)
+            self.write(dict(ids=self.get_ids(page)))
+        except Exception as e:
+            self.on_error(e)
+
+    @staticmethod
+    def get_ids(page):
+        return [re.search(r"id='([pg]\d\w*)'", p).group(1) for p in page.get('html', [])
+                if re.search(r"id='([pg]\d\w*)'", p)]
 
 
 class SplitParagraphHandler(BaseHandler):
@@ -353,7 +370,7 @@ class PageNoteHandler(BaseHandler):
 
 def make_app():
     handlers = [HomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
-                SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
+                ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
     return Application(
         [(c.URL, c) for c in handlers],
         debug=options.debug,

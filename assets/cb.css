@@ -110,19 +110,19 @@ body {
 #content, #merged {
   font-size: 20px;
 }
-[data-col-count="4"]#content,
-[data-col-count="5"]#content,
-[data-col-count="6"]#content {
+[data-col-count="4"] #content,
+[data-col-count="5"] #content,
+[data-col-count="6"] #content {
   font-size: 18px;
 }
-[data-col-count="7"]#content,
-[data-col-count="8"]#content,
-[data-col-count="9"]#content {
+[data-col-count="7"] #content,
+[data-col-count="8"] #content,
+[data-col-count="9"] #content {
   font-size: 17px;
 }
-[data-col-count="10"]#content,
-[data-col-count="11"]#content,
-[data-col-count="12"]#content {
+[data-col-count="10"] #content,
+[data-col-count="11"] #content,
+[data-col-count="12"] #content {
   font-size: 15px;
 }
 #content:not(.single-article) .row > div {
@@ -264,7 +264,6 @@ span[ke-pan] > .ke-pan-text {
 }
 
 [id].moved::after {
-  content: "移";
-  color: rgba(255, 0, 0, .6);
-  font-size: 8px;
+  content: "*";
+  color: rgba(255, 0, 0, .7);
 }

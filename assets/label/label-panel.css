@@ -89,6 +89,29 @@ textarea {outline: none;}
   margin-bottom: 5px;
 }
 
+
+#verify-errors {
+  margin-top: 10px;
+}
+#verify-errors > div {
+  margin: 3px 0;
+}
+#verify-errors > div:not([data-moved]) span {
+  color: red;
+}
+#verify-errors span:hover {
+  color: #f0f;
+  cursor: pointer;
+}
+#verify-errors > div > div {
+  text-indent: 1em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.highlight { color: #0000a0}
+
 .gray-linked note[cur-tag]:not(.note-expanded) {
   color: gray;
 }

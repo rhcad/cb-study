@@ -208,8 +208,9 @@
     <button class="btn btn-default end-move-rows" title="段落分组完成，进入下一步">完成</button>
   </div>
   <div class="row-pairs-div">
-    <textarea rows="5"></textarea>
-    <p><b>说明</b>：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。</p>
+    <textarea rows="5" id="row-pairs-area"></textarea>
+    <div><b>说明</b>：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。</div>
+    <div id="verify-errors"></div>
   </div>
 </div>
 {% end %}
@@ -293,7 +294,7 @@
 
   // 第二步保存段落分组数据，给“移为一组”按钮用
   function saveRowPairs() {
-    $.post('/row-pairs/{{id}}', {'pairs': window.rowPairs.join('||')}).error(ajaxError('保存失败'))
+    $.post('/row-pairs/{{id}}', {'pairs': window.rowPairs.join('||')}, updateParaIds).error(ajaxError('保存失败'))
   }
 
   // 段落拆分 {id, text, result=[{id, text}...]}
@@ -303,7 +304,7 @@
 
   // 应用段落分组数据
   $('#apply-rows').click(() => {
-    const pairs = $('.label-panel textarea').val().replace(/\n/g, '||')
+    const pairs = $('#row-pairs-area').val().replace(/\n/g, '||')
     $.post('/row-pairs/{{id}}', {'pairs': pairs}, reload)
   })
 
@@ -312,6 +313,13 @@
     const html = ($('#merged').html() || '').replace(/ data-line-no="[^"<>]*"/g, '')
     $.post('/end-merge/{{id}}', {'html': html}, reload)
   })
+
+  function updateParaIds() {
+    $.get('/p-order/{{id}}', r => {
+      window.paraIds = r.ids
+    })
+  }
+  window.paraIds = '{{paragraph_ids}}'.split(',')
 
   // 增加一个注释来源，自动获取并解析原文
   $('#fetch-note').click(() => {
