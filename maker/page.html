@@ -198,21 +198,22 @@
 {% if step == 1 and info['cols'] > 1 %}
 <div id="merged" class="container-fluid"></div>
 <div class="label-panel">
-   <div class="current-row">
-     {% for ic in range(info['cols']) %}
-     <div class="row">
-       <label class="col-xs-4">第{{ic + 1}}栏：</label>
-       <div class="col-xs-8 row-ids row-ids-{{ic}}"></div>
-     </div>
-     {% end %}
-     <button class="btn btn-default" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
-     <button class="btn btn-default" id="apply-rows" title="重新应用下面输入区域的分组设置">应用分组</button>
-     <button class="btn btn-default end-move-rows" title="段落分组完成，进入下一步">完成</button>
-   </div>
-   <div class="row-pairs-div">
-     <textarea rows="5"></textarea>
-   </div>
- </div>
+  <div class="current-row">
+    {% for ic in range(info['cols']) %}
+    <div class="row">
+      <label class="col-xs-4">第{{ic + 1}}栏：</label>
+      <div class="col-xs-8 row-ids row-ids-{{ic}}"></div>
+    </div>
+    {% end %}
+    <button class="btn btn-default" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
+    <button class="btn btn-default" id="apply-rows" title="重新应用下面输入区域的分组设置">应用分组</button>
+    <button class="btn btn-default end-move-rows" title="段落分组完成，进入下一步">完成</button>
+  </div>
+  <div class="row-pairs-div">
+    <textarea rows="5"></textarea>
+    <p><b>说明</b>：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。</p>
+  </div>
+</div>
 {% end %}
 
 <div id="content" class="container-fluid">

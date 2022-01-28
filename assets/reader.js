@@ -125,6 +125,9 @@ function updateColumnStatus() {
       $btn.attr('title', $col.find('[id][title]').attr('title'));
     }
   });
+
+  $('#show-notes').closest('li').toggleClass('disabled', $('.note-tag').length < 1);
+  $('#show-hide-txt').closest('li').toggleClass('disabled', $('.hide-txt').length < 1);
 }
 
 /**
@@ -140,9 +143,6 @@ function initCbLiStatus() {
     }
   }
   updateColumnStatus();
-
-  $('#show-notes').closest('li').toggleClass('disabled', $('.note-tag').length < 1);
-  $('#show-hide-txt').closest('li').toggleClass('disabled', $('.hide-txt').length < 1);
 }
 
 /**
@@ -227,7 +227,7 @@ function _toPairSelectors(idsText) {
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
- * @param {string} ids 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，编号末尾有减号表示转为隐藏文本
+ * @param {string} ids 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，编号末尾有减号表示转为隐藏文本，有星号为移动原文
  */
 function movePairs(ids) {
   const $articles = $('.original[id^="body"]'),
@@ -243,13 +243,16 @@ function movePairs(ids) {
   colIds.forEach((ids, col) => {
     let $lg;
     for (let id of ids) {
-      let id2 = id.replace(/-$/, ''), // 编号末尾有减号表示转为隐藏文本
+      let id2 = id.replace(/[*-]$/, ''), // 编号末尾有减号表示转为隐藏文本
           $el = $(id2, $articles[col]),
           parent = $el.parent();
 
       console.assert($el.length, id2 + ' not found: ' + ids);
       if ($el.length) {
         $el.remove();
+        if (/\*$/.test(id)) {
+          $el.addClass('moved');
+        }
         if (/-$/.test(id)) {
           $el.addClass('hide-txt');
         } else {

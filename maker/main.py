@@ -252,7 +252,7 @@ class SplitParagraphHandler(BaseHandler):
                     break
 
             if index >= 0:
-                page['log'].append(log)
+                page['log'] = page.get('page', []) + [log]
                 self.save_page(page)
             self.write(dict(index=index))
         except Exception as e:

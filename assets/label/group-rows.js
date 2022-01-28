@@ -14,8 +14,8 @@ function showRowPairs() {
   $('.label-panel textarea').text(rowPairs.join('\n'));
 }
 
-// 在原始段落上单击，切换是否属于当前组
-$(document).on('click', '#content p, #content .lg-row', function () {
+// 在原始段落上单击，切换是否属于当前组，按Shift点击标记移动原文（编号末尾加星号）
+$(document).on('click', '#content p, #content .lg-row', function (e) {
   let $this = $(this),
       id = $this.attr('id'),
       colIndex = parseInt($this.closest('.original').attr('id').replace('body', '')),
@@ -25,7 +25,7 @@ $(document).on('click', '#content p, #content .lg-row', function () {
   if ($curIds.find('#cur-' + id).length) {
     $curIds.find('#cur-' + id).remove();
   } else {
-    $curIds.append($('<span id="cur-' + id + '">' + id + '</span>'));
+    $curIds.append($('<span id="cur-' + id + '">' + id + (e.shiftKey ? '*' : '') + '</span>'));
   }
 });
 
@@ -67,7 +67,7 @@ function splitParagraph($p) {
   const text0 = $p.text(), saveData = {id: $p.attr('id'), result: []};
   swal({
     title: `拆分段落 #${ $p.attr('id') }`,
-    text: '在要拆分处插入分隔符“@”。',
+    text: '在要拆分处插入分隔符“@”或回车换行。',
     content: {
       element: 'textarea',
       attributes: {
@@ -80,7 +80,7 @@ function splitParagraph($p) {
     if (!result) {
       return;
     }
-    result = document.querySelector('.swal-content__textarea').value;
+    result = document.querySelector('.swal-content__textarea').value.replace(/[@\n]+/g, '@')
     if (result.replace(/@/g, '') !== text0) {
       return showError('拆分段落', '只能插入@，不能改动内容。');
     }

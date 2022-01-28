@@ -255,3 +255,9 @@ span[ke-pan] > .ke-pan-text {
 .btn-group.toggle-column {
   margin-left: 10px;
 }
+
+[id].moved::after {
+  content: "*";
+  color: red;
+  font-weight: bold;
+}
