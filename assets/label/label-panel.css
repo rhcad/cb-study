@@ -59,7 +59,7 @@ textarea {outline: none;}
 }
 
 #merged {
-  font-size: 13px;
+  font-size: 14px;
   border-bottom: 2px solid red;
 }
 #merged .row > div {
@@ -93,7 +93,7 @@ textarea {outline: none;}
   color: gray;
 }
 
-body[data-step="1"] #content p {
+body[data-step="1"] #content:not(.show-line-no) p {
   text-indent: 0;
 }
 

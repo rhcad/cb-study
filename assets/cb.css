@@ -23,6 +23,8 @@
 .head {
   font-size: larger;
   color: #0000a0;
+  text-align: center;
+  text-indent: 0;
 }
 .juan {
   font-size: larger;
@@ -148,6 +150,11 @@ body {
   margin-left: .5em!important;
 }
 
+#content.show-line-no p,
+#merged.show-line-no p {
+  text-indent: 0;
+}
+
 .show-box .row {
   border-bottom: 1px solid #aaa;
 }
@@ -257,7 +264,7 @@ span[ke-pan] > .ke-pan-text {
 }
 
 [id].moved::after {
-  content: "*";
-  color: red;
-  font-weight: bold;
+  content: "移";
+  color: rgba(255, 0, 0, .6);
+  font-size: 8px;
 }

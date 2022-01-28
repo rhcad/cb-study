@@ -38,7 +38,7 @@ def merge_cb_html(content):
 
     def sub_lg_row(m):
         if m.group(1) and m.group(2) == 'lg':
-            ids['gid'] = re.search(r'g\d+', m.group(1)).group()
+            ids['gid'] = int(re.search(r'g\d+', m.group(1)).group()[1:])
             ids['rid'] = 0
         elif not m.group(1) and m.group(2) == 'lg-row':
             ids['rid'] += 1
@@ -46,10 +46,10 @@ def merge_cb_html(content):
         return m.group()
 
     ids = dict(pid=0, gid=0, rid=0)
-    html = ''.join(re.sub("<div ([^<>]*)id='body'>", lambda m: "<div {0}id='body{1}'>".format(m.group(1), i), html)
-                   for (i, html) in enumerate(content))
-    html = re.sub(r' style=\"[^"\'<>]+\"', '', html)
-    html = re.sub(r'<(p)[ >]', sub_p, html)
-    html = re.sub(r'<div (class="lg[ "])', sub_g, html)
-    html = re.sub(r'<div( id=\'g\d+\')? class="(lg|lg-row)[ "]', sub_lg_row, html)
-    return html
+    for (i, html) in enumerate(content):
+        html = re.sub("<div ([^<>]*)id='body'>", lambda m: "<div {0}id='body{1}'>".format(m.group(1), i), html)
+        html = re.sub(r' style=\"[^"\'<>]+\"', '', html)
+        html = re.sub(r'<(p)[ >]', sub_p, html)
+        html = re.sub(r'<div (class="lg[ "])', sub_g, html)
+        html = re.sub(r'<div( id=\'g\d+\')? class="(lg|lg-row)[ "]', sub_lg_row, html)
+        content[i] = html

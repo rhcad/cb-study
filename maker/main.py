@@ -4,6 +4,7 @@
 import re
 import json
 import logging
+import traceback
 from os import path
 from glob import glob
 import shutil
@@ -24,6 +25,10 @@ define('debug', default=True, help='the debug mode', type=bool)
 
 
 class BaseHandler(RequestHandler):
+    def on_error(self, e):
+        traceback.print_exc()
+        self.send_error(500, reason=str(e))
+
     @staticmethod
     def load_page(pid):
         filename = path.join(DATA_DIR, pid + '.json')
@@ -35,6 +40,12 @@ class BaseHandler(RequestHandler):
         filename = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
         with open(filename, 'w') as f:
             json.dump(page, f, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    def reset_html(page):
+        page['html'] = []
+        for a in page['html_org']:
+            page['html'].extend(a)
 
     @gen.coroutine
     def fetch_cb(self, name):
@@ -56,8 +67,26 @@ class BaseHandler(RequestHandler):
         except HTTPError as e:
             return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(e)))
 
-    def on_error(self, e):
-        self.send_error(500, reason=str(e))
+    @staticmethod
+    def rollback(page):
+        if page.get('html_org') and page.get('log'):
+            BaseHandler.reset_html(page)
+            for log in page['log']:
+                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+) as result #([^:]+): (.+@.*)$', log)
+                if m:
+                    pid, index, new_ids, text = m.group(1), m.group(2), m.group(3), m.group(4)
+                    new_ids, index = new_ids.split(','), int(index)
+                    assert 0 <= index < len(page['html']), 'log {0} out of range {1}'.format(index, len(page['html']))
+                    html0 = page['html'][index]
+                    if pid not in html0:
+                        logging.warning('{0} not at index {1}: {2}'.format(pid, index, text.split('@')[0]))
+
+                    texts = text.split('@')
+                    r = [{'text': texts[0]}]
+                    for (i, text) in enumerate(texts[1:]):
+                        r.append({'id': new_ids[i], 'text': text})
+                    SplitParagraphHandler.split_p(index, r, page)
+            return True
 
 
 class HomeHandler(BaseHandler):
@@ -159,7 +188,7 @@ class HtmlDownloadHandler(BaseHandler):
 
             page = self.load_page(pid)
             if urls and cb_download_url == page['info'].get('cb_download_url') and page.get('html_org'):
-                page['html'] = page['html_org'][:]
+                self.reset_html(page)
                 page['info']['step'] = 1
                 self.rollback(page)
             else:
@@ -167,13 +196,14 @@ class HtmlDownloadHandler(BaseHandler):
                 for col in urls:
                     html = None
                     for name in col:
-                        name = name.strip()
+                        name_desc = re.split(r'\s+', name.strip())
+                        name, desc = name_desc[0], len(name_desc) > 1 and ' ' + name_desc[1] or ''
                         if not name:
                             continue
                         r = yield self.fetch_cb(name)
                         if not r:
                             return
-                        html = fix.convert_cb_html(html, r, name)
+                        html = fix.convert_cb_html(html, r, name + desc)
                     if html:
                         content.append(html)
 
@@ -181,38 +211,16 @@ class HtmlDownloadHandler(BaseHandler):
                     return self.send_error(505, reason='only support 1~12 columns')
 
                 page['info'].update(dict(step=1, cols=len(content), cb_download_url=cb_download_url))
-                content = fix.merge_cb_html(content)
-                page['html'] = page['html_org'] = content.split('\n')
+                fix.merge_cb_html(content)
+                page['html_org'] = [html.split('\n') for html in content]
                 page['log'] = []
+                self.reset_html(page)
 
             self.save_page(page)
             self.write({})
             self.finish()
         except Exception as e:
             self.on_error(e)
-
-    @staticmethod
-    def rollback(page):
-        if page.get('html_org') and page.get('log'):
-            page['html'] = page['html_org'][:]
-            for log in page['log']:
-                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+) as result #([^:]+): (.+@.*)$', log)
-                if m:
-                    pid, index_s, new_ids, text = m.group(1), m.group(2), m.group(3), m.group(4)
-                    new_ids, index = new_ids.split(','), int(index_s)
-                    print(text)
-                    html0 = page['html'][index]
-                    if pid not in html0:
-                        t0 = text.split('@')[0]
-                        idx = html0.index(t0) if t0 in html0 else 20
-                        logging.warning(pid + ' not at index ' + index_s)
-
-                    texts = text.split('@')
-                    r = [{'text': texts[0]}]
-                    for (i, text) in enumerate(texts[1:]):
-                        r.append({'id': new_ids[i], 'text': text})
-                    print(r, texts)
-                    SplitParagraphHandler.split_p(index, r, page)
 
 
 class RowPairsHandler(BaseHandler):
@@ -252,7 +260,7 @@ class SplitParagraphHandler(BaseHandler):
                     break
 
             if index >= 0:
-                page['log'] = page.get('page', []) + [log]
+                page['log'].append(log)
                 self.save_page(page)
             self.write(dict(index=index))
         except Exception as e:
