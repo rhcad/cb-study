@@ -459,7 +459,7 @@ function insertNotes($side, notes, desc) {
     let $tag = $(this),
       id = parseInt($tag.attr('data-nid')),
       note = notes.filter(item => item[0] === id)[0],
-      $judg = $tag.closest('[ke-pan],p,.lg-row,.lg'),
+      $judg = $tag.closest('[ke-pan],p,.lg'),
       title = [], rows = [];
 
     if (!note) {
@@ -488,11 +488,10 @@ function insertNotes($side, notes, desc) {
     }
     if (!$exist.length) {
       $(`<p class="note-p" data-nid="${id}">${rows.join('<br>')}</p>`)
-          .insertAfter($judg.closest('.lg-row,.lg').length ? $judg.closest('.lg-row,.lg') : $judg);
+          .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
     }
   });
 }
-
 
 // 在正文有科判标记的span上鼠标掠过
 $(document).on('mouseover', '[ke-pan]', function (e) {

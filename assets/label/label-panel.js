@@ -253,7 +253,7 @@ function _addNote(id) {
     if (!$exist.length) {
       $(`<p class="note-p" data-nid="${id}"><span class="org-text">${note[1]}</span> ` +
         `<span class="note-text">${note[2]}</span> <span class="note-from">${_label.desc}</span></p>`)
-        .insertAfter(el.closest('p,.lg-row,.lg'));
+        .insertAfter(el.closest('p,.lg'));
     }
 
     return el;
