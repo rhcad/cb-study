@@ -11,6 +11,12 @@
 - [《心经》](http://ggbstudy.top/cb/T0251.html): 七种版本对照
 - [《楞嚴經 卷四》](http://ggbstudy.top/cb/T0945_4.html) [《卷五》](http://ggbstudy.top/cb/T0945_5.html): 嵌入正脉疏、文句的注解
 
+## 本地使用
+
+项目根目录下的 `*.html` 是制作完成的页面，所需文件有 `/assets`(静态资源)`、`/data`(注解和科判数据)，可以在本地用浏览器查看。
+
+`/maker` 是页面制作工具，可以在本地运行，见下面的说明。
+
 ## 制作工具(maker)
 
 基于[CBeta](https://cbetaonline.cn)原文制作，制作工具使用 Python+Tornado 实现简易的存储管理。
