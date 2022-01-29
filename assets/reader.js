@@ -226,18 +226,19 @@ function _toPairSelectors(idsText) {
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
- * @param {string} ids 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，编号末尾有减号表示转为隐藏文本，有星号为移动原文
+ * @param {string} idsText 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，编号末尾有减号表示转为隐藏文本，有星号为移动原文
+ * @return {string} 警告文本
  */
-function movePairs(ids) {
+function movePairs(idsText) {
   const $articles = $('.original[id^="body"]'),
       divs = $articles.map((i, a) => `<div class="cell cell-${i}"/>`),
       $row = $(`<div class="row">${divs.get().join('')}</div>`),
       $divs = $row.children('div'),
-      colIds = ids.split('|').map(s => _toPairSelectors(s));
-  let count = 0;
+      colIds = idsText.split('|').map(s => _toPairSelectors(s));
+  let count = 0, ret = '';
 
   if (!$divs.length || !colIds.length) {
-    return;
+    return ret;
   }
   colIds.forEach((ids, col) => {
     let $lg;
@@ -246,7 +247,6 @@ function movePairs(ids) {
           $el = $(id2, $articles[col]),
           parent = $el.parent();
 
-      console.assert($el.length, id2 + ' not found: ' + ids);
       if ($el.length) {
         $el.remove();
         if (/\*/.test(id)) {
@@ -271,6 +271,8 @@ function movePairs(ids) {
           $lg = null;
           $el.appendTo($divs[col]);
         }
+      } else {
+        ret += `${id2.replace(/^[#.]/, '')} 不在第 ${col + 1} 栏中: ${idsText}\n`;
       }
     }
   });
@@ -278,6 +280,9 @@ function movePairs(ids) {
     $row.addClass('hide-txt');
   }
   $('#merged').append($row);
+
+  console.assert(!ret, ret);
+  return ret;
 }
 
 /**

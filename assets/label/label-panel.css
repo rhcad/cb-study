@@ -13,9 +13,12 @@
   background: #fff;
   z-index: 1000;
 }
+.label-panel label { font-weight: normal; }
+
 body[data-step="1"] #content,
 body[data-step="1"] #merged {
   margin-right: 254px;
+  margin-left: 4px;
 }
 body[data-step="1"] .label-panel {
   width: 250px;
@@ -27,12 +30,13 @@ body[data-step="3"] .label-panel {
   width: 420px;
 }
 .row-pairs-div {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 textarea {outline: none;}
 .row-pairs-div > textarea {
   width: 100%;
   padding: 4px;
+  margin-bottom: 4px;
 }
 .label-panel > .notes {
   max-height: 700px;

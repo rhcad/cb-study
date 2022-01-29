@@ -1,16 +1,24 @@
 const rowPairs = window.rowPairs = window.rowPairs || [];
 
+/**
+ * 初始化段落分组
+ * @param {string} pairs
+ */
 function initGroupRows(pairs) {
   toggleLineNo();
   toggleParaBox();
 
   rowPairs.length = 0;
   (pairs || '').split('||').filter(s => s).forEach(p => rowPairs.push(p));
-  rowPairs.forEach(movePairs);
+  const warn = rowPairs.map(movePairs);
   showRowPairs();
-  setTimeout(verifyParaOrders, 100);
+  setTimeout(() => verifyParaOrders(warn.join('')), 100);
+  setTimeout(() => window.scrollTo(0, $('#content').offset().top - 200), 200);
 }
 
+/**
+ * 显示段落分组的编号内容
+ */
 function showRowPairs() {
   $('#row-pairs-area').text(rowPairs.join('\n'));
 }
@@ -65,6 +73,10 @@ $.contextMenu({
   },
 });
 
+/**
+ * 显示段落拆分对话框
+ * @param {jQuery} $p
+ */
 function splitParagraph($p) {
   const text0 = $p.text(), saveData = {id: $p.attr('id'), result: []};
   swal({
@@ -114,21 +126,27 @@ function splitParagraph($p) {
   });
 }
 
-function verifyParaOrders() {
+/**
+ * 自动校验合并区内的段落顺序
+ * @param {string} [extra] 额外的警告文本
+ */
+function verifyParaOrders(extra) {
   const colCount = parseInt($('body').attr('data-col-count') || 1),
     message = [], paraIds = window.paraIds || [];
 
   for (let i = 0; i < colCount; i++) {
-    const indexes = [];
-    const colIds = $(`.cell-${i} p[id]:visible`).map((_, p) => p.getAttribute('id')).get(),
+    const cells = $(`.cell-${i} [id]:visible`).map((_, p) => ({p, y: p.getBoundingClientRect().top})).get();
+    cells.sort((a, b) => a.y - b.y);
+    const colIds = cells.map(c => c.p && c.p.getAttribute('id')),
       orgIds = paraIds.filter(d => colIds.indexOf(d) >= 0);
+    const indexes = [];
 
-    $(`#merged .cell-${i} p[id]:visible`).each(function () {
-      const id = this.getAttribute('id'), text = this.innerText,
-        pid = id.replace(/\d[a-z]/, s => s[0]),
-        moved = /moved/.test(this.className),
-        index = paraIds.indexOf(id),
-        endIndex = indexes[indexes.length - 1];
+    cells.filter(c => c[0] && c[0].closest('#merged')).forEach(c => {
+      const p = c.p, text = p.innerText,
+          id = p.getAttribute('id'),
+          moved = /moved/.test(p.className),
+          index = paraIds.indexOf(id),
+          endIndex = indexes[indexes.length - 1];
 
       if (moved) {
         const orgIdx = orgIds.indexOf(id);
@@ -143,13 +161,23 @@ function verifyParaOrders() {
       }
     });
   }
+  if (extra) {
+    extra.split('\n').forEach(text => {
+      const id = text.split(' ')[0], t = text.split(': ');
+      message.push(`<div><span data-id="${id}">${t[0]}</span><div>${t[1]}</div></div>`);
+    });
+  }
   $('#verify-errors').html(message.join(''));
 }
 
+/**
+ * 在编号成组文本区域中高亮选中落号
+ * @param {string} id
+ */
 function selectInPairsArea(id) {
   const area = document.getElementById('row-pairs-area'),
-    start0 = area.value.search('[^\s|]' + id + '[|\s$*-]'),
-    start = area.value.indexOf(id, start0);
+    start0 = (area && area.value || '').search('[^\s|]' + id + '[|\s$*-]'),
+    start = (area && area.value || '').indexOf(id, start0);
 
   if (start >= 0) {
     setTimeout(() => {
@@ -160,15 +188,17 @@ function selectInPairsArea(id) {
   }
 }
 
+// 在合并区点击段落，自动在编号成组文本区域中高亮选中此段落号
 $(document).on('click', '#merged [id]', function (e) {
-  selectInPairsArea(e.target.getAttribute('id'));
+  selectInPairsArea(e.target.closest('[data-id]').getAttribute('id'));
 });
 
+// 在校验出错行上点击编号项，高亮显示编号文本和段落
 $(document).on('click', '#verify-errors span[data-id]', function (e) {
   const id = e.target.closest('[data-id]').getAttribute('data-id'), $p = $('#' + id);
 
   selectInPairsArea(id);
   scrollToVisible($p[0]);
   $p.addClass('highlight');
-  setTimeout(() => $p.removeClass('highlight'), 500);
+  setTimeout(() => $p.removeClass('highlight'), 800);
 });

@@ -42,7 +42,7 @@ def merge_cb_html(content):
             ids['rid'] = 0
         elif not m.group(1) and m.group(2) == 'lg-row':
             ids['rid'] += 1
-            return m.group().replace('<div', "<div id='{0}-{1}'".format(ids['gid'], ids['rid']))
+            return m.group().replace('<div', "<div id='g{0}-{1}'".format(ids['gid'], ids['rid']))
         return m.group()
 
     ids = dict(pid=0, gid=0, rid=0)
