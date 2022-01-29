@@ -17,7 +17,7 @@
  * 显隐行号
  */
 function toggleLineNo() {
-  $('#content p[id], #content .lg[id], #content .lg-row[id]').each((i, p) => {
+  $('#content [id^=p], #content [id^=g]').each((i, p) => {
     p.setAttribute('data-line-no', '[' + p.getAttribute('id').replace(/^g\d+-/, '') + ']');
   });
   $('#content,#merged').toggleClass('show-line-no');
@@ -30,7 +30,7 @@ function toggleLineNo() {
 function toggleXu() {
   if ($('.div-xu,.xu-more').length) {
     $('.div-xu').each(function () {
-      if (!$('.xu-more', this).length) {
+      if (!$('.xu-more', this).length && !/xu-more/.test(this.className)) {
         $(this).toggle();
       }
     });
@@ -75,7 +75,7 @@ function showTwoColumns() {
       count = $($col[0]).closest('.row').children('div').length;
 
   $col.show();
-  $('body').attr('data-col-count', count);
+  $('body').attr('data-col-count', count > 1 ? count : null);
   updateColumnStatus();
 }
 
@@ -245,10 +245,14 @@ function movePairs(idsText) {
     for (let id of ids) {
       let id2 = id.replace(/[*-]+$/, ''), // 编号末尾有减号表示转为隐藏文本
           $el = $(id2, $articles[col]),
-          parent = $el.parent();
+          parent = $el.parent(),
+          xu = $el.closest('.div-xu');
 
       if ($el.length) {
         $el.remove();
+        if (xu.length) {
+          $el.addClass($el.text().length > 40 ? 'xu-more' : 'div-xu');
+        }
         if (/\*/.test(id)) {
           $el.addClass('moved');
         }

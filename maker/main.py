@@ -12,7 +12,7 @@ import fix_util as fix
 from tornado import ioloop, gen
 from tornado.web import Application, RequestHandler
 from tornado.options import define, options
-from tornado.escape import to_basestring, json_decode, json_encode
+from tornado.escape import to_basestring, json_decode
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httpclient import HTTPError
 
@@ -151,11 +151,21 @@ class PageHandler(BaseHandler):
             if step > 0 and not page.get('html'):
                 step = 0
 
-            name = info['id'].split('_')[0]
-            juan = int((info['id'].split('_')[1:] or [1])[0])
+            id = info['id']
+            name = id.split('_')[0]
+            juan = int((id.split('_')[1:] or [1])[0])
             cb_download_url = info.get('cb_download_url') or '{0}_{1:0>3d}'.format(name, juan)
 
-            self.render('page.html', page=page, info=info, step=step, id=info['id'],
+            if self.get_argument('export', 0):
+                json_files = ['{0}-{1}.json.js'.format(id, re.sub('_.+$', '', v['name']))
+                              for tag, v in (page.get('notes') or {}).items()]
+                note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])), v.get('desc', v['name'])]
+                              for tag, v in (page.get('notes') or {}).items()]
+                html = self.render_string('export.html', page=page, info=info, id=id,
+                                          json_files=json_files, note_names=note_names)
+                return self.write(dict(html=to_basestring(html)))
+
+            self.render('page.html', page=page, info=info, step=step, id=id,
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         cb_download_url=cb_download_url)
@@ -264,13 +274,14 @@ class SplitParagraphHandler(BaseHandler):
             result = data['result']
             page = self.load_page(pid)
 
-            index, log = -1, None
+            index, log, new_ids = -1, None, []
             for (i, text) in enumerate(page['html']):
                 prefix = "<p id='{}'".format(data['id'])
                 if prefix in text:
                     index = i
+                    new_ids = [r['id'] for r in result[1:]]
                     log = 'Split paragraph #{0} at {1} as result #{2}: {3}'.format(
-                        data['id'], i, ','.join(str(r['id']) for r in result[1:]), data['text'])
+                        data['id'], i, ','.join(new_ids), data['text'])
                     logging.info(log)
                     assert text.index(prefix) == 0
                     self.split_p(i, result, page)
@@ -278,8 +289,15 @@ class SplitParagraphHandler(BaseHandler):
 
             if index >= 0:
                 page['log'].append(log)
+                ret = dict(index=index, id=data['id'])
+                if data.get('merged'):
+                    pat = re.compile('(^|[ |])' + data['id'] + '([ |]|$)')
+                    for (i, r) in enumerate(page['rowPairs']):
+                        nr = pat.sub(lambda m: m.group().replace(data['id'], ' '.join([data['id']] + new_ids)), r)
+                        page['rowPairs'][i] = nr
+                    ret['rowPairs'] = '||'.join(page['rowPairs'])
                 self.save_page(page)
-            self.write(dict(index=index))
+            self.write(ret)
         except Exception as e:
             self.on_error(e)
 

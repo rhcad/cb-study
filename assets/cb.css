@@ -47,6 +47,9 @@ div.lg-cell {
   display: table-cell;
   word-break: keep-all;
 }
+[data-col-count] div.lg-cell {
+  word-break: break-all;
+}
 div.lg-row { display: table-row; }
 div.lg + p { margin-top: .5em; }
 p { text-indent: 2em; }
@@ -106,6 +109,10 @@ body {
   flex: 1;
   min-width: 10px;
 }
+.container-fluid > .row {
+  margin-right: 0;
+  margin-left: 0;
+}
 
 #content, #merged {
   font-size: 20px;
@@ -132,7 +139,7 @@ body {
   border-left: 1px solid #ddd;
 }
 #content:not(.single-article) .row {
-  border-bottom: 1px solid rgba(200, 200, 200, .4);
+  border-bottom: 1px solid rgba(200, 200, 200, .2);
 }
 
 @media screen {

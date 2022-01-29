@@ -7,19 +7,24 @@ const rowPairs = window.rowPairs = window.rowPairs || [];
 function initGroupRows(pairs) {
   toggleLineNo();
   toggleParaBox();
+  showRowPairs(pairs);
 
-  rowPairs.length = 0;
-  (pairs || '').split('||').filter(s => s).forEach(p => rowPairs.push(p));
-  const warn = rowPairs.map(movePairs);
-  showRowPairs();
+  const warn = rowPairs.map(movePairs), $content = $('#content');
   setTimeout(() => verifyParaOrders(warn.join('')), 100);
-  setTimeout(() => window.scrollTo(0, $('#content').offset().top - 200), 200);
+  if ($content.text().trim()) {
+    setTimeout(() => window.scrollTo(0, $content.offset().top - 200), 200);
+  }
 }
 
 /**
  * 显示段落分组的编号内容
+ * @param {string} [pairs]
  */
-function showRowPairs() {
+function showRowPairs(pairs) {
+  if (pairs) {
+    rowPairs.length = 0;
+    pairs.split('||').filter(s => s).forEach(p => rowPairs.push(p));
+  }
   $('#row-pairs-area').text(rowPairs.join('\n'));
 }
 
@@ -41,7 +46,7 @@ $(document).on('click', '#content p, #content .lg-row', function (e) {
 // 将当前组的段落移到上面的合并区
 $('#move-row').click(function () {
   const $ids = $('.current-row .row-ids'),
-      ids = $ids.map((i, d) => $('span', d).map((i, s) => $(s).text()).get().join(' ')).get();
+      ids = $ids.map((i, d) => $('span', d).map((i, s) => $(s).text()).get().join(' ') || ' ').get();
 
   $('.in-cur-row').removeClass('in-cur-row');
   $ids.html('');
@@ -56,7 +61,7 @@ $('#move-row').click(function () {
 });
 
 $.contextMenu({
-  selector: '#content p[id]',
+  selector: '#content [id^=p],#merged [id^=p]',
   items: {
     splitP: {
       name: '拆分段落',
@@ -78,7 +83,7 @@ $.contextMenu({
  * @param {jQuery} $p
  */
 function splitParagraph($p) {
-  const text0 = $p.text(), saveData = {id: $p.attr('id'), result: []};
+  const text0 = $p.text(), saveData = {id: $p.attr('id'), result: [], merged: $p.closest('#merged').length};
   swal({
     title: `拆分段落 #${ $p.attr('id') }`,
     text: '在要拆分处插入分隔符“@”或回车换行。',
@@ -91,7 +96,7 @@ function splitParagraph($p) {
     },
     buttons: ['取消', '拆分'],
   }).then(result => {
-    if (!result) {
+    if (!result || /-/.test(saveData.id)) {
       return;
     }
     result = document.querySelector('.swal-content__textarea').value.replace(/[@\n]+/g, '@')
@@ -164,7 +169,7 @@ function verifyParaOrders(extra) {
   if (extra) {
     extra.split('\n').forEach(text => {
       const id = text.split(' ')[0], t = text.split(': ');
-      message.push(`<div><span data-id="${id}">${t[0]}</span><div>${t[1]}</div></div>`);
+      message.push(`<div><span data-id="${id}">${t[0]}</span><div>${t[1] || ''}</div></div>`);
     });
   }
   $('#verify-errors').html(message.join(''));
@@ -175,7 +180,7 @@ function verifyParaOrders(extra) {
  * @param {string} id
  */
 function selectInPairsArea(id) {
-  const area = document.getElementById('row-pairs-area'),
+  const area = id && document.getElementById('row-pairs-area'),
     start0 = (area && area.value || '').search('[^\s|]' + id + '[|\s$*-]'),
     start = (area && area.value || '').indexOf(id, start0);
 
@@ -190,7 +195,7 @@ function selectInPairsArea(id) {
 
 // 在合并区点击段落，自动在编号成组文本区域中高亮选中此段落号
 $(document).on('click', '#merged [id]', function (e) {
-  selectInPairsArea(e.target.closest('[data-id]').getAttribute('id'));
+  selectInPairsArea(e.target.closest('[id]').getAttribute('id'));
 });
 
 // 在校验出错行上点击编号项，高亮显示编号文本和段落

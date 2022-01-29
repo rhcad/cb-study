@@ -171,8 +171,8 @@
       <ul>
         <li>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</li>
         <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>，以便在正文中随时阅读相关经典释文。</li>
-        <li>可 <a id="download-html">下载当前内容</a>
-          {% if page.get('notes') %}、<a id="download-notes">下载注解</a>{% end %} 以便制作网页。</li>
+        <li>可 <a href="#" id="download-html">下载当前内容</a>
+          {% if page.get('notes') %}<a href="#" id="download-notes">下载注解</a>{% end %} 以便制作网页。</li>
       </ul>
     </div>
   </div>
@@ -205,7 +205,7 @@
     {% end %}
     <button class="btn btn-default btn-sm" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
     <button class="btn btn-default btn-sm" id="apply-rows" title="重新应用下面输入区域的分组设置">应用输入</button>
-    <button class="btn btn-default btn-sm end-move-rows" title="段落分组完成，进入下一步">完成</button>
+    <button class="btn btn-primary btn-sm end-move-rows" title="段落分组完成，进入下一步">完成</button>
   </div>
   <div class="row-pairs-div">
     <textarea rows="5" id="row-pairs-area"></textarea>
@@ -215,7 +215,7 @@
 </div>
 {% end %}
 
-<div id="content" class="container-fluid">
+<div id="content" class="container-fluid {% if info.get('cols', 1) < 2 %} original{% end %}">
   {% if page.get('html') and step > 0 %}
     {% if step == 1 %}<div class="row">{% end %}
     {% raw '\n'.join(page['html']) %}
@@ -299,7 +299,10 @@
 
   // 段落拆分 {id, text, result=[{id, text}...]}
   function saveSplitParagraph(data) {
-    $.post('/split-p/{{id}}', {data: JSON.stringify(data)}).error(ajaxError('保存失败', reload))
+    $.post('/split-p/{{id}}', {data: JSON.stringify(data)}, r => {
+      showRowPairs(r.rowPairs)
+      selectInPairsArea(data.id)
+    }).error(ajaxError('保存失败', reload))
   }
 
   // 应用段落分组数据
@@ -371,8 +374,11 @@
     $content.find('[cur-tag]').removeAttr('cur-tag')
     $content.remove()
 
+    return trimHtml($content.html())
+  }
+  function trimHtml(html) {
     const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
-    return $content.html().trim()
+    return html.trim()
             .replace(/ style="display: block;"| class=""| style="padding-left: 0px;"|<note [^<>]+><\/note>/g, '')
             .replace(/><(p|div class="(cell|row))/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
@@ -384,8 +390,12 @@
 
   // 下载合并后的网页内容
   $('#download-html').click(() => {
-    download(getHtml(), '{{id}}.html', 'text/html')
+    $.get('/page/{{id}}?export=1', r => {
+      download(trimHtml(r.html), '{{id}}.html', 'text/html')
+    })
   })
+
+  // 下载注解文件
   $('#download-notes').click(() => {
     {% for tag, v in page.get('notes', {}).items() %}
     $.get('/page_note/{{id}}', {tag: '{{tag}}'}, r => {
