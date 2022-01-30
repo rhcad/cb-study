@@ -68,7 +68,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="/">经典页面制作</a>
+      <a class="navbar-brand" href="/cb">经典页面制作</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -204,13 +204,24 @@
     </div>
     {% end %}
     <button class="btn btn-default btn-sm" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
-    <button class="btn btn-default btn-sm" id="apply-rows" title="重新应用下面输入区域的分组设置">应用输入</button>
+    <button class="btn btn-default btn-sm" title="重新应用下面输入区域的分组设置" onclick="applyRowPairs()">应用输入</button>
     <button class="btn btn-primary btn-sm end-move-rows" title="段落分组完成，进入下一步">完成</button>
   </div>
   <div class="row-pairs-div">
     <textarea rows="5" id="row-pairs-area"></textarea>
     <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。</div>
     <div id="verify-errors"></div>
+  </div>
+  <div>
+    <button class="btn btn-default btn-sm" id="to-original" title="滚动到合并区下方的红线处">到分隔线</button>
+    <div class="p-nav">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="段落号">
+        <span class="input-group-btn">
+        <button class="btn btn-default btn-sm" type="button">定位</button>
+      </span>
+      </div><!-- /input-group -->
+    </div>
   </div>
 </div>
 {% end %}
@@ -274,7 +285,7 @@
   $('#cb-download').click(() => {
     const down = () => {
       const urls = $('#cb-download-url').val()
-      $.post('/cb/download/{{id}}', {urls: urls}, reload).error(ajaxError('获取原文失败'))
+      $.post('/cb/page/fetch/{{id}}', {urls: urls}, reload).error(ajaxError('获取原文失败'))
     }
     if ($('#content').text().trim()) {
       swal({
@@ -294,31 +305,31 @@
 
   // 第二步保存段落分组数据，给“移为一组”按钮用
   function saveRowPairs() {
-    $.post('/row-pairs/{{id}}', {'pairs': window.rowPairs.join('||')}, updateParaIds).error(ajaxError('保存失败'))
+    $.post('/cb/page/merge/add/{{id}}', {'pairs': window.rowPairs.join('||')}, updateParaIds).error(ajaxError('保存失败'))
   }
 
-  // 段落拆分 {id, text, result=[{id, text}...]}
+  // 段落拆分 {id, text, result=[{id, text}...]}, 或 段落合并 {id, id2}
   function saveSplitParagraph(data) {
-    $.post('/split-p/{{id}}', {data: JSON.stringify(data)}, r => {
+    $.post('/cb/page/p/split/{{id}}', {data: JSON.stringify(data)}, r => {
       showRowPairs(r.rowPairs)
       selectInPairsArea(data.id)
     }).error(ajaxError('保存失败', reload))
   }
 
   // 应用段落分组数据
-  $('#apply-rows').click(() => {
+  function applyRowPairs() {
     const pairs = $('#row-pairs-area').val().replace(/\n/g, '||')
-    $.post('/row-pairs/{{id}}', {'pairs': pairs}, reload)
-  })
+    $.post('/cb/page/merge/add/{{id}}', {'pairs': pairs}, reload)
+  }
 
   // 段落分组完成
   $('.end-move-rows').click(() => {
     const html = ($('#merged').html() || '').replace(/ data-line-no="[^"<>]*"/g, '')
-    $.post('/end-merge/{{id}}', {'html': html}, reload)
+    $.post('/cb/page/merge/end/{{id}}', {'html': html}, reload)
   })
 
   function updateParaIds() {
-    $.get('/p-order/{{id}}', r => {
+    $.get('/cb/page/p/order/{{id}}', r => {
       window.paraIds = r.ids
     })
   }
@@ -332,7 +343,7 @@
     if (cols.length > 1) {
       return showError('获取失败', '请切换为只显示一栏再重试。')
     }
-    $.get('/fetch-cb-html/' + name, r => {
+    $.get('/cb/html/' + name, r => {
       const lines = []
       $(r.html).find('.div-orig,.div-commentary').each((i, div) => {
         const text = div.innerText.split('\n').map(s => s.trim()).filter(s => s && !/^△/.test(s)).join('\n')
@@ -340,7 +351,7 @@
           lines.push({orig: /div-orig/.test(div.className), text: text})
         }
       })
-      $.post('/page_note/{{id}}', {
+      $.post('/cb/page/note/{{id}}', {
         'tag': tag, 'name': name, 'desc': desc, 'col': cols[0],
         'lines': JSON.stringify(lines)}, r => {
         showSuccess('保存注解', `${tag} 导入了 ${r.count} 条注解。`, reload)
@@ -358,7 +369,7 @@
       $('.cell').hide()
       $(`.cell-${col}`).show();
     }
-    $.get('/page_note/{{id}}', {tag: tag}, r => {
+    $.get('/cb/page/note/{{id}}', {tag: tag}, r => {
       initNotes(r.notes, tag, `.cell-${col},#body${col}`, r.desc)
     }).error(ajaxError('加载注解失败'))
   })
@@ -385,12 +396,12 @@
 
   // 第4步改动网页内容后，保存网页内容
   $('.save-html').click(() => {
-    $.post('/page/{{id}}', {html: getHtml(), step: '{{step}}'}).error(ajaxError('保存失败'))
+    $.post('/cb/page/{{id}}', {html: getHtml(), step: '{{step}}'}).error(ajaxError('保存失败'))
   })
 
   // 下载合并后的网页内容
   $('#download-html').click(() => {
-    $.get('/page/{{id}}?export=1', r => {
+    $.get('/cb/page/{{id}}?export=1', r => {
       download(trimHtml(r.html), '{{id}}.html', 'text/html')
     })
   })
@@ -398,7 +409,7 @@
   // 下载注解文件
   $('#download-notes').click(() => {
     {% for tag, v in page.get('notes', {}).items() %}
-    $.get('/page_note/{{id}}', {tag: '{{tag}}'}, r => {
+    $.get('/cb/page/note/{{id}}', {tag: '{{tag}}'}, r => {
       const name = r.name.replace(/_.+$/, ''), head = `// ${r.desc || r.name}\n const ${name}Notes = `
       download(head + JSON.stringify(r.notes, null, 2), `{{id}}-${name}.json.js`, 'text/plain')
     })
@@ -406,7 +417,7 @@
   })
 
   {% for tag, v in (step > 1 and page.get('notes') or {}).items() %}
-  $.get('/page_note/{{id}}', {tag: '{{tag}}'}, r => {
+  $.get('/cb/page/note/{{id}}', {tag: '{{tag}}'}, r => {
     insertNotes($(`.cell-${r.col},#body${r.col}`), r.notes, r.desc)
   })
   {% end %}

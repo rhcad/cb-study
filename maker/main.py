@@ -24,7 +24,7 @@ define('port', default=8002, help='run port', type=int)
 define('debug', default=True, help='the debug mode', type=bool)
 
 
-class BaseHandler(RequestHandler):
+class CbBaseHandler(RequestHandler):
     def on_error(self, e):
         traceback.print_exc()
         self.send_error(500, reason=str(e))
@@ -70,7 +70,7 @@ class BaseHandler(RequestHandler):
     @staticmethod
     def rollback(page):
         if page.get('html_org') and page.get('log'):
-            BaseHandler.reset_html(page)
+            CbBaseHandler.reset_html(page)
             for log in page['log']:
                 m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+) as result #([^:]+): (.+@.*)$', log)
                 if m:
@@ -86,13 +86,20 @@ class BaseHandler(RequestHandler):
                     for (i, text) in enumerate(texts[1:]):
                         r.append({'id': new_ids[i], 'text': text})
                     SplitParagraphHandler.split_p(index, r, page)
+
+                m = not m and re.search(r'^Merge paragraph #(p\d+\w*) with #(p\d+\w*) at (\d+)$', log)
+                if m:
+                    pid, id2, index = m.group(1), m.group(2), m.group(3)
+                    SplitParagraphHandler.merge_p(int(index), page, pid, id2)
+
             return True
 
 
-class HomeHandler(BaseHandler):
-    URL = '/'
+class CbHomeHandler(CbBaseHandler):
+    URL = '/cb'
 
     def get(self):
+        """原典首页"""
         try:
             for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
                 if not path.exists(path.join(DATA_DIR, path.basename(fn))):
@@ -100,17 +107,18 @@ class HomeHandler(BaseHandler):
 
             files = sorted(glob(path.join(DATA_DIR, '*.json')))
             pages = [json.load(open(fn)) for fn in files]
-            self.render('index.html', pages=[
-                dict(id=p['info']['id'], caption=p['info']['caption'], url='/page/' + p['info']['id'])
+            self.render('cb_home.html', pages=[
+                dict(id=p['info']['id'], caption=p['info']['caption'], url='/cb/page/' + p['info']['id'])
                 for p in pages])
         except Exception as e:
             self.on_error(e)
 
 
-class PageNewHandler(BaseHandler):
-    URL = '/page/new'
+class PageNewHandler(CbBaseHandler):
+    URL = '/cb/page/new'
 
     def post(self):
+        """创建原典页面"""
         try:
             pid = to_basestring(self.get_argument('id', ''))
             caption = to_basestring(self.get_argument('caption', '')).strip()
@@ -124,15 +132,16 @@ class PageNewHandler(BaseHandler):
                 return self.send_error(503, reason='file exists')
 
             self.save_page({'info': dict(id=pid, caption=caption), 'log': []})
-            self.write({'url': '/page/' + pid})
+            self.write({'url': '/cb/page/' + pid})
         except Exception as e:
             self.on_error(e)
 
 
-class PageHandler(BaseHandler):
-    URL = '/page/([A-Za-z0-9_]+)'
+class PageHandler(CbBaseHandler):
+    URL = '/cb/page/@pid'
 
     def get(self, pid):
+        """显示原典页面"""
         try:
             page = self.load_page(pid)
             info = page['info']
@@ -140,7 +149,7 @@ class PageHandler(BaseHandler):
             if step > 0:
                 info['step'] = step - 1
                 self.save_page(page)
-                return self.redirect('/page/' + pid)
+                return self.redirect('/cb/page/' + pid)
 
             step = info.get('step', 0)
             if step > 1:
@@ -161,11 +170,11 @@ class PageHandler(BaseHandler):
                               for tag, v in (page.get('notes') or {}).items()]
                 note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])), v.get('desc', v['name'])]
                               for tag, v in (page.get('notes') or {}).items()]
-                html = self.render_string('export.html', page=page, info=info, id=id,
+                html = self.render_string('cb_export.html', page=page, info=info, id=id,
                                           json_files=json_files, note_names=note_names)
                 return self.write(dict(html=to_basestring(html)))
 
-            self.render('page.html', page=page, info=info, step=step, id=id,
+            self.render('cb_page.html', page=page, info=info, step=step, id=id,
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         cb_download_url=cb_download_url)
@@ -173,6 +182,7 @@ class PageHandler(BaseHandler):
             self.on_error(e)
 
     def post(self, pid):
+        """保存网页内容"""
         try:
             page = self.load_page(pid)
             html = to_basestring(self.get_argument('html', '')).strip()
@@ -188,11 +198,12 @@ class PageHandler(BaseHandler):
             self.on_error(e)
 
 
-class HtmlDownloadHandler(BaseHandler):
-    URL = '/cb/download/([A-Za-z0-9_]+)'
+class HtmlDownloadHandler(CbBaseHandler):
+    URL = '/cb/page/fetch/@pid'
 
     @gen.coroutine
     def post(self, pid):
+        """从CBeta获取原文HTML"""
         try:
             cb_download_url = to_basestring(self.get_argument('urls', ''))
             urls = [s.split('+') for s in cb_download_url.split('|')] if cb_download_url else []
@@ -234,10 +245,11 @@ class HtmlDownloadHandler(BaseHandler):
             self.on_error(e)
 
 
-class RowPairsHandler(BaseHandler):
-    URL = '/row-pairs/([A-Za-z0-9_]+)'
+class RowPairsHandler(CbBaseHandler):
+    URL = '/cb/page/merge/add/@pid'
 
     def post(self, pid):
+        """保存段落分组数据"""
         try:
             pairs = self.get_argument('pairs').split('||')
 
@@ -249,10 +261,11 @@ class RowPairsHandler(BaseHandler):
             self.on_error(e)
 
 
-class ParagraphOrderHandler(BaseHandler):
-    URL = '/p-order/([A-Za-z0-9_]+)'
+class ParagraphOrderHandler(CbBaseHandler):
+    URL = '/cb/page/p/order/@pid'
 
     def get(self, pid):
+        """获取所有段落编号"""
         try:
             page = self.load_page(pid)
             self.write(dict(ids=self.get_ids(page)))
@@ -261,42 +274,52 @@ class ParagraphOrderHandler(BaseHandler):
 
     @staticmethod
     def get_ids(page):
-        return [re.search(r"id='([pg]\d\w*)'", p).group(1) for p in page.get('html', [])
-                if re.search(r"id='([pg]\d\w*)'", p)]
+        return [re.search(r"id='([pg]\d[a-z0-9_-]*)'", p).group(1) for p in page.get('html', [])
+                if re.search(r"id='([pg]\d[a-z0-9_-]*)'", p)]
 
 
-class SplitParagraphHandler(BaseHandler):
-    URL = '/split-p/([A-Za-z0-9_]+)'
+class SplitParagraphHandler(CbBaseHandler):
+    URL = '/cb/page/p/split/@pid'
 
     def post(self, pid):
+        """保存段落拆分或合并的信息"""
         try:
             data = json_decode(self.get_argument('data'))
-            result = data['result']
+            result = data.get('result')
+            id2 = data.get('id2')
             page = self.load_page(pid)
 
             index, log, new_ids = -1, None, []
             for (i, text) in enumerate(page['html']):
                 prefix = "<p id='{}'".format(data['id'])
                 if prefix in text:
-                    index = i
-                    new_ids = [r['id'] for r in result[1:]]
-                    log = 'Split paragraph #{0} at {1} as result #{2}: {3}'.format(
-                        data['id'], i, ','.join(new_ids), data['text'])
-                    logging.info(log)
-                    assert text.index(prefix) == 0
-                    self.split_p(i, result, page)
+                    index = i  # 文本行序号
+                    if not result:
+                        assert "<p id='{}'".format(data.get('id2')) in page['html'][i + 1], 'fail to merge'
+                        log = 'Merge paragraph #{0} with #{1} at {2}'.format(data['id'], id2, i)
+                        logging.info(log)
+                        self.merge_p(i, page, data['id'], id2)
+                    else:
+                        new_ids = [r['id'] for r in result[1:]]
+                        log = 'Split paragraph #{0} at {1} as result #{2}: {3}'.format(
+                            data['id'], i, ','.join(new_ids), data['text'])
+                        logging.info(log)
+                        assert text.index(prefix) == 0
+                        self.split_p(i, result, page)
                     break
 
-            if index >= 0:
-                page['log'].append(log)
-                ret = dict(index=index, id=data['id'])
-                if data.get('merged'):
-                    pat = re.compile('(^|[ |])' + data['id'] + '([ |]|$)')
-                    for (i, r) in enumerate(page['rowPairs']):
-                        nr = pat.sub(lambda m: m.group().replace(data['id'], ' '.join([data['id']] + new_ids)), r)
-                        page['rowPairs'][i] = nr
-                    ret['rowPairs'] = '||'.join(page['rowPairs'])
-                self.save_page(page)
+            assert index >= 0, 'html not found'
+            page['log'].append(log)
+            ret = dict(index=index, id=data['id'])
+            if data.get('merged'):  # 在已合并区域，就更新段落分组数据
+                pairs = page['rowPairs']
+                pat = re.compile('(^|[ |])' + data['id'] + '([ |]|$)' if result else data['id'] + r'\s+' + id2)
+                idx = [i for (i, r) in enumerate(pairs) if pat.search(r)]
+                assert idx, 'not in rowPairs'
+                pairs[idx[0]] = pat.sub(lambda m: data['id'] if not result else m.group().replace(
+                    data['id'], ' '.join([data['id']] + new_ids)), pairs[idx[0]])
+                ret['rowPairs'] = '||'.join(pairs)
+            self.save_page(page)
             self.write(ret)
         except Exception as e:
             self.on_error(e)
@@ -307,11 +330,25 @@ class SplitParagraphHandler(BaseHandler):
         for j in range(len(result) - 1, 0, -1):
             page['html'].insert(i + 1, "<p id='{0}'>{1}</p>".format(result[j]['id'], result[j]['text']))
 
+    @staticmethod
+    def merge_p(i, page, id1, id2):
+        err = None
+        if "<p id='{}'".format(id1) not in page['html'][i]:
+            err = 'fail to merge via {0} #{1}'.format(i, id1)
+        elif "<p id='{}'".format(id2) not in page['html'][i + 1]:
+            err = 'fail to merge via {0} #{1}'.format(i + 1, id2)
+        if err:
+            logging.warning(err)
+        else:
+            page['html'][i] = page['html'][i].replace('</p>', re.sub('^<p[^>]+>', '', page['html'][i + 1]))
+            del page['html'][i + 1]
 
-class EndMergeHandler(BaseHandler):
-    URL = '/end-merge/([A-Za-z0-9_]+)'
+
+class EndMergeHandler(CbBaseHandler):
+    URL = '/cb/page/merge/end/@pid'
 
     def post(self, pid):
+        """段落分组完成"""
         try:
             html = self.get_argument('html', '').strip()
             page = self.load_page(pid)
@@ -323,11 +360,12 @@ class EndMergeHandler(BaseHandler):
             self.on_error(e)
 
 
-class FetchHtmlHandler(BaseHandler):
-    URL = '/fetch-cb-html/(\w+_\d+)'
+class FetchHtmlHandler(CbBaseHandler):
+    URL = '/cb/html/@jid'
 
     @gen.coroutine
     def get(self, name):
+        """从CBeta获取原文HTML"""
         try:
             html = yield self.fetch_cb(name)
             if html: self.write(dict(html=html))
@@ -336,10 +374,11 @@ class FetchHtmlHandler(BaseHandler):
             self.on_error(e)
 
 
-class PageNoteHandler(BaseHandler):
-    URL = '/page_note/([A-Za-z0-9_]+)'
+class PageNoteHandler(CbBaseHandler):
+    URL = '/cb/page/note/@pid'
 
     def get(self, pid):
+        """获取注解数据"""
         try:
             tag = self.get_argument('tag')
             page = self.load_page(pid)
@@ -349,6 +388,7 @@ class PageNoteHandler(BaseHandler):
             self.on_error(e)
 
     def post(self, pid):
+        """保存注解数据"""
         try:
             tag = self.get_argument('tag')
             name = self.get_argument('name')
@@ -386,11 +426,15 @@ class PageNoteHandler(BaseHandler):
             self.on_error(e)
 
 
+handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
+            ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
+
+
 def make_app():
-    handlers = [HomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
-                ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
+    url_vars = dict(pid='([A-Za-z0-9_]+)', jid=r'(\w+_\d+)')
     return Application(
-        [(c.URL, c) for c in handlers],
+        [(re.sub('@[a-z]+', lambda m: url_vars[m.group()[1:]], c.URL), c) for c in handlers],
+        default_handler_class=CbHomeHandler,
         debug=options.debug,
         compiled_template_cache=False,
         static_path=path.join(BASE_DIR, 'assets'),

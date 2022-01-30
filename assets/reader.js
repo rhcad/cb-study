@@ -214,7 +214,7 @@ function setKePanWidth(ratio) {
  */
 function _toPairSelectors(idsText) {
   return idsText.split(' ').filter(s => s).map(s => {
-    if (s[0] !== '.' && s[0] !== '#') {
+    if (s && !/[.#-]/.test(s[0])) {
       if (/^\d/.test(s)) {
         s = 'p' + s;
       }
@@ -244,7 +244,7 @@ function movePairs(idsText) {
     let $lg;
     for (let id of ids) {
       let id2 = id.replace(/[*-]+$/, ''), // 编号末尾有减号表示转为隐藏文本
-          $el = $(id2, $articles[col]),
+          $el = $(id2 || 'e', $articles[col]),
           parent = $el.parent(),
           xu = $el.closest('.div-xu');
 
@@ -275,7 +275,7 @@ function movePairs(idsText) {
           $lg = null;
           $el.appendTo($divs[col]);
         }
-      } else {
+      } else if (id2) {
         ret += `${id2.replace(/^[#.]/, '')} 不在第 ${col + 1} 栏中: ${idsText}\n`;
       }
     }

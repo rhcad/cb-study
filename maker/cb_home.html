@@ -24,7 +24,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="/">经典页面制作</a>
+      <a class="navbar-brand" href="/cb">经典页面制作</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -42,7 +42,8 @@
   {% end %}
 
   <div class="input-group">
-    <input type="text" class="form-control" id="page-id" placeholder="按“经号_卷号:经典名称”格式输入，例如“T0945_1:楞嚴經【卷1】”">
+    <input type="text" class="form-control" id="page-id"
+           placeholder="按“经号_卷号:经典名称”格式输入，卷号可省略，例如“T0945_1:楞嚴經【卷1】”">
     <div class="input-group-btn">
       <button type="button" class="btn btn-default" id="new-page">创建页面</button>
     </div>
@@ -55,7 +56,7 @@
 <script>
   $('#new-page').click(() => {
     const v = $('#page-id').val().split(/\s*[:：]\s*/)
-    $.post('/page/new', {id: v[0], caption: v[1]}, response => {
+    $.post('/cb/page/new', {id: v[0], caption: v[1]}, response => {
       window.location.href = response.url
     }).error(xhr => showError('创建失败', errors[xhr.status] || xhr.statusText))
     return false

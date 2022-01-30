@@ -11,7 +11,7 @@
   margin: 47px 0 10px;
   border: 1px solid #ddd;
   background: #fff;
-  z-index: 1000;
+  z-index: 10;
 }
 .label-panel label { font-weight: normal; }
 
@@ -114,6 +114,15 @@ textarea {outline: none;}
   text-overflow: ellipsis;
 }
 
+.p-nav {
+  float: right;
+  width: 120px;
+}
+.p-nav input {
+  height: 30px;
+  padding: 6px 8px;
+}
+
 .highlight { color: #0000a0}
 
 .gray-linked note[cur-tag]:not(.note-expanded) {
@@ -122,6 +131,11 @@ textarea {outline: none;}
 
 body[data-step="1"] #content:not(.show-line-no) p {
   text-indent: 0;
+}
+body[data-step="1"]:not(.show-hide-txt) .hide-txt {
+  display: block;
+  color: gray;
+  font-size: .8em;
 }
 
 body:not([data-step="1"]) #content:not(.single-article) .row > div {
