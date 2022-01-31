@@ -210,10 +210,9 @@
   <div class="row-pairs-div">
     <textarea rows="5" id="row-pairs-area"></textarea>
     <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。</div>
-    <div id="verify-errors"></div>
   </div>
   <div>
-    <button class="btn btn-default btn-sm" id="to-original" title="滚动到合并区下方的红线处">到分隔线</button>
+    <button class="btn btn-default btn-sm" id="to-original" title="滚动到合并区下方的红线处，即未合并内容的上方">到分隔线</button>
     <div class="p-nav">
       <div class="input-group">
         <input type="text" class="form-control" placeholder="段落号">
@@ -223,10 +222,11 @@
       </div><!-- /input-group -->
     </div>
   </div>
+  <div id="verify-errors"></div>
 </div>
 {% end %}
 
-<div id="content" class="container-fluid {% if info.get('cols', 1) < 2 %} original{% end %}">
+<div id="content" class="container-fluid {% if info.get('cols', 1) < 2 and 'original' not in '\n'.join(page['html']) %} original{% end %}">
   {% if page.get('html') and step > 0 %}
     {% if step == 1 %}<div class="row">{% end %}
     {% raw '\n'.join(page['html']) %}
@@ -318,14 +318,13 @@
 
   // 应用段落分组数据
   function applyRowPairs() {
-    const pairs = $('#row-pairs-area').val().replace(/\n/g, '||')
+    const pairs = $('#row-pairs-area').val().replace(/(^|\n)-(\|-)+($|\n)/g, '').replace(/\n+/g, '||')
     $.post('/cb/page/merge/add/{{id}}', {'pairs': pairs}, reload)
   }
 
   // 段落分组完成
   $('.end-move-rows').click(() => {
-    const html = ($('#merged').html() || '').replace(/ data-line-no="[^"<>]*"/g, '')
-    $.post('/cb/page/merge/end/{{id}}', {'html': html}, reload)
+    $.post('/cb/page/merge/end/{{id}}', {'html': trimHtml($('#merged').html() || '')}, reload)
   })
 
   function updateParaIds() {
@@ -390,7 +389,8 @@
   function trimHtml(html) {
     const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
     return html.trim()
-            .replace(/ style="display: block;"| class=""| style="padding-left: 0px;"|<note [^<>]+><\/note>/g, '')
+            .replace(/ data-line-no="[^"<>]*"/g, '')
+            .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
             .replace(/><(p|div class="(cell|row))/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
 

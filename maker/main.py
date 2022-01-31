@@ -39,7 +39,7 @@ class CbBaseHandler(RequestHandler):
     def save_page(page):
         filename = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
         with open(filename, 'w') as f:
-            json.dump(page, f, ensure_ascii=False, indent=2)
+            json.dump(page, f, ensure_ascii=False, indent=2, sort_keys=True)
 
     @staticmethod
     def reset_html(page):
@@ -69,28 +69,47 @@ class CbBaseHandler(RequestHandler):
 
     @staticmethod
     def rollback(page):
+        CbBaseHandler.reset_html(page)
         if page.get('html_org') and page.get('log'):
-            CbBaseHandler.reset_html(page)
-            for log in page['log']:
-                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+) as result #([^:]+): (.+@.*)$', log)
+            ids0 = {}
+            for (li, log) in enumerate(page['log']):
+                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+)( as result #[^:]+)?: (.+@.*)$', log)
                 if m:
                     pid, index, new_ids, text = m.group(1), m.group(2), m.group(3), m.group(4)
-                    new_ids, index = new_ids.split(','), int(index)
-                    assert 0 <= index < len(page['html']), 'log {0} out of range {1}'.format(index, len(page['html']))
-                    html0 = page['html'][index]
+                    new_ids, index = new_ids and new_ids.split('#')[1].split(','), int(index)
+                    base_id = re.sub(r'\d[a-z]', lambda _: _.group(0)[0], pid)
+                    html0 = page['html'][index] if index < len(page['html']) else ''
+                    if pid not in html0:
+                        for (i, s) in enumerate(page['html']):
+                            s = re.sub("<span class='[a-z-]+'>([^<>]+)</span>", lambda _: _.group(1), s)
+                            if "<p id='{0}'>{1}".format(pid, text.split('@')[0]) in s:
+                                print('{0} {1} --> {2}'.format(pid, index, i))
+                                page['log'][li] = re.sub(r'at (\d+)', 'at {}'.format(i), log)
+                                index = i
+                                html0 = page['html'][index]
+                                break
                     if pid not in html0:
                         logging.warning('{0} not at index {1}: {2}'.format(pid, index, text.split('@')[0]))
 
                     texts = text.split('@')
                     r = [{'text': texts[0]}]
                     for (i, text) in enumerate(texts[1:]):
-                        r.append({'id': new_ids[i], 'text': text})
+                        if new_ids:
+                            r.append({'id': new_ids[i], 'text': text})
+                        else:
+                            ids0[base_id] = ids0.get(base_id, ord('a') - 1) + 1
+                            r.append({'id': base_id + chr(ids0[base_id]), 'text': text})
+                            logging.info('split paragraph from #{0} as #{1}: {2}'.format(pid, r[-1]['id'], text[0:20]))
                     SplitParagraphHandler.split_p(index, r, page)
+                elif re.match(r'^Split paragraph', log):
+                    logging.warning('invalid log: ' + log)
 
-                m = not m and re.search(r'^Merge paragraph #(p\d+\w*) with #(p\d+\w*) at (\d+)$', log)
+                m = not m and re.search(r'^Merge paragraph #(p\d+\w*) with #(p\d+\w*) at (\d+)', log)
                 if m:
                     pid, id2, index = m.group(1), m.group(2), m.group(3)
                     SplitParagraphHandler.merge_p(int(index), page, pid, id2)
+                elif re.match(r'^Merge paragraph', log):
+                    logging.warning('invalid log: ' + log)
 
             return True
 
@@ -154,7 +173,7 @@ class PageHandler(CbBaseHandler):
             step = info.get('step', 0)
             if step > 1:
                 if page.get('html_end'):
-                    page['html'] = page['html_end']
+                    page['html'] = page['html_end'][:]
                 else:
                     step = 1
             if step > 0 and not page.get('html'):
@@ -210,9 +229,7 @@ class HtmlDownloadHandler(CbBaseHandler):
 
             page = self.load_page(pid)
             if urls and cb_download_url == page['info'].get('cb_download_url') and page.get('html_org'):
-                self.reset_html(page)
                 page['info']['step'] = 1
-                self.rollback(page)
             else:
                 content = []
                 for col in urls:
@@ -235,9 +252,8 @@ class HtmlDownloadHandler(CbBaseHandler):
                 page['info'].update(dict(step=1, cols=len(content), cb_download_url=cb_download_url))
                 fix.merge_cb_html(content)
                 page['html_org'] = [html.split('\n') for html in content]
-                page['log'] = []
-                self.reset_html(page)
 
+            self.rollback(page)
             self.save_page(page)
             self.write({})
             self.finish()
@@ -296,7 +312,8 @@ class SplitParagraphHandler(CbBaseHandler):
                     index = i  # 文本行序号
                     if not result:
                         assert "<p id='{}'".format(data.get('id2')) in page['html'][i + 1], 'fail to merge'
-                        log = 'Merge paragraph #{0} with #{1} at {2}'.format(data['id'], id2, i)
+                        log = 'Merge paragraph #{0} with #{1} at {2}: {3}'.format(
+                            data['id'], id2, i, re.sub('^<p[^>]+>|</p>', '', page['html'][i + 1][:20]))
                         logging.info(log)
                         self.merge_p(i, page, data['id'], id2)
                     else:
@@ -334,9 +351,9 @@ class SplitParagraphHandler(CbBaseHandler):
     def merge_p(i, page, id1, id2):
         err = None
         if "<p id='{}'".format(id1) not in page['html'][i]:
-            err = 'fail to merge via {0} #{1}'.format(i, id1)
+            err = 'fail to merge via {0} id1 #{1}'.format(i, id1)
         elif "<p id='{}'".format(id2) not in page['html'][i + 1]:
-            err = 'fail to merge via {0} #{1}'.format(i + 1, id2)
+            err = 'fail to merge via {0} id2 #{1}'.format(i + 1, id2)
         if err:
             logging.warning(err)
         else:
@@ -368,7 +385,8 @@ class FetchHtmlHandler(CbBaseHandler):
         """从CBeta获取原文HTML"""
         try:
             html = yield self.fetch_cb(name)
-            if html: self.write(dict(html=html))
+            if html:
+                self.write(dict(html=html))
             self.finish()
         except Exception as e:
             self.on_error(e)

@@ -6,6 +6,7 @@
   color: #408080;
   text-align: right;
   text-indent: 0;
+  font-size: .9em;
 }
 .cbeta { color: red; }
 .doube-line-note {
@@ -19,6 +20,7 @@
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 100%;
+  font-size: .8em;
 }
 .head {
   font-size: larger;
@@ -38,6 +40,11 @@
   color: #777;
   text-indent: 0;
 }
+p[title] > .cb-no {
+  display: block;
+  color: #408080;
+  font-size: .6em;
+}
 div.lg {
   display: table;
   color: #008040;
@@ -54,6 +61,7 @@ div.lg-row { display: table-row; }
 div.lg + p { margin-top: .5em; }
 p { text-indent: 2em; }
 span.hint { color: blue; }
+.dharani, .dharani .doube-line-note {color: #008040;}
 
 p {
   padding: 4px 0;

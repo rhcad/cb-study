@@ -11,6 +11,9 @@ function initGroupRows(pairs) {
 
   const warn = rowPairs.map(movePairs);
   setTimeout(() => verifyParaOrders(warn.join('')), 100);
+  if (!$('#content').text().trim()) {
+    $('.current-row > .row,#move-row').hide();
+  }
 }
 
 /**
@@ -22,7 +25,7 @@ function showRowPairs(pairs) {
     rowPairs.length = 0;
     pairs.split('||').filter(s => s).forEach(p => rowPairs.push(p));
   }
-  $('#row-pairs-area').text(rowPairs.join('\n'));
+  $('#row-pairs-area').text(rowPairs.join('\n\n'));
 }
 
 // 在原始段落上单击，切换是否属于当前组，按Shift点击标记移动原文（编号末尾加星号）
@@ -45,6 +48,9 @@ $('#move-row').click(function () {
   const $ids = $('.current-row .row-ids'),
       ids = $ids.map((i, d) => $('span', d).map((i, s) => $(s).text()).get().join(' ') || '-').get();
 
+  if (!$ids.text().trim()) {
+    return;
+  }
   $('.in-cur-row').removeClass('in-cur-row');
   $ids.html('');
 
@@ -67,7 +73,7 @@ $.contextMenu({
     mergeUp: {
       name: '与上段合并',
       callback: function() { _mergeUp(this, false); },
-      disabled: function() { return !_mergeUp(this, true)},
+      disabled: function() { return !this.closest('#merged').length || !_mergeUp(this, true)},
     },
     sep1: {name: '--'},
     moveUp: {
@@ -102,7 +108,12 @@ $.contextMenu({
  * @private
  */
 function _splitParagraph($p) {
-  const text0 = $p.text(), saveData = {id: $p.attr('id'), result: [], merged: $p.closest('#merged').length};
+  const text0 = $p.text(), $curCol = $p.closest('.cell'),
+      saveData = {
+        id: $p.attr('id'), result: [],
+        merged: $p.closest('#merged').length
+      };
+
   swal({
     title: `拆分段落 #${$p.attr('id')}`,
     text: '在要拆分处插入分隔符“@”或回车换行。',
@@ -172,7 +183,10 @@ function _mergeUp($p, test) {
       const prevId = ids[lineNo - 1].replace(/[*-]*$/, ''),
           $prev = $curCol.find('#' + prevId);
 
-      saveSplitParagraph({id: prevId, id2: id, merged: $p.closest('#merged').length});
+      saveSplitParagraph({
+        id: prevId, id2: id, col: colIndex,
+        merged: $p.closest('#merged').length
+      });
       $prev.html($prev.html() + $p.html());
       $p.hide(200, $p.remove());
     }
@@ -276,13 +290,17 @@ function verifyParaOrders(extra) {
       message = [], paraIds = window.paraIds || [];
 
   for (let i = 0; i < colCount; i++) {
-    const cells = $(`.cell-${i} [id]:visible`).map((_, p) => ({p, y: p.getBoundingClientRect().top})).get();
+    const cells = $(`.cell-${i} [id^=p]:visible,.cell-${i} [id^=g].lg-row:visible`).map((j, p) => {
+      const c = p.closest('.cell'), yc = c.getBoundingClientRect().top, yp = p.getBoundingClientRect().top;
+      return {p: p, y: yc + (yp - yc) / 10};
+    }).get();
+
     cells.sort((a, b) => a.y - b.y);
     const colIds = cells.map(c => c.p && c.p.getAttribute('id')),
         orgIds = paraIds.filter(d => colIds.indexOf(d) >= 0);
     const indexes = [];
 
-    cells.filter(c => c[0] && c[0].closest('#merged')).forEach(c => {
+    cells.filter(c => c.p && c.p.closest('#merged')).forEach(c => {
       const p = c.p, text = p.innerText,
           id = p.getAttribute('id'),
           moved = /moved/.test(p.className),
@@ -295,7 +313,8 @@ function verifyParaOrders(extra) {
             <div>原始位置：<span data-id="${orgIds[orgIdx + 1]}">${orgIds[orgIdx + 1] ? orgIds[orgIdx + 1] + '之前' : ''}</span>
                 <span data-id="${orgIds[orgIdx - 1]}">${orgIdx > 0 ? orgIds[orgIdx - 1] + '之后' : ''}</span> </div></div>`);
       } else if (indexes.length && index < endIndex) {
-        message.push(`<div><span data-id="${id}"><b>${id}</b> 应先于 ${paraIds[endIndex]}</span><div>${text}</div></div>`);
+        message.push(`<div><span data-id="${id}"><b>${id}</b></span> 应先于 
+            <span data-id="${paraIds[endIndex]}">${paraIds[endIndex]}</span><div>${text}</div></div>`);
       }
       if (!moved) {
         indexes.push(index);
@@ -348,7 +367,6 @@ function selectInPairsArea(id) {
 // 在合并区点击段落，自动在编号成组文本区域中高亮选中此段落号
 $(document).on('click', '#merged [id]', function (e) {
   const id = e.target.closest('[id]').getAttribute('id');
-  selectInPairsArea(id);
   $('.p-nav input').val(id);
 });
 
@@ -365,7 +383,9 @@ function _highlightParagraph(id) {
 
 // 在校验出错行上点击编号项，高亮显示编号文本和段落
 $(document).on('click', '#verify-errors span[data-id]', function (e) {
-  _highlightParagraph(e.target.closest('[data-id]').getAttribute('data-id'));
+  const id = e.target.closest('[data-id]').getAttribute('data-id');
+  _highlightParagraph(id);
+  $('.p-nav input').val(id);
 });
 
 $('#to-original').click(() => {

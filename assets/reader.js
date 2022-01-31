@@ -134,6 +134,7 @@ function updateColumnStatus() {
  */
 function initCbLiStatus() {
   const $left = $('.cell-0,.original#body0'), $right = $('.cell-1,.original#body1');
+
   if ($left.length || $right.length) {
     if ($left.length && $right.length) {
       showTwoColumns();
@@ -141,6 +142,7 @@ function initCbLiStatus() {
       showLeftColumn();
     }
   }
+
   updateColumnStatus();
 }
 

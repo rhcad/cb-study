@@ -135,7 +135,7 @@ body[data-step="1"] #content:not(.show-line-no) p {
 body[data-step="1"]:not(.show-hide-txt) .hide-txt {
   display: block;
   color: gray;
-  font-size: .8em;
+  font-size: .6em;
 }
 
 body:not([data-step="1"]) #content:not(.single-article) .row > div {

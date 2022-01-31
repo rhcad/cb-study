@@ -5,12 +5,21 @@ import re
 
 def convert_cb_html(content, html, name):
     def fix_juan(text):
-        text = re.sub(r"'body'>\n[^\n]*?<p ", lambda _: _.group() + "title='{}' ".format(name), text)
+        r = re.search(r"'body'>[\s\n]*(No[^<>]+)<", text)
+        s_no = r and "<span class='cb-no'>" + r.group(1) + "</span>" or ''
+        text = re.sub(r"('body'>\n[^\n]*?<p )([^\n]+?)</p>",
+                      lambda _: _.group(1) + "title='{}' ".format(name) + _.group(2) + s_no + '</p>', text)
         text = text.strip().replace('><p', '>\n<p')
+        text = re.sub(r'>([「])((<div [^>]+lg-[^>]+>)+)', lambda _: '>' + _.group(2) + _.group(1), text)
+        text = re.sub(r'><div [^>]+lg-[^>]+>', lambda _: '>\n' + _.group()[1:], text)
         text = re.sub(r"'body'>[\s\n]*(No[^<>]+)<", lambda _: _.group().replace(_.group(1), ''), text)
         text = re.sub(r"<span class='lineInfo' line='[^'>]+'></span>| class=\"\"", '', text)
         text = re.sub(r"<p class='juan'>[^<>]+</p>\n</div>",
                       lambda _: _.group().replace("'juan'", "'juan juan-end'"), text)
+        if re.search("(class='juan')(>[^<]+?)</p>", text):
+            text = text.replace(s_no, '')
+            text = re.sub("(class='juan')(>[^<]+?)</p>", lambda _: _.group(1) + " title='{}'".format(
+                name) + _.group(2) + s_no + '</p>', text, count=1)
         return text
 
     if not content:
