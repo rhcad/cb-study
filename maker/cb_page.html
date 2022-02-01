@@ -144,8 +144,9 @@
     <p class="step-title"><span>第1步</span>：获取CBeta网页原文</p>
     <div class="step-content">
       <p>请输入要获取原文的<i>经号_卷号</i>，用“|”分隔需要左右对照的经文（最多12篇），用“+”分隔需要合并多卷的经文，可加经文简要描述并用空格分隔。</p>
+      <p>“获取原文”后，将重置原始网页内容，不改变段落分组设置、嵌入的注解。</p>
       <div class="input-group">
-        <input type="text" class="form-control" id="cb-download-url" value="{{cb_download_url}}">
+        <input type="text" class="form-control" id="cb_ids" value="{{cb_ids}}">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default" id="cb-download">获取原文</button>
         </div>
@@ -170,9 +171,12 @@
     <div class="step-content">
       <ul>
         <li>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</li>
-        <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>，以便在正文中随时阅读相关经典释文。</li>
-        <li>可 <a href="#" id="download-html">下载当前内容</a>
-          {% if page.get('notes') %}<a href="#" id="download-notes">下载注解</a>{% end %} 以便制作网页。</li>
+        <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>、
+          <a onclick="location.href = location.pathname + '?step=5'">嵌入科判</a>，
+          以便在正文中随时阅读相关经典释文。</li>
+        <li>可 <a href="#" id="download-html">下载当前HTML</a>
+          {% if page.get('notes') %}<a href="#" id="download-notes">下载注解</a>{% end %}
+          以便发布离线网页。</li>
       </ul>
     </div>
   </div>
@@ -244,17 +248,24 @@
 <link href="{{static_url('js/jquery.contextMenu.css')}}" rel="stylesheet"/>
 <script src="{{static_url('js/jquery.contextMenu.js')}}"></script>
 
-{% if step == 1 and info['cols'] > 1 %}
-<link href="{{static_url('label/label-panel.css')}}" rel="stylesheet"/>
+
+{% if step == 1 %}
 <script src="{{static_url('label/group-rows.js')}}"></script>
+{% if info['cols'] > 1 %}
+<link href="{{static_url('label/label-panel.css')}}" rel="stylesheet"/>
 <script>initGroupRows('{{rowPairs}}');</script>
+{% else %}
+<style>.context-menu-active {background-color: #dedddc;}</style>
+<script>toggleLineNo();</script>
 {% end %}
+{% end %}
+
 
 {% if step == 3 %}
 <div class="label-panel">
   <div class="label-panel-bar">
     <button class="btn btn-default btn-sm" id="skip-top">跳过第一条</button>
-    <button class="btn btn-default btn-sm save-html">保存</button>
+    <button class="btn btn-default btn-sm save-html" title="保存网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容）">保存</button>
     <button class="btn btn-default btn-sm" id="gray-linked">已标变灰</button>
   </div>
   <div class="notes"></div>
@@ -284,13 +295,13 @@
   // 第一步中的获取原文
   $('#cb-download').click(() => {
     const down = () => {
-      const urls = $('#cb-download-url').val()
+      const urls = $('#cb_ids').val()
       $.post('/cb/page/fetch/{{id}}', {urls: urls}, reload).error(ajaxError('获取原文失败'))
     }
     if ($('#content').text().trim()) {
       swal({
         title: '重新获取原文',
-        text: '将删除页面内容和所有标注数据，确实要重新获取吗？',
+        text: '将重置原始网页内容，不改变段落分组设置、嵌入的注解，确实要重新获取吗？',
         buttons: ['取消', '重新获取']
       }).then(result => result && down())
     } else {
@@ -324,7 +335,20 @@
 
   // 段落分组完成
   $('.end-move-rows').click(() => {
-    $.post('/cb/page/merge/end/{{id}}', {'html': trimHtml($('#merged').html() || '')}, reload)
+    const html = trimHtml($('#merged').html()) || getHtml()
+    const save = () => $.post('/cb/page/merge/end/{{id}}', {'html': html}, reload)
+    {% if page.get('html_end') %}
+    swal({
+      title: '完成段落分组',
+      text: '将重置最终网页内容' +
+              {% if page.get('notes') %} '，清除注解' + {% end %}
+              {% if page.get('rowPairs') %} '，不改变段落分组设置，后续可以继续段落分组' + {% end %}
+              '，确实要继续吗？',
+      buttons: ['取消', '完成']
+    }).then(result => result && save())
+    {% else %}
+    save()
+    {% end %}
   })
 
   function updateParaIds() {
@@ -374,7 +398,7 @@
   })
   $( $('.init-notes-btn')[0]).click();
 
-  // 获取当前网页内容，可用于合并制作页面
+  // 获取当前网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容），可用于合并制作页面
   function getHtml() {
     const $content = $('#content').clone().appendTo($('body'))
 
@@ -388,13 +412,14 @@
   }
   function trimHtml(html) {
     const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
-    return html.trim()
+    return (html || '').trim()
             .replace(/ data-line-no="[^"<>]*"/g, '')
             .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
-            .replace(/><(p|div class="(cell|row))/g, s => s[0] + '\n' + space(s) + s.substr(1))
+            .replace(/\n+<\/div>/g, '</div>')
+            .replace(/><(p|div class="(cell|row)|div id=)/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
 
-  // 第4步改动网页内容后，保存网页内容
+  // 第4步改动网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容）后，保存网页内容
   $('.save-html').click(() => {
     $.post('/cb/page/{{id}}', {html: getHtml(), step: '{{step}}'}).error(ajaxError('保存失败'))
   })

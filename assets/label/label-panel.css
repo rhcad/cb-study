@@ -82,7 +82,7 @@ textarea {outline: none;}
   padding: 1px 2px;
   display: inline-block;
 }
-.in-cur-row, .in-cur-row-sel {
+.in-cur-row, .context-menu-active {
   background-color: #dedddc;
 }
 

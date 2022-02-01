@@ -30,16 +30,18 @@ function showRowPairs(pairs) {
 
 // 在原始段落上单击，切换是否属于当前组，按Shift点击标记移动原文（编号末尾加星号）
 $(document).on('click', '#content p, #content .lg-row', function (e) {
-  let $this = $(this),
-      id = $this.attr('id'),
-      colIndex = parseInt($this.closest('.original').attr('id').replace('body', '')),
+  let $p = $(this),
+      id = $p.attr('id'),
+      colIndex = parseInt($p.closest('.original').attr('id').replace('body', '')),
       $curIds = $('.current-row .row-ids-' + colIndex);
 
-  $this.toggleClass('in-cur-row');  // 切换亮显
-  if ($curIds.find('#cur-' + id).length) {
-    $curIds.find('#cur-' + id).remove();
-  } else {
-    $curIds.append($('<span id="cur-' + id + '">' + id + (e.shiftKey ? '*' : '') + '</span>'));
+  if ($curIds.length) {
+    $p.toggleClass('in-cur-row');  // 切换亮显
+    if ($curIds.find('#cur-' + id).length) {
+      $curIds.find('#cur-' + id).remove();
+    } else {
+      $curIds.append($('<span id="cur-' + id + '">' + id + (e.shiftKey ? '*' : '') + '</span>'));
+    }
   }
 });
 
@@ -63,6 +65,7 @@ $('#move-row').click(function () {
   }
 });
 
+// 段落的鼠标右键菜单
 $.contextMenu({
   selector: '#content [id^=p],#merged [id^=p]',
   items: {
@@ -73,7 +76,7 @@ $.contextMenu({
     mergeUp: {
       name: '与上段合并',
       callback: function() { _mergeUp(this, false); },
-      disabled: function() { return !this.closest('#merged').length || !_mergeUp(this, true)},
+      disabled: function() { return !_mergeUp(this, true)},
     },
     sep1: {name: '--'},
     moveUp: {
@@ -90,14 +93,6 @@ $.contextMenu({
       name: '分离为新行...',
       callback: function() { _extractRow(this, false); },
       disabled: function() { return !this.closest('#merged').length || !_extractRow(this, true)},
-    },
-  },
-  events: {
-    show: function () {
-      this.addClass('in-cur-row-sel');
-    },
-    hide: function (e) {
-      this.removeClass('in-cur-row-sel');
     },
   },
 });
@@ -169,24 +164,35 @@ function _splitParagraph($p) {
  */
 function _mergeUp($p, test) {
   const id = $p.attr('id'), // 段落号
-      $curCol = $p.closest('.cell'), // 当前单元格
+      merged = $p.closest('#merged').length,
+      $curCol_ = $p.closest('.cell'), // 当前单元格
+      $curCol = $curCol_.length ? $curCol_ : $p.parent(), // 单列就取为上一级元素
       rows = $curCol.children().get(), // 所在单元格的所有段落
       lineNo = rows.indexOf($p[0]), // 在所在单元格中的行号
       rowIndex = findRowIndexInPairs(id), // 行块的序号
-      colIndex = parseInt(/cell-(\d+)/.exec($curCol[0].className)[1]), // 列序号
-      cols = rowPairs[rowIndex].split('|'), // 当前行块的每列的段落号
-      ids = cols[colIndex].trim().split(/\s+/g), // 当前单元格的每个段落号
-      pid = ids[lineNo].replace(/[a-z][*-]?$/, ''); // 未拆分段落时的原始段落号
+      cell_m = /cell-(\d+)/.exec($curCol[0].className),
+      colIndex = parseInt(cell_m ? cell_m[1] : 0), // 列序号
+      cols = rowIndex < 0 ? [] : rowPairs[rowIndex].split('|'), // 当前行块的每列的段落号
+      ids = (cols[colIndex] || '').trim().split(/\s+/g), // 当前单元格的每个段落号
+      pid = (ids[lineNo] || '').replace(/[a-z][*-]?$/, ''); // 未拆分段落时的原始段落号
 
-  if (/^p\d/.test(id) && lineNo > 0 && pid === ids[lineNo - 1].replace(/[a-z][*-]*$/, '')) {
+  if (!/^p\d/.test(id) || lineNo < 1) {
+  }
+  else if (!merged) {
+    if (!test) {
+      const $prev = $(rows[lineNo - 1]);
+
+      saveSplitParagraph({id: $prev.attr('id'), id2: id, col: colIndex, merged: merged});
+      $prev.html($prev.html() + $p.html());
+      $p.hide(200, $p.remove());
+    }
+    return true;
+  } else if (pid === ids[lineNo - 1].replace(/[a-z][*-]*$/, '')) {
     if (!test) {
       const prevId = ids[lineNo - 1].replace(/[*-]*$/, ''),
           $prev = $curCol.find('#' + prevId);
 
-      saveSplitParagraph({
-        id: prevId, id2: id, col: colIndex,
-        merged: $p.closest('#merged').length
-      });
+      saveSplitParagraph({id: prevId, id2: id, col: colIndex, merged: merged});
       $prev.html($prev.html() + $p.html());
       $p.hide(200, $p.remove());
     }
@@ -342,6 +348,14 @@ function findRowIndexInPairs(id) {
   return i;
 }
 
+/**
+ * 在段落分组文本里查找一个段落号对应的文本序号
+ * @param {string} id 段落号
+ * @param {string} text 段落分组文本
+ * @param {RegExp} [pat] 为了避免重复正则表达式编译的已编译正则对象
+ * @return {number} 文本序号
+ * @private
+ */
 function _findInPairs(id, text, pat) {
   const start0 = text.search(pat || '(^|[\\s|])' + id + '($|[\\s\\n|*-])');
   return start0 < 0 ? -1 : text.indexOf(id, start0);
@@ -388,9 +402,12 @@ $(document).on('click', '#verify-errors span[data-id]', function (e) {
   $('.p-nav input').val(id);
 });
 
+// 滚动到合并区下方的红线处，即未合并内容的上方
 $('#to-original').click(() => {
   window.scrollTo(0, $('#content').offset().top - 200);
 });
+
+// 段落定位
 $('.p-nav button').click(() => {
   _highlightParagraph($('.p-nav input').val());
 });

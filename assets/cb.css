@@ -62,6 +62,7 @@ div.lg + p { margin-top: .5em; }
 p { text-indent: 2em; }
 span.hint { color: blue; }
 .dharani, .dharani .doube-line-note {color: #008040;}
+.juan > .doube-line-note {display: inline-block;}
 
 p {
   padding: 4px 0;
