@@ -72,7 +72,7 @@ function showRightColumn() {
  */
 function showTwoColumns() {
   const $col = $('.cell,.original'),
-      count = $($col[0]).closest('.row').children('div').length;
+      count = $($col[0]).closest('.row').children('.cell').length;
 
   $col.show();
   $('body').attr('data-col-count', count > 1 ? count : null);
@@ -232,11 +232,21 @@ function _toPairSelectors(idsText) {
  * @return {string} 警告文本
  */
 function movePairs(idsText) {
-  const $articles = $('.original[id^="body"]'),
+  const $merged = $('#merged');
+
+  if (/^:ke /.test(idsText)) {
+    idsText = idsText.replace(/^:ke\s+/, '');
+
+    const $last = $merged.find('.ke-line:last-child').addClass('has-next-ke');
+    $(`<div class="ke-line first-ke">${idsText}</div>`).appendTo($merged).toggleClass('first-ke', !$last.length);
+    return '';
+  }
+
+  const $articles = $('.original[id^="body"]'), // 未合并的各栏
       divs = $articles.map((i, a) => `<div class="cell cell-${i}"/>`),
-      $row = $(`<div class="row">${divs.get().join('')}</div>`),
-      $divs = $row.children('div'),
-      colIds = idsText.split('|').map(s => _toPairSelectors(s));
+      $row = $(`<div class="row">${divs.get().join('')}</div>`), // 新行块
+      $divs = $row.children('.cell'), // 新行块的各栏
+      colIds = idsText.split('|').map(s => _toPairSelectors(s)); // 各栏的段落号
   let count = 0, ret = '';
 
   if (!$divs.length || !colIds.length) {
@@ -285,7 +295,7 @@ function movePairs(idsText) {
   if (count === 0) {
     $row.addClass('hide-txt');
   }
-  $('#merged').append($row);
+  $merged.append($row);
 
   console.assert(!ret, ret);
   return ret;

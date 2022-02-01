@@ -23,12 +23,20 @@ body[data-step="1"] #merged {
 body[data-step="1"] .label-panel {
   width: 250px;
 }
+
 body[data-step="3"] #content {
   margin-right: 420px;
 }
 body[data-step="3"] .label-panel {
   width: 420px;
 }
+body[data-step="3"][data-no-note="true"] #content {
+  margin-right: 0;
+}
+body[data-step="3"][data-no-note="true"] .label-panel {
+  display: none;
+}
+
 .row-pairs-div {
   margin-top: 8px;
 }

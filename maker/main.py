@@ -30,9 +30,9 @@ class CbBaseHandler(RequestHandler):
         self.send_error(500, reason=str(e))
 
     @staticmethod
-    def load_page(pid):
-        filename = path.join(DATA_DIR, pid + '.json')
-        assert path.exists(filename), 'page {} not exists'.format(pid)
+    def load_page(page_id):
+        filename = path.join(DATA_DIR, page_id + '.json')
+        assert path.exists(filename), 'page {} not exists'.format(page_id)
         with open(filename) as f:
             return json.load(f)
 
@@ -156,19 +156,19 @@ class PageNewHandler(CbBaseHandler):
     def post(self):
         """创建原典页面"""
         try:
-            pid = to_basestring(self.get_argument('id', ''))
+            page_id = to_basestring(self.get_argument('id', ''))
             caption = to_basestring(self.get_argument('caption', '')).strip()
-            if not re.match(r'^[A-Za-z0-9_]{2,8}$', pid):
+            if not re.match(r'^[A-Za-z0-9_]{2,8}$', page_id):
                 return self.send_error(501, reason='invalid id')
             if not caption or len(caption) > 10:
                 return self.send_error(502, reason='invalid caption')
 
-            filename = path.join(DATA_DIR, pid + '.json')
+            filename = path.join(DATA_DIR, page_id + '.json')
             if path.exists(filename):
                 return self.send_error(503, reason='file exists')
 
-            self.save_page({'info': dict(id=pid, caption=caption), 'log': []})
-            self.write({'url': '/cb/page/' + pid})
+            self.save_page({'info': dict(id=page_id, caption=caption), 'log': []})
+            self.write({'url': '/cb/page/' + page_id})
         except Exception as e:
             self.on_error(e)
 
@@ -176,16 +176,16 @@ class PageNewHandler(CbBaseHandler):
 class PageHandler(CbBaseHandler):
     URL = r'/cb/page/([\w_]+)'
 
-    def get(self, pid):
+    def get(self, page_id):
         """显示原典页面"""
         try:
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             info = page['info']
             step = int(self.get_argument('step', 0))
             if step > 0:
                 info['step'] = step - 1
                 self.save_page(page)
-                return self.redirect('/cb/page/' + pid)
+                return self.redirect('/cb/page/' + page_id)
 
             step = info.get('step', 0)
             if step > 1:  # 完成制作，或后续步骤
@@ -196,30 +196,30 @@ class PageHandler(CbBaseHandler):
             if step > 0 and not page.get('html'):
                 step = 0
 
-            name = pid.split('_')[0]
-            juan = int((pid.split('_')[1:] or [1])[0])
+            name = page_id.split('_')[0]
+            juan = int((page_id.split('_')[1:] or [1])[0])
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
 
             if self.get_argument('export', 0):
-                json_files = ['{0}-{1}.json.js'.format(pid, re.sub('_.+$', '', v['name']))
+                json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
                               for tag, v in (page.get('notes') or {}).items()]
                 note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])), v.get('desc', v['name'])]
                               for tag, v in (page.get('notes') or {}).items()]
-                html = self.render_string('cb_export.html', page=page, info=info, id=pid,
+                html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
                                           json_files=json_files, note_names=note_names)
                 return self.write(dict(html=to_basestring(html)))
 
-            self.render('cb_page.html', page=page, info=info, step=step, id=pid,
+            self.render('cb_page.html', page=page, info=info, step=step, id=page_id,
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         cb_ids=cb_ids)
         except Exception as e:
             self.on_error(e)
 
-    def post(self, pid):
+    def post(self, page_id):
         """保存网页内容"""
         try:
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             html = to_basestring(self.get_argument('html', '')).strip()
             step = int(self.get_argument('step', page['info']['step']))
             field = 'html_end' if step > 1 and page.get('html_end') else 'html'
@@ -237,13 +237,13 @@ class HtmlDownloadHandler(CbBaseHandler):
     URL = r'/cb/page/fetch/([\w_]+)'
 
     @gen.coroutine
-    def post(self, pid):
+    def post(self, page_id):
         """从CBeta获取原文HTML"""
         try:
             cb_ids = to_basestring(self.get_argument('urls', ''))
             urls = [s.split('+') for s in cb_ids.split('|')] if cb_ids else []
 
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             if urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
                 page['info']['step'] = 1
             else:
@@ -280,12 +280,12 @@ class HtmlDownloadHandler(CbBaseHandler):
 class RowPairsHandler(CbBaseHandler):
     URL = r'/cb/page/merge/add/([\w_]+)'
 
-    def post(self, pid):
+    def post(self, page_id):
         """保存段落分组数据"""
         try:
             pairs = self.get_argument('pairs').split('||')
 
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             page['rowPairs'] = pairs
             self.save_page(page)
             self.write({})
@@ -296,10 +296,10 @@ class RowPairsHandler(CbBaseHandler):
 class ParagraphOrderHandler(CbBaseHandler):
     URL = r'/cb/page/p/order/([\w_]+)'
 
-    def get(self, pid):
+    def get(self, page_id):
         """获取所有段落编号"""
         try:
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             self.write(dict(ids=self.get_ids(page)))
         except Exception as e:
             self.on_error(e)
@@ -313,13 +313,13 @@ class ParagraphOrderHandler(CbBaseHandler):
 class SplitParagraphHandler(CbBaseHandler):
     URL = r'/cb/page/p/split/([\w_]+)'
 
-    def post(self, pid):
+    def post(self, page_id):
         """保存段落拆分或合并的信息"""
         try:
             data = json_decode(self.get_argument('data'))
             result = data.get('result')
             id1, id2 = data.get('id'), data.get('id2')
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             assert id1 and re.match(r'p\d', id1), 'need id'
 
             index, log, new_ids = -1, None, []
@@ -377,21 +377,34 @@ class SplitParagraphHandler(CbBaseHandler):
 class EndMergeHandler(CbBaseHandler):
     URL = r'/cb/page/merge/end/([\w_]+)'
 
-    def post(self, pid):
+    def post(self, page_id):
         """段落分组完成"""
         try:
             html = self.get_argument('html', '').strip()
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             old_html = page.get('html_end', [])
-            page['html_end'] = html.split('\n') if html else page['html']
+            html_end = page['html_end'] = html.split('\n') if html else page['html']
             page['info'].update(step=2)
 
+            r_note = re.compile(r'<note|note-tag|data-nid')
+            re_p = re.compile(r"^\s*<(p|div) id=['\"]([\w-]+)['\"]")
+            update_count, miss_ids = 0, []
             for (i, html) in enumerate(old_html):
-                if re.search(r'<note|note-tag|data-nid', html):
-                    pid = re.search(r'')
+                if r_note.search(html):
+                    r = re_p.search(html)
+                    pid, tag = r and r.group(2) or str(i), r and r.group(1)
+                    if r and html.endswith('</{}>'.format(tag)):
+                        idx = self.find_html_index(html_end, pid)[0]
+                        if idx >= 0 and re.match(r"^\s*<{0} id=['\"]{1}['\"].+</{0}>$".format(tag, pid), html_end[idx]):
+                            html_end[idx] = html
+                            update_count += 1
+                            continue
+                    miss_ids.append(pid)
 
-            self.save_page(page)
-            self.write({})
+            if not self.get_argument('test', ''):
+                logging.info('end merge {0}: update={1}, miss={2}'.format(page_id, update_count, miss_ids))
+                self.save_page(page)
+            self.write(dict(update_count=update_count, miss_count=len(miss_ids), miss_ids=','.join(miss_ids)[:60]))
         except Exception as e:
             self.on_error(e)
 
@@ -414,17 +427,17 @@ class FetchHtmlHandler(CbBaseHandler):
 class PageNoteHandler(CbBaseHandler):
     URL = r'/cb/page/note/([\w_]+)'
 
-    def get(self, pid):
+    def get(self, page_id):
         """获取注解数据"""
         try:
             tag = self.get_argument('tag')
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             notes = page.get('notes', {}).get(tag, {})
             self.write(notes)
         except Exception as e:
             self.on_error(e)
 
-    def post(self, pid):
+    def post(self, page_id):
         """保存注解数据"""
         try:
             tag = self.get_argument('tag')
@@ -433,7 +446,7 @@ class PageNoteHandler(CbBaseHandler):
             col = int(self.get_argument('col', 0) or 0)
             lines = json_decode(self.get_argument('lines'))
 
-            page = self.load_page(pid)
+            page = self.load_page(page_id)
             nid = page['info'].get('note_id', 0)
             page['notes'] = page.get('notes', {})
 

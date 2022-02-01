@@ -113,8 +113,8 @@ body {
   display: flex;
 }
 
-#content > .row > div,
-#merged > .row > div {
+#content > .row > div:not(.row),
+#merged > .row > div:not(.row) {
   flex: 1;
   min-width: 10px;
 }
@@ -282,4 +282,17 @@ span[ke-pan] > .ke-pan-text {
 [id].moved::after {
   content: "*";
   color: rgba(255, 0, 0, .7);
+}
+
+.ke-line {
+  padding: 0 4px;
+  font-weight: 500;
+  border-left: 1px solid #ddd;
+}
+.ke-line:not(.has-next-ke) {
+  border-bottom: 1px solid #999;
+}
+.ke-line.first-ke {
+  border-top: 1px solid #999;
+  margin-top: -1px;
 }

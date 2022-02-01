@@ -55,7 +55,7 @@
     .input-group.note-tag-group { width: calc(100% - 380px); }
   </style>
 </head>
-<body data-step="{{step}}">
+<body data-step="{{step}}" data-no-note="{{'' if page.get('note_id') else 'true'}}">
 
 <nav class="navbar navbar-default navbar-fixed-top">
   <div class="container">
@@ -171,8 +171,7 @@
     <div class="step-content">
       <ul>
         <li>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</li>
-        <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>、
-          <a onclick="location.href = location.pathname + '?step=5'">嵌入科判</a>，
+        <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>，
           以便在正文中随时阅读相关经典释文。</li>
         <li>可 <a href="#" id="download-html">下载当前HTML</a>
           {% if page.get('notes') %}<a href="#" id="download-notes">下载注解</a>{% end %}
@@ -331,24 +330,26 @@
   function applyRowPairs() {
     const pairs = $('#row-pairs-area').val().replace(/(^|\n)-(\|-)+($|\n)/g, '').replace(/\n+/g, '||')
     $.post('/cb/page/merge/add/{{id}}', {'pairs': pairs}, reload)
+            .error(ajaxError('保存失败'))
   }
 
   // 段落分组完成
   $('.end-move-rows').click(() => {
     const html = trimHtml($('#merged').html()) || getHtml()
     const save = () => $.post('/cb/page/merge/end/{{id}}', {'html': html}, reload)
-    {% if page.get('html_end') %}
-    swal({
-      title: '完成段落分组',
-      text: '将重置最终网页内容' +
-              {% if page.get('notes') %} '，清除注解' + {% end %}
-              {% if page.get('rowPairs') %} '，不改变段落分组设置，后续可以继续段落分组' + {% end %}
-              '，确实要继续吗？',
-      buttons: ['取消', '完成']
-    }).then(result => result && save())
-    {% else %}
-    save()
-    {% end %}
+            .error(ajaxError('保存失败'))
+
+    $.post('/cb/page/merge/end/{{id}}', {'html': html, 'test': true}, r => {
+      if (r.miss_count) {
+        swal({
+          title: '完成段落分组',
+          text: `将覆盖最终网页内容，清除 ${r.miss_count} 条注解。确实要继续吗？\n段落号: ${r.miss_ids}`,
+          buttons: ['取消', '完成']
+        }).then(result => result && save())
+      } else {
+        save()
+      }
+    }).error(ajaxError('检查失败'))
   })
 
   function updateParaIds() {
@@ -415,7 +416,7 @@
     return (html || '').trim()
             .replace(/ data-line-no="[^"<>]*"/g, '')
             .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
-            .replace(/\n+<\/div>/g, '</div>')
+            .replace(/(<\/(p|div)>){2,9}/g, s => s.replace(/></g, '>\n<'))
             .replace(/><(p|div class="(cell|row)|div id=)/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
 

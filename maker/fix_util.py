@@ -15,7 +15,7 @@ def convert_cb_html(content, html, name):
         text = re.sub(r"'body'>[\s\n]*(No[^<>]+)<", lambda _: _.group().replace(_.group(1), ''), text)
 
         # 段落和偈颂的标记换行到行首
-        text = re.sub(r'\n+</div>', '</div>', text.strip())  # 行首的 </div> 移到上一行末
+        text = re.sub(r'(</(p|div)>){2,9}', lambda _: _.group().replace('><', '>\n<'), text)
         text = re.sub(r'><(p|div class=[\'"](cell|row)|div [^>]+lg-|div id=)', lambda _: '>\n' + _.group()[1:], text)
 
         # 偈颂元素前的 「 移到内部
