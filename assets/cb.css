@@ -298,6 +298,10 @@ span[ke-pan] > .ke-pan-text {
   border-top: 1px solid #999;
   margin-top: -1px;
 }
+.hide-inline-ke-pan .ke-line {
+  height: 1px;
+  overflow: hidden;
+}
 .ke-line:hover {color: #2b669a}
 .ke-line[data-indent="0"] {text-indent: 0;}
 .ke-line[data-indent="1"] {text-indent: 1em;}

@@ -285,7 +285,7 @@ function movePairs(idsText) {
         text = text0.replace(/^-+/, '');
 
     const $last = $merged.find('.ke-line:last-child').addClass('has-next-ke');
-    $(`<div ke-pan="${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${text}</div>`)
+    $(`<div ke-pan="ke${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${text}</div>`)
         .appendTo($merged).toggleClass('first-ke', !$last.length);
 
     clearTimeout(_initKePanTm);
@@ -508,18 +508,24 @@ function highlightKePan(kePanId, scroll, level) {
  * @param {HTMLElement} element
  */
 function scrollToVisible(element) {
-  clearTimeout(_scrollTm);
-  _scrollTm = setTimeout(() => {
-    const r = element && element.getBoundingClientRect();
-    if (r && r.height) {
-      if (r.top < 60) {
-        window.scrollBy(0, r.top - 60);
+  if (element && element.getBoundingClientRect) {
+    clearTimeout(_scrollTm);
+    _scrollTm = setTimeout(() => {
+      let r = element.getBoundingClientRect();
+      for (let i = 0; i < 10 && !(r && r.height); i++) {
+        element = element.nextElementSibling;
+        r = element && element.getBoundingClientRect();
       }
-      if (r.bottom > window.innerHeight - 100) {
-        window.scrollBy(0, r.bottom - window.innerHeight + 100);
+      if (r && r.height) {
+        if (r.top < 60) {
+          window.scrollBy(0, r.top - 60);
+        }
+        if (r.bottom > window.innerHeight - 100) {
+          window.scrollBy(0, r.bottom - window.innerHeight + 100);
+        }
       }
-    }
-  }, 50);
+    }, 50);
+  }
 }
 let _scrollTm;
 
@@ -701,6 +707,10 @@ $('#reduce-font').click(reduceFont);
 $('#enlarge-ke-pan-font').click(enlargeKePanFont);
 $('#reduce-ke-pan-font').click(reduceKePanFont);
 $('#show-inline-no-ke-pan').click(showInlineWithoutKePan);
+
+$('#hide-inline-ke-pan').click(function () {
+  $('body').toggleClass('hide-inline-ke-pan');
+});
 
 // 单击注解锚点标记则展开注解段落
 $(document).on('click', '.note-tag', function (e) {
