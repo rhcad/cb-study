@@ -226,7 +226,7 @@ function _toPairSelectors(idsText) {
   });
 }
 
-let _newKePan = 0;
+let _newKePan = 0, _initKePanTm;
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
@@ -244,6 +244,9 @@ function movePairs(idsText) {
     const $last = $merged.find('.ke-line:last-child').addClass('has-next-ke');
     $(`<div ke-pan="${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${idsText}</div>`)
         .appendTo($merged).toggleClass('first-ke', !$last.length);
+
+    clearTimeout(_initKePanTm);
+    _initKePanTm = setTimeout(_initKePanTree, 10);
     return '';
   }
 
@@ -306,7 +309,7 @@ function movePairs(idsText) {
   return ret;
 }
 
-setTimeout(() => {
+function _initKePanTree() {
   const $judgments = $('#judgments'), $ke = $('.ke-line'),
       data = [], levels = [],
       judgments = {core: {data: data}}
@@ -346,7 +349,7 @@ setTimeout(() => {
       }
     });
   }
-}, 10);
+}
 
 /**
  * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号
@@ -462,11 +465,11 @@ function scrollToVisible(element) {
   _scrollTm = setTimeout(() => {
     const r = element && element.getBoundingClientRect();
     if (r && r.height) {
-      if (r.top < 50) {
-        window.scrollBy(0, r.top - 50);
+      if (r.top < 60) {
+        window.scrollBy(0, r.top - 60);
       }
-      if (r.bottom > window.innerHeight - 50) {
-        window.scrollBy(0, r.bottom - window.innerHeight + 50);
+      if (r.bottom > window.innerHeight - 100) {
+        window.scrollBy(0, r.bottom - window.innerHeight + 100);
       }
     }
   }, 50);
@@ -497,7 +500,7 @@ function showKePanPath(kePanId) {
     leftS = row.find('.cell-0').find(sel),
     rightS = row.find('.cell-1').find(sel);
 
-  $('.ke-pan-path').html(texts.join(' / ') + (texts.length && window.designMode ?
+  $('footer>p:first-child').html(texts.join(' / ') + (texts.length && window.designMode ?
     ' <small>(' + leftS.length + ', ' + rightS.length + ')</small>' : ''));
 }
 
@@ -712,7 +715,7 @@ $('#to-table').click(() => {
   $('#content').append($('<table><tbody></tbody></table>'));
 
   let $table = $('#content table'),
-    $rows = $('#content > .row'),
+    $rows = $('#content > .row,#content > .ke-line'),
     colCount = parseInt($('body').attr('data-col-count')) || 2,
     w = Math.floor(1000 / colCount) / 10;
 
@@ -721,9 +724,13 @@ $('#to-table').click(() => {
   });
   $rows.each((i, el) => {
     const $tr = $('<tr/>');
-    for (let i = 0; i < colCount; i++) {
-      const $td = $(`<td class="cell cell-${i}" width="${w}%"/>`).appendTo($tr);
-      $td.append($('.cell-' + i, el).html());
+    if (/ke-line/.test(el.className)) {
+      $tr.append($(el).changeElementType('td'));
+    } else {
+      for (let i = 0; i < colCount; i++) {
+        const $td = $(`<td class="cell cell-${i}" width="${w}%"/>`).appendTo($tr);
+        $td.append($('.cell-' + i, el).html());
+      }
     }
     $table.append($tr);
     $(el).remove();
