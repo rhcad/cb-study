@@ -226,19 +226,24 @@ function _toPairSelectors(idsText) {
   });
 }
 
+let _newKePan = 0;
+
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
  * @param {string} idsText 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，编号末尾有减号表示转为隐藏文本，有星号为移动原文
+ *                         如果行首是“:ke ”，则解析为科判条目，随后的文本用减号表示缩减层级
  * @return {string} 警告文本
  */
 function movePairs(idsText) {
   const $merged = $('#merged');
 
-  if (/^:ke /.test(idsText)) {
-    idsText = idsText.replace(/^:ke\s+/, '');
+  if (/^:ke /.test(idsText)) { // 科判
+    const indent = idsText.replace(/[^-]/g, '').length;
+    idsText = idsText.replace(/^:ke\s+|-/g, '');
 
     const $last = $merged.find('.ke-line:last-child').addClass('has-next-ke');
-    $(`<div class="ke-line first-ke">${idsText}</div>`).appendTo($merged).toggleClass('first-ke', !$last.length);
+    $(`<div ke-pan="${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${idsText}</div>`)
+        .appendTo($merged).toggleClass('first-ke', !$last.length);
     return '';
   }
 
@@ -300,6 +305,48 @@ function movePairs(idsText) {
   console.assert(!ret, ret);
   return ret;
 }
+
+setTimeout(() => {
+  const $judgments = $('#judgments'), $ke = $('.ke-line'),
+      data = [], levels = [],
+      judgments = {core: {data: data}}
+
+  if ($ke.length) {
+    $ke.each((_, ke) => {
+      const indent = parseInt(ke.getAttribute('data-indent') || 0),
+          node = {id: ke.getAttribute('ke-pan'), text: ke.innerText, indent: indent};
+      let i;
+
+      for (i = levels.length - 1; i >= 0 && (!levels[i] || i >= indent); i--) {}
+      if (i >= 0) {
+        levels[i].children = levels[i].children || [];
+        levels[i].children.push(node);
+      } else {
+        data.push(node);
+      }
+      levels.length = indent + 1;
+      levels[indent] = node;
+    });
+    $judgments.jstree(judgments);
+
+    $judgments.on('changed.jstree', function (e, data) {
+      highlightKePan(data.node.id, 'nav');
+    });
+
+    $(document).on('click', '.row > .cell', e => {
+      const row = e.target.closest('.row'),
+          nodes = $(row).parent().children().get();
+
+      for (let i = nodes.indexOf(row); i >= 0; i--) {
+        const kid = $(nodes[i]).attr('ke-pan');
+        if (kid) {
+          highlightKePan(kid, 'click');
+          break;
+        }
+      }
+    });
+  }
+}, 10);
 
 /**
  * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号

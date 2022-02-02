@@ -48,7 +48,7 @@ p[title] > .cb-no {
 div.lg {
   display: table;
   color: #008040;
-  margin-left: 3em!important;
+  margin-left: 2em;
 }
 div.lg-cell {
   display: table-cell;
@@ -248,6 +248,7 @@ span[ke-pan] > .ke-pan-text {
   width: 25%;
   height: calc(100% - 90px);
   overflow: auto;
+  border-right: 1px solid #ddd;
 }
 
 .hide-left-bar .left-nav {
@@ -288,6 +289,7 @@ span[ke-pan] > .ke-pan-text {
   padding: 0 4px;
   font-weight: 500;
   border-left: 1px solid #ddd;
+  cursor: pointer;
 }
 .ke-line:not(.has-next-ke) {
   border-bottom: 1px solid #999;
@@ -296,3 +298,12 @@ span[ke-pan] > .ke-pan-text {
   border-top: 1px solid #999;
   margin-top: -1px;
 }
+.ke-line:hover {color: #2b669a}
+.ke-line[data-indent="0"] {text-indent: 0;}
+.ke-line[data-indent="1"] {text-indent: 1em;}
+.ke-line[data-indent="2"] {text-indent: 2em;}
+.ke-line[data-indent="3"] {text-indent: 3em;}
+.ke-line[data-indent="4"] {text-indent: 4em;}
+.ke-line[data-indent="5"] {text-indent: 5em;}
+.ke-line[data-indent="6"] {text-indent: 6em;}
+.ke-line[data-indent="7"] {text-indent: 7em;}

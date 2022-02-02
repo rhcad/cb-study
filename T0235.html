@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/img/favicon.ico"/>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
     <link href="assets/cb.css?v=131" rel="stylesheet"/>
     <link href="assets/note.css?v=129" rel="stylesheet"/>
     <style>
@@ -15,20 +16,23 @@
                 padding-top: 60px;
             }
         }
-
         .phone-bar {
             text-align: center;
             margin-bottom: 10px;
         }
-
         @media (min-width: 768px) {
-            .phone-bar {
-                display: none;
-            }
+            .phone-bar {display: none;}
+        }
+        .left-nav {
+            width: 15%;
+        }
+        #content {
+            padding-left: 15%;
         }
     </style>
 </head>
 <body>
+
 <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container">
         <!-- Brand and toggle get grouped for better mobile display -->
@@ -66,6 +70,22 @@
                         <li><a href="#" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
                     </ul>
                 </li>
+				<li class="dropdown">
+				  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+					 aria-expanded="false">科判比例 <span class="caret"></span></a>
+				  <ul class="dropdown-menu">
+					<li class="ke-pan-ratio"><a>隐藏</a></li>
+					<li class="ke-pan-ratio"><a>10%</a></li>
+					<li class="ke-pan-ratio"><a>15%</a></li>
+					<li class="ke-pan-ratio"><a>25%</a></li>
+					<li class="ke-pan-ratio"><a>50%</a></li>
+					<li class="ke-pan-ratio"><a>75%</a></li>
+					<li class="ke-pan-ratio"><a>100%</a></li>
+					<li role="separator" class="divider"></li>
+					<li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+					<li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+				  </ul>
+				</li>
             </ul>
 
             <div class="btn-group toggle-column" role="group">
@@ -102,6 +122,10 @@
         <button type="button" class="btn btn-default btn-sm" title="增加正文字号" onclick="enlargeFont()">+</button>
         <button type="button" class="btn btn-default btn-sm" title="减少正文字号" onclick="reduceFont()">-</button>
     </div>
+</div>
+
+<div class="left-nav no-print">
+    <div id="judgments"></div>
 </div>
 
 <div id="content" class="container-fluid ">
@@ -151,7 +175,7 @@
 	<div class="cell cell-6">
 		<p id="p632" class="byline">唐三藏沙門義淨譯</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">法會因由分第一</div><div class="ke-line">1. 種性不斷</div>
+</div><div ke-pan="1" class="ke-line first-ke has-next-ke active" data-indent="0">法會因由分第一</div><div ke-pan="2" class="ke-line active" data-indent="1">1. 種性不斷</div>
 <div class="row">
 	<div class="cell cell-0"></div>
 	<div class="cell cell-1"></div>
@@ -229,7 +253,7 @@
 	<div class="cell cell-6">
 		<p id="p634a">時諸苾芻來詣佛所，頂禮雙足，右繞三匝，退坐一面。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">善現啟請分第二</div><div class="ke-line">2. 發起行相</div>
+</div><div ke-pan="3" class="ke-line first-ke has-next-ke" data-indent="0">善現啟請分第二</div><div ke-pan="4" class="ke-line" data-indent="1">2. 發起行相</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p5">時，長老須菩提在大眾中即從座起，偏袒右肩，右膝著地，合掌恭敬而白佛言：「希有世尊！如來善護念諸菩薩，善付囑諸菩薩。世尊！善男子、善女人，發阿耨多羅三藐三菩提心，應云何住？云何降伏其心？」</p>
@@ -300,7 +324,7 @@
 	<div class="cell cell-6">
 		<p id="p636a">妙生言：「唯然，世尊！願樂欲聞。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">大乘正宗分第三</div><div class="ke-line has-next-ke">3. 行所住處</div><div class="ke-line">3.1 發心住處（第一 攝住處）</div>
+</div><div ke-pan="5" class="ke-line first-ke has-next-ke" data-indent="0">大乘正宗分第三</div><div ke-pan="6" class="ke-line has-next-ke" data-indent="1">3. 行所住處</div><div ke-pan="7" class="ke-line" data-indent="2">3.1 發心住處（第一 攝住處）</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p8">佛告須菩提：「諸菩薩摩訶薩應如是降伏其心：『所有一切眾生之類，若卵生、若胎生、若濕生、若化生，若有色、若無色，若有想、若無想、若非有想非無想，我皆令入無餘涅槃而滅度之。』</p>
@@ -346,7 +370,7 @@
 	<div class="cell cell-6">
 		<p id="p637a">雖令如是無量眾生證圓寂已，而無有一眾生入圓寂者。何以故？妙生！若菩薩有眾生想者，則不名菩薩。所以者何？由有我想、眾生想、壽者想、更求趣想故。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">妙行無住分第四</div><div class="ke-line">3.2 波羅蜜相應行（第二 波羅蜜住處）</div>
+</div><div ke-pan="8" class="ke-line first-ke has-next-ke" data-indent="0">妙行無住分第四</div><div ke-pan="9" class="ke-line" data-indent="2">3.2 波羅蜜相應行（第二 波羅蜜住處）</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p9">「復次，須菩提！菩薩於法應無所住行於布施，所謂不住色布施，不住聲、香、味、觸、法布施。須菩提！菩薩應如是布施，不住於相。何以故？若菩薩不住相布施，其福德不可思量。</p>
@@ -484,7 +508,7 @@
 	<div class="cell cell-6">
 		<p id="p639d">「妙生！菩薩行不住施，所得福聚不可知量，亦復如是。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">如理實見分第五</div><div class="ke-line has-next-ke">3.3 欲得色身（第三 欲住處）</div><div class="ke-line">3.4 欲得法身</div>
+</div><div ke-pan="10" class="ke-line first-ke has-next-ke" data-indent="0">如理實見分第五</div><div ke-pan="11" class="ke-line has-next-ke" data-indent="2">3.3 欲得色身（第三 欲住處）</div><div ke-pan="12" class="ke-line" data-indent="2">3.4 欲得法身</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p15">「須菩提！於意云何？可以身相見如來不？」</p>
@@ -553,7 +577,7 @@
 	<div class="cell cell-6">
 		<p id="p641">「妙生！所有勝相，皆是虛妄。若無勝相，即非虛妄。是故應以勝相無相觀於如來。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">正信希有分第六</div><div class="ke-line">3.4.1 言說法身</div>
+</div><div ke-pan="13" class="ke-line first-ke has-next-ke" data-indent="0">正信希有分第六</div><div ke-pan="14" class="ke-line" data-indent="3">3.4.1 言說法身</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p18">須菩提白佛言：「世尊！頗有眾生，得聞如是言說章句，生實信不？」</p>
@@ -807,7 +831,7 @@
 	<div class="cell cell-6">
 		<p id="p644a">妙生！是故菩薩，不應取法，不應取非法。以是義故，如來密意宣說筏喻法門，諸有智者，法尚應捨，何況非法。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">無得無說分第七</div><div class="ke-line has-next-ke">3.4.2 證得法身</div><div class="ke-line">3.4.2.1 智相</div>
+</div><div ke-pan="15" class="ke-line first-ke has-next-ke" data-indent="0">無得無說分第七</div><div ke-pan="16" class="ke-line has-next-ke" data-indent="3">3.4.2 證得法身</div><div ke-pan="17" class="ke-line" data-indent="4">3.4.2.1 智相</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p22">「須菩提！於意云何？如來得阿耨多羅三藐三菩提耶？如來有所說法耶？」</p>
@@ -899,7 +923,7 @@
 	<div class="cell cell-6">
 		<p id="p645c">何以故？以諸聖者，皆是無為所顯現故。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">依法出生分第八</div><div class="ke-line">3.4.2.2 福相</div>
+</div><div ke-pan="18" class="ke-line first-ke has-next-ke" data-indent="0">依法出生分第八</div><div ke-pan="19" class="ke-line" data-indent="4">3.4.2.2 福相</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p24">「須菩提！於意云何？若人滿三千大千世界七寶以用布施，是人所得福德，寧為多不？」</p>
@@ -1014,7 +1038,7 @@
 	<div class="cell cell-6">
 		<p id="p647b">是故妙生！佛法者，如來說非佛法，是名佛法。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">一相無相分第九</div><div class="ke-line">3.5 於修道得勝中無慢（第四 離障礙住處）</div>
+</div><div ke-pan="20" class="ke-line first-ke has-next-ke" data-indent="0">一相無相分第九</div><div ke-pan="21" class="ke-line" data-indent="2">3.5 於修道得勝中無慢（第四 離障礙住處）</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p27">「須菩提！於意云何？須陀洹能作是念，『我得須陀洹果』不？」</p>
@@ -1301,7 +1325,7 @@
 	<div class="cell cell-6">
 		<p id="p651e">以都無所住，是故說我得無諍住、得無諍住。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">莊嚴淨土分第十</div><div class="ke-line">3.6 不離佛出時</div>
+</div><div ke-pan="22" class="ke-line first-ke has-next-ke" data-indent="0">莊嚴淨土分第十</div><div ke-pan="23" class="ke-line" data-indent="2">3.6 不離佛出時</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p35">佛告須菩提：「於意云何？如來昔在然燈佛所，於法有所得不？」</p>
@@ -1347,7 +1371,7 @@
 	<div class="cell cell-6">
 		<p id="p652a">妙生言：「不爾，世尊！如來於然燈佛所，實無可取。」</p>
 </div>
-</div><div class="ke-line first-ke">3.7 願淨佛土</div>
+</div><div ke-pan="24" class="ke-line first-ke" data-indent="2">3.7 願淨佛土</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p37">「須菩提！於意云何？菩薩莊嚴佛土不？」</p>
@@ -1416,7 +1440,7 @@
 	<div class="cell cell-6">
 		<p id="p653b">是故，妙生！菩薩不住於事，不住隨處，不住色、聲、香、味、觸、法，應生其心；應生不住事心，應生不住隨處心，應生不住色、聲、香、味、觸、法心。</p>
 </div>
-</div><div class="ke-line first-ke">3.8 成熟眾生</div>
+</div><div ke-pan="25" class="ke-line first-ke" data-indent="2">3.8 成熟眾生</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p40">「須菩提！譬如有人，身如須彌山王，於意云何？是身為大不？」</p>
@@ -1462,7 +1486,7 @@
 	<div class="cell cell-6">
 		<p id="p654a">妙生言：「甚大，世尊！何以故？彼之大身，如來說為非身。以彼非有，說名為身。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">無為福勝分第十一</div><div class="ke-line">3.9 遠離隨順外論散亂</div>
+</div><div ke-pan="26" class="ke-line first-ke has-next-ke" data-indent="0">無為福勝分第十一</div><div ke-pan="27" class="ke-line" data-indent="2">3.9 遠離隨順外論散亂</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p42">「須菩提！如恒河中所有沙數，如是沙等恒河，於意云何？是諸恒河沙寧為多不？」</p>
@@ -1577,7 +1601,7 @@
 	<div class="cell cell-6">
 		<p id="p657">「妙生！若復有人，於此經中受持一頌，并為他說，而此福聚，勝前福聚無量無邊。</p>
 </div>
-</div><div class="ke-line first-ke">尊重正教分第十二</div>
+</div><div ke-pan="28" class="ke-line first-ke" data-indent="0">尊重正教分第十二</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p47">「復次，須菩提！隨說是經，乃至四句偈等，當知此處，一切世間天、人、阿修羅皆應供養，如佛塔廟，何況有人盡能受持讀誦？須菩提！當知是人成就最上、第一、希有之法，若是經典所在之處，則為有佛，若尊重弟子。」</p>
@@ -1600,7 +1624,7 @@
 	<div class="cell cell-6">
 		<p id="p658">「妙生！若國土中有此法門，為他解說，乃至四句伽他，當知此地，即是制底，一切天、人、阿蘇羅等，皆應右繞而為敬禮；何況盡能受持讀誦，當知是人則為最上第一希有。又此方所，即為有佛，及尊重弟子。</p>
 </div>
-</div><div class="ke-line first-ke">如法受持分第十三</div>
+</div><div ke-pan="29" class="ke-line first-ke" data-indent="0">如法受持分第十三</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p48">爾時，須菩提白佛言：「世尊！當何名此經？我等云何奉持？」</p>
@@ -1712,7 +1736,7 @@
 	<div class="cell cell-6">
 		<p id="p659a">妙生言：「不爾，世尊！無有少法是如來所說。」</p>
 </div>
-</div><div class="ke-line first-ke">3.10 色及眾生身搏取中觀破相應行</div>
+</div><div ke-pan="30" class="ke-line first-ke" data-indent="2">3.10 色及眾生身搏取中觀破相應行</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p51">「須菩提！於意云何？三千大千世界所有微塵是為多不？」</p>
@@ -1781,7 +1805,7 @@
 	<div class="cell cell-6">
 		<p id="p660b">何以故？諸地塵，佛說非塵，故名地塵。此諸世界，佛說非界，故名世界。」</p>
 </div>
-</div><div class="ke-line first-ke">3.11 供養給侍如來</div>
+</div><div ke-pan="31" class="ke-line first-ke" data-indent="2">3.11 供養給侍如來</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p54">「須菩提！於意云何？可以三十二相見如來不？」</p>
@@ -1827,7 +1851,7 @@
 	<div class="cell cell-6">
 		<p id="p661a">妙生言：「不爾，世尊！不應以三十二相觀於如來。何以故？三十二相，佛說非相，是故說為大丈夫相。」</p>
 </div>
-</div><div class="ke-line first-ke">3.12 遠離利養及疲乏熱惱故</div>
+</div><div ke-pan="32" class="ke-line first-ke" data-indent="2">3.12 遠離利養及疲乏熱惱故</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p56">「須菩提！若有善男子、善女人，以恒河沙等身命布施；若復有人，於此經中，乃至受持四句偈等，為他人說，其福甚多。」</p>
@@ -1850,7 +1874,7 @@
 	<div class="cell cell-6">
 		<p id="p662">「妙生！若有男子女人，以弶伽河沙等身命布施；若復有人，於此經中受持一頌，并為他說，其福勝彼無量無數。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">離相寂滅分第十四</div><div class="ke-line">不起精進及退失等</div>
+</div><div ke-pan="33" class="ke-line first-ke has-next-ke" data-indent="0">離相寂滅分第十四</div><div ke-pan="34" class="ke-line" data-indent="2">不起精進及退失等</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p57">爾時，須菩提聞說是經，深解義趣，涕淚悲泣，而白佛言：「希有世尊！</p>
@@ -2089,7 +2113,7 @@
 	<div class="cell cell-6">
 		<p id="p666a">何以故？妙生！此最勝波羅蜜多，是如來所說諸波羅蜜多。如來說者，即是無邊佛所宣說，是故名為最勝波羅蜜多。</p>
 </div>
-</div><div class="ke-line first-ke">3.13 忍苦</div>
+</div><div ke-pan="35" class="ke-line first-ke" data-indent="2">3.13 忍苦</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p58a">須菩提！忍辱波羅蜜，如來說非忍辱波羅蜜。</p>
@@ -2227,7 +2251,7 @@
 	<div class="cell cell-6">
 		<p id="p667e">何以故？若有所住，即為非住。是故佛說：『菩薩應無所住而行布施。』</p>
 </div>
-</div><div class="ke-line first-ke">3.14 離寂靜味</div>
+</div><div ke-pan="36" class="ke-line first-ke" data-indent="2">3.14 離寂靜味</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p59">「須菩提！菩薩為利益一切眾生，應如是布施。</p>
@@ -2349,7 +2373,7 @@
 	<div class="cell cell-6">
 		<p id="p670">「妙生！若有善男子、善女人，能於此經受持讀誦，為他演說。如是之人，佛以智眼悉知悉見，當生當攝無量福聚。</p>
 </div>
-</div><div class="ke-line first-ke">持經功德分第十五</div>
+</div><div ke-pan="37" class="ke-line first-ke" data-indent="0">持經功德分第十五</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p63">「須菩提！若有善男子、善女人，初日分以恒河沙等身布施，中日分復以恒河沙等身布施，後日分亦以恒河沙等身布施，如是無量百千萬億劫以身布施；</p>
@@ -2487,7 +2511,7 @@
 	<div class="cell cell-6">
 		<p id="p673">「妙生！所在之處若有此經，當知此處則是制底，一切世間天、人、阿蘇羅，所應恭敬，作禮圍繞，以諸香花供養其處。</p>
 </div>
-</div><div class="ke-line first-ke">能淨業障分第十六</div>
+</div><div ke-pan="38" class="ke-line first-ke" data-indent="0">能淨業障分第十六</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p66">「復次，須菩提！善男子、善女人受持、讀誦此經，若為人輕賤，</p>
@@ -2602,7 +2626,7 @@
 	<div class="cell cell-6">
 		<p id="p675b">妙生！當知是經不可思議，其受持者，應當希望不可思議所生福聚。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">究竟無我分第十七</div><div class="ke-line">3.15 於證道時遠離喜動</div>
+</div><div ke-pan="39" class="ke-line first-ke has-next-ke" data-indent="0">究竟無我分第十七</div><div ke-pan="40" class="ke-line" data-indent="2">3.15 於證道時遠離喜動</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p69">爾時，須菩提白佛言：「世尊！善男子、善女人發阿耨多羅三藐三菩提心，云何應住？云何降伏其心？」</p>
@@ -2694,7 +2718,7 @@
 	<div class="cell cell-6">
 		<p id="p677b">所以者何？妙生！實無有法可名發趣菩薩乘者。</p>
 </div>
-</div><div class="ke-line first-ke">3.16 求教授</div>
+</div><div ke-pan="41" class="ke-line first-ke" data-indent="2">3.16 求教授</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p71">「須菩提！於意云何？如來於然燈佛所，有法得阿耨多羅三藐三菩提不？」</p>
@@ -2891,7 +2915,7 @@
 	<div class="cell cell-6">
 		<p id="p680a">妙生！如來所得正覺之法，此即非實非虛。是故佛說：『一切法者，即是佛法。』妙生！一切法、一切法者，如來說為非法，是故如來說一切法者，即是佛法。</p>
 </div>
-</div><div class="ke-line first-ke">3.17 證道（第五 淨心住處）</div>
+</div><div ke-pan="42" class="ke-line first-ke" data-indent="2">3.17 證道（第五 淨心住處）</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p75">「須菩提！譬如人身長、大。」</p>
@@ -3006,7 +3030,7 @@
 	<div class="cell cell-6">
 		<p id="p684">「妙生！是故如來說：『一切法無我、無眾生、無壽者、無更求趣。』</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">3.18 上求佛地（第六 究竟住處）</div><div class="ke-line">3.18.1 國土淨具足</div>
+</div><div ke-pan="43" class="ke-line first-ke has-next-ke" data-indent="2">3.18 上求佛地（第六 究竟住處）</div><div ke-pan="44" class="ke-line" data-indent="3">3.18.1 國土淨具足</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p77b">須菩提！若菩薩作是言『我當莊嚴佛土』，是不名菩薩。</p>
@@ -3075,7 +3099,7 @@
 	<div class="cell cell-6">
 		<p id="p685b">妙生！若有信解一切法無性、一切法無性者，如來說名真是菩薩、菩薩。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">一體同觀分第十八</div><div class="ke-line">3.18.2 無上見智淨具足</div>
+</div><div ke-pan="45" class="ke-line first-ke has-next-ke" data-indent="0">一體同觀分第十八</div><div ke-pan="46" class="ke-line" data-indent="3">3.18.2 無上見智淨具足</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p78">「須菩提！於意云何？如來有肉眼不？」</p>
@@ -3408,7 +3432,7 @@
 	<div class="cell cell-6">
 		<p id="p692">「妙生！此世界中所有眾生，種種性行，其心流轉，我悉了知。何以故？妙生！心陀羅尼者，如來說為無持，由無持故，心遂流轉。何以故？妙生！過去心不可得，未來心不可得，現在心不可得。</p>
 </div>
-</div><div class="ke-line first-ke">法界通化分第十九</div>
+</div><div ke-pan="47" class="ke-line first-ke" data-indent="0">法界通化分第十九</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p93">「須菩提！於意云何？若有人滿三千大千世界七寶以用布施，是人以是因緣得福多不？」</p>
@@ -3498,7 +3522,7 @@
 		<p id="p597a">何以故？善現！若有福聚，如來不說福聚福聚。」</p>
 </div>
 	<div class="cell cell-6"></div>
-</div><div class="ke-line first-ke has-next-ke">離色離相分第二十</div><div class="ke-line">3.18.3 隨形好身具足</div>
+</div><div ke-pan="48" class="ke-line first-ke has-next-ke" data-indent="0">離色離相分第二十</div><div ke-pan="49" class="ke-line" data-indent="3">3.18.3 隨形好身具足</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p96">「須菩提！於意云何？佛可以具足色身見不？」</p>
@@ -3544,7 +3568,7 @@
 	<div class="cell cell-6">
 		<p id="p695a">「不爾，世尊！不應以色身圓滿觀於如來。何以故？色身圓滿、色身圓滿者，如來說非圓滿，是故名為色身圓滿。」</p>
 </div>
-</div><div class="ke-line first-ke">3.18.4 相身具足</div>
+</div><div ke-pan="50" class="ke-line first-ke" data-indent="3">3.18.4 相身具足</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p98">「須菩提！於意云何？如來可以具足諸相見不？」</p>
@@ -3590,7 +3614,7 @@
 	<div class="cell cell-6">
 		<p id="p696a">「不爾，世尊！不應以具相觀於如來。何以故？諸具相者，如來說非具相，是故如來說名具相。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">非說所說分第二十一</div><div class="ke-line">3.18.5 語具足</div>
+</div><div ke-pan="51" class="ke-line first-ke has-next-ke" data-indent="0">非說所說分第二十一</div><div ke-pan="52" class="ke-line" data-indent="3">3.18.5 語具足</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p100">「須菩提！汝勿謂如來作是念，『我當有所說法』。莫作是念，</p>
@@ -3636,7 +3660,7 @@
 	<div class="cell cell-6">
 		<p id="p697a">若言：『如來有所說法。』者，則為謗我。何以故？言說法、說法者，無法可說，是名說法。」</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">3.18.6 心具足</div><div class="ke-line">3.18.6.1 念處</div>
+</div><div ke-pan="53" class="ke-line first-ke has-next-ke" data-indent="3">3.18.6 心具足</div><div ke-pan="54" class="ke-line" data-indent="4">3.18.6.1 念處</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p101">爾時，慧命須菩提白佛言：「世尊！頗有眾生於未來世，聞說是法生信心不？」</p>
@@ -3682,7 +3706,7 @@
 	<div class="cell cell-6">
 		<p id="p699">佛告妙生：「有生信者，彼非眾生，非非眾生。何以故？眾生、眾生者，如來說非眾生，是名眾生。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">無法可得分第二十二</div><div class="ke-line">3.18.6.2 正覺</div>
+</div><div ke-pan="55" class="ke-line first-ke has-next-ke" data-indent="0">無法可得分第二十二</div><div ke-pan="56" class="ke-line" data-indent="4">3.18.6.2 正覺</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p103">須菩提白佛言：「世尊！佛得阿耨多羅三藐三菩提，為無所得耶？」</p>
@@ -3728,7 +3752,7 @@
 	<div class="cell cell-6">
 		<p id="p701">佛告妙生：「如是，如是！此中無有少法可得，故名無上正等菩提。</p>
 </div>
-</div><div class="ke-line first-ke">淨心行善分第二十三</div>
+</div><div ke-pan="57" class="ke-line first-ke" data-indent="0">淨心行善分第二十三</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p105">「復次，須菩提！是法平等，無有高下，是名阿耨多羅三藐三菩提；</p>
@@ -3815,7 +3839,7 @@
 	<div class="cell cell-6">
 		<p id="p701c">妙生！善法者，如來說為非法，故名善法。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">福智無比分第二十四</div><div class="ke-line">3.18.6.3 施設大利法</div>
+</div><div ke-pan="58" class="ke-line first-ke has-next-ke" data-indent="0">福智無比分第二十四</div><div ke-pan="59" class="ke-line" data-indent="4">3.18.6.3 施設大利法</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p106">「須菩提！若三千大千世界中所有諸須彌山王，如是等七寶聚，有人持用布施；若人以此《般若波羅蜜經》，乃至四句偈等，受持、讀誦、為他人說，於前福德百分不及一，百千萬億分，乃至算數、譬喻所不能及。</p>
@@ -3838,7 +3862,7 @@
 	<div class="cell cell-6">
 		<p id="p702">「妙生！若三千大千世界中，所有諸妙高山王，如是等七寶聚，有人持用布施。若復有人，於此經中，乃至一四句頌，若自受持，及為他說。以前福聚比此福聚，假令分此以為百分，彼亦不能及一分，或千分億分算分勢分數分因分，乃至譬喻亦不能及一。</p>
 </div>
-</div><div class="ke-line first-ke">化無所化分第二十五</div>
+</div><div ke-pan="60" class="ke-line first-ke" data-indent="0">化無所化分第二十五</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p107">「須菩提！於意云何？汝等勿謂如來作是念：『我當度眾生。』須菩提！莫作是念。何以故？實無有眾生如來度者，</p>
@@ -3884,7 +3908,7 @@
 	<div class="cell cell-6">
 		<p id="p703a">若有眾生是如來度者，如來則有我見、眾生見、壽者見、更求趣見。妙生！我等執者，如來說為非執，而諸愚夫妄為此執。妙生！愚夫眾生，如來說為非生，故名愚夫眾生。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">法身非相分第二十六</div><div class="ke-line">3.18.6.4 攝取法身</div>
+</div><div ke-pan="61" class="ke-line first-ke has-next-ke" data-indent="0">法身非相分第二十六</div><div ke-pan="62" class="ke-line" data-indent="4">3.18.6.4 攝取法身</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p108">「須菩提！於意云何？可以三十二相觀如來不？」</p>
@@ -4127,7 +4151,7 @@
 </div>
 </div>
 </div>
-</div><div class="ke-line first-ke has-next-ke">無斷無滅分第二十七</div><div class="ke-line">3.18.6.5 不住生死涅槃</div>
+</div><div ke-pan="63" class="ke-line first-ke has-next-ke" data-indent="0">無斷無滅分第二十七</div><div ke-pan="64" class="ke-line" data-indent="4">3.18.6.5 不住生死涅槃</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p113">「須菩提！汝若作是念：『如來不以具足相故，得阿耨多羅三藐三菩提。』須菩提！莫作是念：『如來不以具足相故，得阿耨多羅三藐三菩提。』</p>
@@ -4171,7 +4195,7 @@
 	<div class="cell cell-6">
 		<p id="p707">「妙生！『諸有發趣菩薩乘者，其所有法是斷滅不？』汝莫作是見。何以故？趣菩薩乘者，其法不失。</p>
 </div>
-</div><div class="ke-line first-ke">不受不貪分第二十八</div>
+</div><div ke-pan="65" class="ke-line first-ke" data-indent="0">不受不貪分第二十八</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p115">「須菩提！若菩薩以滿恒河沙等世界七寶布施；若復有人知一切法無我，得成於忍，此菩薩勝前菩薩所得功德。</p>
@@ -4263,7 +4287,7 @@
 	<div class="cell cell-6">
 		<p id="p710">佛告妙生：「是應正取，不應越取，是故說取。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">威儀寂靜分第二十九</div><div class="ke-line has-next-ke">3.18.6.6 行住淨應知</div><div class="ke-line">3.18.6.6.1 為威儀行住</div>
+</div><div ke-pan="66" class="ke-line first-ke has-next-ke" data-indent="0">威儀寂靜分第二十九</div><div ke-pan="67" class="ke-line has-next-ke" data-indent="4">3.18.6.6 行住淨應知</div><div ke-pan="68" class="ke-line" data-indent="5">3.18.6.6.1 為威儀行住</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p118">「須菩提！若有人言『如來若來若去、若坐若臥』，是人不解我所說義。何以故？如來者，無所從來，亦無所去，故名如來。</p>
@@ -4286,7 +4310,7 @@
 	<div class="cell cell-6">
 		<p id="p711">「妙生！如有說言：『如來若來若去、若坐若臥。』者，是人不解我所說義。何以故？妙生！都無去來，故名如來。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">一合理相分第三十</div><div class="ke-line">3.18.6.6.2 名色觀破自在行住</div>
+</div><div ke-pan="69" class="ke-line first-ke has-next-ke" data-indent="0">一合理相分第三十</div><div ke-pan="70" class="ke-line" data-indent="5">3.18.6.6.2 名色觀破自在行住</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p119">「須菩提！若善男子、善女人以三千大千世界碎為微塵，於意云何？是微塵眾寧為多不？」</p>
@@ -4378,7 +4402,7 @@
 	<div class="cell cell-6">
 		<p id="p713">「妙生！此聚執者，是世言論，然其體性，實無可說，但是愚夫異生之所妄執。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">知見不生分第三十一</div><div class="ke-line has-next-ke">3.18.6.6..3 不染行住</div><div class="ke-line">3.18.6.6.3.1 說法不染</div>
+</div><div ke-pan="71" class="ke-line first-ke has-next-ke" data-indent="0">知見不生分第三十一</div><div ke-pan="72" class="ke-line has-next-ke" data-indent="5">3.18.6.6.3 不染行住</div><div ke-pan="73" class="ke-line" data-indent="6">3.18.6.6.3.1 說法不染</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p122">「須菩提！若人言『佛說我見、人見、眾生見、壽者見』，須菩提！於意云何？是人解我所說義不？」</p>
@@ -4447,7 +4471,7 @@
 	<div class="cell cell-6">
 		<p id="p715">「妙生！諸有發趣菩薩乘者，於一切法，應如是知，如是見，如是解。如是解者，乃至法想亦無所住。何以故？妙生！法想、法想者，如來說為非想，故名法想、法想。</p>
 </div>
-</div><div class="ke-line first-ke has-next-ke">應化非真分第三十二</div><div class="ke-line has-next-ke">3.18.6.6..3 不染行住</div><div class="ke-line">3.18.6.6.3.1 說法不染</div>
+</div><div ke-pan="74" class="ke-line first-ke has-next-ke" data-indent="0">應化非真分第三十二</div><div ke-pan="75" class="ke-line has-next-ke" data-indent="5">3.18.6.6.3 不染行住</div><div ke-pan="76" class="ke-line" data-indent="6">3.18.6.6.3.1 說法不染</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p125">「須菩提！若有人以滿無量阿僧祇世界七寶持用布施，若有善男子、善女人發菩薩心者，持於此經乃至四句偈等，受持、讀誦、為人演說，其福勝彼。</p>
@@ -4470,7 +4494,7 @@
 	<div class="cell cell-6">
 		<p id="p716">「妙生！若有人以滿無量無數世界七寶，持用布施。若復有人，能於此經，乃至受持讀誦四句伽他，令其通利，廣為他人正說其義，以是因緣所生福聚，極多於彼無量無數。</p>
 </div>
-</div><div class="ke-line first-ke">3.18.6.6.3.2 流轉不染</div>
+</div><div ke-pan="77" class="ke-line first-ke" data-indent="6">3.18.6.6.3.2 流轉不染</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p125b">云何為人演說？不取於相，如如不動。何以故？</p>
@@ -4560,7 +4584,7 @@
 </div>
 </div>
 </div>
-</div>
+</div><div ke-pan="78" class="ke-line first-ke" data-indent="0">劝信</div>
 <div class="row">
 	<div class="cell cell-0">
 		<p id="p126">佛說是經已，長老須菩提及諸比丘、比丘尼、優婆塞、優婆夷，一切世間天、人、阿修羅，聞佛所說，皆大歡喜，信受奉行。</p>
@@ -4643,6 +4667,7 @@
 
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script src="assets/jstree/jstree.min.js"></script>
 <script src="assets/reader.js?v=131"></script>
 
 </body>

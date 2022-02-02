@@ -199,6 +199,7 @@ class PageHandler(CbBaseHandler):
             name = page_id.split('_')[0]
             juan = int((page_id.split('_')[1:] or [1])[0])
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
+            has_ke_pan = step and ':ke ' in ''.join(page.get('rowPairs', []))
 
             if self.get_argument('export', 0):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
@@ -206,10 +207,10 @@ class PageHandler(CbBaseHandler):
                 note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])), v.get('desc', v['name'])]
                               for tag, v in (page.get('notes') or {}).items()]
                 html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
-                                          json_files=json_files, note_names=note_names)
+                                          json_files=json_files, note_names=note_names, has_ke_pan=has_ke_pan)
                 return self.write(dict(html=to_basestring(html)))
 
-            self.render('cb_page.html', page=page, info=info, step=step, id=page_id,
+            self.render('cb_page.html', page=page, info=info, step=step, id=page_id, has_ke_pan=has_ke_pan,
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         cb_ids=cb_ids)

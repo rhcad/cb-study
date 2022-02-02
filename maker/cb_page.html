@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="{{static_url('img/favicon.ico')}}"/>
   <link rel="stylesheet" href="{{static_url('bootstrap/css/bootstrap.min.css')}}"/>
+  {% if has_ke_pan %}<link rel="stylesheet" href="{{static_url('jstree/jstree.min.css')}}"/>{% end %}
   <link href="{{static_url('cb.css')}}" rel="stylesheet"/>
   <link href="{{static_url('note.css')}}" rel="stylesheet"/>
   <style>
@@ -139,7 +140,7 @@
   </div>
 </nav>
 
-<div class="container">
+<div class="container task-steps">
   <div class="task-step" data-step="0">
     <p class="step-title"><span>第1步</span>：获取CBeta网页原文</p>
     <div class="step-content">
@@ -155,7 +156,7 @@
   </div>
 
   <div class="task-step" data-step="1">
-    <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配</p>
+    <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配，设置科判</p>
     <div class="step-content">
       {% if info.get('cols', 1) > 1 %}
       <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮。如需拆分段落可在段落上点鼠标右键菜单。</p>
@@ -195,6 +196,13 @@
   </div>
   {% end %}
 </div>
+
+{% if has_ke_pan %}
+<style>.left-nav{width: 15%;}.task-steps,#content,#merged{padding-left: 15%;}.task-steps{margin-left: 0;}</style>
+<div class="left-nav no-print">
+  <div id="judgments"></div>
+</div>
+{% end %}
 
 {% if step == 1 and info['cols'] > 1 %}
 <div id="merged" class="container-fluid"></div>
@@ -243,10 +251,10 @@
 <script src="{{static_url('js/sweetalert.min.js')}}"></script>
 <script src="{{static_url('js/download.js')}}"></script>
 <script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+{% if has_ke_pan %}<script src="{{static_url('jstree/jstree.min.js')}}"></script>{% end %}
 <script src="{{static_url('reader.js')}}"></script>
 <link href="{{static_url('js/jquery.contextMenu.css')}}" rel="stylesheet"/>
 <script src="{{static_url('js/jquery.contextMenu.js')}}"></script>
-
 
 {% if step == 1 %}
 <script src="{{static_url('label/group-rows.js')}}"></script>

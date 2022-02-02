@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="assets/img/favicon.ico"/>
   <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
+  {% if has_ke_pan %}<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>{% end %}
   <link href="assets/cb.css?v=131" rel="stylesheet"/>
   <link href="assets/note.css?v=129" rel="stylesheet"/>
   <style>
@@ -23,6 +24,10 @@
     @media (min-width: 768px) {
       .phone-bar { display: none; }
     }
+    {% if has_ke_pan %}
+    .left-nav {width: 15%;}
+    #content {padding-left: 15%;}
+    {% end %}
   </style>
 </head>
 <body>
@@ -67,6 +72,25 @@
             {% end %}
           </ul>
         </li>
+
+        {% if has_ke_pan %}
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">科判比例 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="ke-pan-ratio"><a>隐藏</a></li>
+            <li class="ke-pan-ratio"><a>10%</a></li>
+            <li class="ke-pan-ratio"><a>15%</a></li>
+            <li class="ke-pan-ratio"><a>25%</a></li>
+            <li class="ke-pan-ratio"><a>50%</a></li>
+            <li class="ke-pan-ratio"><a>75%</a></li>
+            <li class="ke-pan-ratio"><a>100%</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+            <li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+          </ul>
+        </li>
+        {% end %}
       </ul>
 
       {% if info.get('cols', 1) > 1 %}
@@ -102,6 +126,12 @@
   </div>
 </div>
 
+{% if has_ke_pan %}
+<div class="left-nav no-print">
+  <div id="judgments"></div>
+</div>
+{% end %}
+
 <div id="content" class="container-fluid {% if info.get('cols', 1) < 2 %} original{% end %}">
   {% raw '\n'.join(page['html']) %}
 </div>
@@ -112,6 +142,7 @@
 
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+{% if has_ke_pan %}<script src="assets/jstree/jstree.min.js"></script>{% end %}
 <script src="assets/reader.js?v=131"></script>
 {% for fn in json_files %}
 <script src="data/{{fn}}"></script>

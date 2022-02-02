@@ -61,3 +61,4 @@
 - [Tornado 官方文档中文版](https://tornado-zh.readthedocs.io/zh/latest/)
 - [SweetAlert 消息框文档](https://sweetalert.js.org)
 - [jQuery contextMenu 文档](https://swisnl.github.io/jQuery-contextMenu/docs.html)
+- [jsTree 文档](https://www.jstree.com/api/)

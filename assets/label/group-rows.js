@@ -364,6 +364,7 @@ function _findInPairs(id, text, pat) {
 /**
  * 在编号成组文本区域中高亮选中落号
  * @param {string} id
+ * @return {boolean} 是否已高亮选中
  */
 function selectInPairsArea(id) {
   const area = id && document.getElementById('row-pairs-area'),
@@ -376,6 +377,7 @@ function selectInPairsArea(id) {
       area.selectionEnd = start + id.length;
     }, 50);
   }
+  return start >= 0;
 }
 
 // 在合并区点击段落，自动在编号成组文本区域中高亮选中此段落号
@@ -387,7 +389,9 @@ $(document).on('click', '#merged [id]', function (e) {
 // 高亮显示编号文本和段落
 function _highlightParagraph(id) {
   const $p = $('#' + (id || 'e'));
-  selectInPairsArea(id);
+  if (!selectInPairsArea(id)) {
+    selectInPairsArea($p.text());
+  }
   scrollToVisible($p[0]);
   setTimeout(() => {
     $p.addClass('highlight');
@@ -410,4 +414,9 @@ $('#to-original').click(() => {
 // 段落定位
 $('.p-nav button').click(() => {
   _highlightParagraph($('.p-nav input').val());
+});
+
+// 科判条目上点击
+$(document).on('click', '.ke-line', e => {
+  selectInPairsArea(e.target.innerText);
 });
