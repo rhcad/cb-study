@@ -14,7 +14,7 @@
  */
 
 try {
-  window.cbOptions = JSON.parse(localStorage.getItem('cbOptions + ' + window.pageName))
+  window.cbOptions = JSON.parse(localStorage.getItem('cbOptions' + window.pageName))
 } catch (e) {}
 if (!window.cbOptions || typeof window.cbOptions !== 'object') {
   window.cbOptions = {};
@@ -22,7 +22,7 @@ if (!window.cbOptions || typeof window.cbOptions !== 'object') {
 
 function saveCbOptions() {
   if (typeof window.pageName === 'string') {
-    localStorage.setItem('cbOptions + ' + window.pageName, JSON.stringify(cbOptions));
+    localStorage.setItem('cbOptions' + window.pageName, JSON.stringify(cbOptions));
   }
 }
 
@@ -247,9 +247,7 @@ function _setKePanWidth(ratio) {
   $('#content,#merged,.task-steps').css('padding-left', ratio);
 }
 
-if (cbOptions.kePanWidth !== undefined) {
-  _setKePanWidth(cbOptions.kePanWidth);
-}
+_setKePanWidth(cbOptions.kePanWidth !== undefined ? cbOptions.kePanWidth : '15%');
 
 /**
  * 将多个段落编号的串转换为选择器数组
