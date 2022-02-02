@@ -99,8 +99,8 @@ $.contextMenu({
       disabled: function() { return !this.closest('#merged').length || !_extractRow(this, true)},
     },
     sep2: {name: '--'},
-    setText: {
-      name: '加科判条目...',
+    addKePan: {
+      name: '前加科判条目...',
       callback: function() { _setKePanText(this, this.closest('.row')); },
       disabled: function() { return !this.closest('#merged').length; },
     },
@@ -233,18 +233,21 @@ function _moveP($p, up, test) {
       cols[colIndex] = ids.filter(s => s !== id).join(' ') || '-'; // 当前单元格去掉此id
       rowPairs[rowIndex] = cols.join('|'); // 改动到当前行块
 
+      let index2 = up ? rowIndex - 1 : rowIndex + 1
       if (up) {
-        cols = rowPairs[rowIndex - 1].split('|'); // 上一行块的各列的段落号
+        while (index2 >= 0 && rowPairs[index2].startsWith(':')) index2--;
+        cols = rowPairs[index2].split('|'); // 上一行块的各列的段落号
         ids = cols[colIndex].trim().replace(/^-$/, '').split(/\s+/g);
         ids.push(id); // 末尾加上此id
         cols[colIndex] = ids.join(' ');
-        rowPairs[rowIndex - 1] = cols.join('|');
+        rowPairs[index2] = cols.join('|');
       } else {
-        cols = rowPairs[rowIndex + 1].split('|'); // 下一行块的各列的段落号
+        while (index2 < rowPairs.length && rowPairs[index2].startsWith(':')) index2++;
+        cols = rowPairs[index2].split('|'); // 下一行块的各列的段落号
         ids = cols[colIndex].trim().replace(/^-$/, '').split(/\s+/g);
         ids.splice(0, 0, id); // 在前面插入此id
         cols[colIndex] = ids.join(' ');
-        rowPairs[rowIndex + 1] = cols.join('|');
+        rowPairs[index2] = cols.join('|');
       }
       showRowPairs();
       applyRowPairs();
@@ -442,13 +445,18 @@ $.contextMenu({
       name: '设置科判文本...',
       callback: function() { _setKePanText(this); },
     },
+    addKePan: {
+      name: '前加科判条目...',
+      callback: function() { _setKePanText(this, this); },
+    },
   },
 });
 function _setKePanText($p, $row) {
-  let text = !$row && (new Array(1 + parseInt($p.attr('data-indent'))).join('-') + $p.text()) || '';
+  const textKe = new Array(1 + parseInt($p.attr('data-indent'))).join('-') + $p.text();
+  let text = !$row && textKe || '';
   swal({
-    title: ($row ? '增加' : '设置') + '科判文本',
-    text: $row ? `在 ${ $p.attr('id')} 上加科判条目，文本前的减号数量表示科判层级。` :
+    title: $row ? '增加科判条目' : '设置科判文本',
+    text: $row ? `在 ${ $p.attr('id') || '本条'} 前加科判条目，文本前的减号数量表示科判层级。` :
         '文本前的减号数量表示科判层级，输入d表示删除科判条目。',
     content: {
       element: 'input',
@@ -462,8 +470,8 @@ function _setKePanText($p, $row) {
       return;
     }
 
-    let index = !$row && rowPairs.map((t, i) => t.indexOf(text) > 0 && i + 1).filter(i => i)[0],
-        ret = false;
+    let idxKe = rowPairs.map((t, i) => t.indexOf(textKe) > 0 && i + 1).filter(i => i)[0],
+        index = !$row && idxKe, ret = false;
 
     if (/^d/i.test(result)) { // 删除
       if (!$row) {
@@ -471,7 +479,7 @@ function _setKePanText($p, $row) {
         ret = true;
       }
     } else if ($row) { // 增加
-      index = findRowIndexInPairs($p.attr('id'));
+      index = $p.attr('id') ? findRowIndexInPairs($p.attr('id')) : idxKe - 1;
       rowPairs.splice(index, 0, ':ke ' + result);
       ret = true;
     } else if (text !== result) { // 修改

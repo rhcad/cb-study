@@ -12,6 +12,8 @@
 - [《金剛經》](http://ggbstudy.top/cb/T0235.html): 七种版本对照，有科判导航
 - [《楞嚴經 卷四》](http://ggbstudy.top/cb/T0945_4.html) [《卷五》](http://ggbstudy.top/cb/T0945_5.html): 嵌入正脉疏、文句的注解
 
+- [制作工具平台](https://aiggb.cn/cb)
+
 ## 本地使用
 
 项目根目录下的 `*.html` 是制作完成的页面，所需文件有 `/assets`(静态资源)`、`/data`(注解和科判数据)，可以在本地用浏览器查看。
