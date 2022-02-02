@@ -350,6 +350,7 @@ function _initKePanTree() {
     });
   }
 }
+_initKePanTm = setTimeout(_initKePanTree, 10);
 
 /**
  * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号

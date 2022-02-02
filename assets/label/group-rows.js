@@ -357,6 +357,9 @@ function findRowIndexInPairs(id) {
  * @private
  */
 function _findInPairs(id, text, pat) {
+  if (!/^[pg]\d/.test(id)) {
+    return text.indexOf(id);
+  }
   const start0 = text.search(pat || '(^|[\\s|])' + id + '($|[\\s\\n|*-])');
   return start0 < 0 ? -1 : text.indexOf(id, start0);
 }
