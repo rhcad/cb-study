@@ -8,8 +8,8 @@
 
 ## 在线预览
 - [《起信论》](http://ggbstudy.top/cb/T1666.html): 梁唐译文对照，有科判导航，嵌入義記、裂網疏的注解
-- [《心经》](http://ggbstudy.top/cb/T0251.html): 七种版本对照
-- [《金剛經》](http://ggbstudy.top/cb/T0235.html): 七种版本对照
+- [《心经》](http://ggbstudy.top/cb/T0251.html): 七种版本对照，有科判导航
+- [《金剛經》](http://ggbstudy.top/cb/T0235.html): 七种版本对照，有科判导航
 - [《楞嚴經 卷四》](http://ggbstudy.top/cb/T0945_4.html) [《卷五》](http://ggbstudy.top/cb/T0945_5.html): 嵌入正脉疏、文句的注解
 
 ## 本地使用
@@ -39,7 +39,7 @@
   
   ![step1](doc/step1.jpg)
 
-  2. 将多个版本的经典内容进行段落拆分和分组，建立对照关系
+  2. 将多个版本的经典内容进行段落拆分和分组，建立对照关系，加入科判标引
   
   ![step2](doc/step2.jpg)
 
@@ -48,8 +48,6 @@
   ![step3](doc/step3.jpg)
 
   ![step4](doc/step4.jpg)
-
-  TODO: 加入科判标引功能
 
 ## 开源协议
 
