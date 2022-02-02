@@ -81,6 +81,7 @@
             <li class="ke-pan-ratio"><a>隐藏</a></li>
             <li class="ke-pan-ratio"><a>10%</a></li>
             <li class="ke-pan-ratio"><a>15%</a></li>
+            <li class="ke-pan-ratio"><a>20%</a></li>
             <li class="ke-pan-ratio"><a>25%</a></li>
             <li class="ke-pan-ratio"><a>50%</a></li>
             <li class="ke-pan-ratio"><a>75%</a></li>
@@ -99,7 +100,6 @@
         {% for i in range(info['cols']) %}
         <button type="button" class="btn btn-default btn-sm navbar-btn">{{i + 1}}</button>
         {% end %}
-        <button type="button" class="btn btn-default btn-sm navbar-btn">全</button>
       </div>
       {% end %}
       <div class="btn-group" role="group">
@@ -117,7 +117,6 @@
     {% for i in range(info['cols']) %}
     <button type="button" class="btn btn-default btn-sm">{{i + 1}}</button>
     {% end %}
-    <button type="button" class="btn btn-default btn-sm">全</button>
   </div>
   {% end %}
   <div class="btn-group" role="group">
@@ -143,7 +142,7 @@
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 {% if has_ke_pan %}<script src="assets/jstree/jstree.min.js"></script>{% end %}
-<script src="assets/reader.js?v=202"></script>
+<script src="assets/reader.js?v=202b"></script>
 {% for fn in json_files %}
 <script src="data/{{fn}}"></script>
 {% end %}

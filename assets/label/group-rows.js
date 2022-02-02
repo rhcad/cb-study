@@ -1,3 +1,7 @@
+/**
+ * 段落分组设置，每行的格式为“ id id... | id...”，或行首是“:ke ”的科判条目
+ * @type {string[]}
+ */
 const rowPairs = window.rowPairs = window.rowPairs || [];
 
 /**
@@ -93,6 +97,12 @@ $.contextMenu({
       name: '分离为新行...',
       callback: function() { _extractRow(this, false); },
       disabled: function() { return !this.closest('#merged').length || !_extractRow(this, true)},
+    },
+    sep2: {name: '--'},
+    setText: {
+      name: '加科判条目...',
+      callback: function() { _setKePanText(this, this.closest('.row')); },
+      disabled: function() { return !this.closest('#merged').length; },
     },
   },
 });
@@ -423,3 +433,55 @@ $('.p-nav button').click(() => {
 $(document).on('click', '.ke-line', e => {
   selectInPairsArea(e.target.innerText);
 });
+
+// 科判条目的鼠标右键菜单
+$.contextMenu({
+  selector: '.ke-line',
+  items: {
+    setText: {
+      name: '设置科判文本...',
+      callback: function() { _setKePanText(this); },
+    },
+  },
+});
+function _setKePanText($p, $row) {
+  let text = !$row && (new Array(1 + parseInt($p.attr('data-indent'))).join('-') + $p.text()) || '';
+  swal({
+    title: ($row ? '增加' : '设置') + '科判文本',
+    text: $row ? `在 ${ $p.attr('id')} 上加科判条目，文本前的减号数量表示科判层级。` :
+        '文本前的减号数量表示科判层级，输入d表示删除科判条目。',
+    content: {
+      element: 'input',
+      attributes: { value: text }
+    },
+    closeOnClickOutside: false,
+    buttons: ['取消', '确定'],
+  }).then(result => {
+    result = result && document.querySelector('.swal-content__input').value.trim();
+    if (!result) {
+      return;
+    }
+
+    let index = !$row && rowPairs.map((t, i) => t.indexOf(text) > 0 && i + 1).filter(i => i)[0],
+        ret = false;
+
+    if (/^d/i.test(result)) { // 删除
+      if (!$row) {
+        rowPairs.splice(index - 1, 1);
+        ret = true;
+      }
+    } else if ($row) { // 增加
+      index = findRowIndexInPairs($p.attr('id'));
+      rowPairs.splice(index, 0, ':ke ' + result);
+      ret = true;
+    } else if (text !== result) { // 修改
+      rowPairs[index - 1] = rowPairs[index - 1].replace(text, result);
+      ret = true;
+    }
+
+    if (ret) {
+      saveRowPairs();
+      location.reload();
+    }
+  });
+}

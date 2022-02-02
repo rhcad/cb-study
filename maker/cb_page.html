@@ -83,6 +83,7 @@
              aria-expanded="false">显示 <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+            <li><a href="#" id="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
             <li><a href="#" id="show-notes" title="切换是否显示全部注解">注解</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
@@ -99,6 +100,26 @@
             <li role="separator" class="divider"></li>
             <li><a href="#" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
             {% end %}
+          </ul>
+        </li>
+        {% end %}
+
+        {% if has_ke_pan %}
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">科判比例 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="ke-pan-ratio"><a>隐藏</a></li>
+            <li class="ke-pan-ratio"><a>10%</a></li>
+            <li class="ke-pan-ratio"><a>15%</a></li>
+            <li class="ke-pan-ratio"><a>20%</a></li>
+            <li class="ke-pan-ratio"><a>25%</a></li>
+            <li class="ke-pan-ratio"><a>50%</a></li>
+            <li class="ke-pan-ratio"><a>75%</a></li>
+            <li class="ke-pan-ratio"><a>100%</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+            <li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
           </ul>
         </li>
         {% end %}
@@ -120,7 +141,6 @@
         <button type="button" class="btn btn-default btn-sm navbar-btn">10</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">11</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">12</button>
-        <button type="button" class="btn btn-default btn-sm navbar-btn">全</button>
       </div>
       {% end %}
       <div class="btn-group" role="group">
@@ -220,7 +240,7 @@
   </div>
   <div class="row-pairs-div">
     <textarea rows="10" id="row-pairs-area"></textarea>
-    <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。以“:ke ”开头的行是科判条目，其后的文本可加多个减号表示科判层级。</div>
+    <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。<br/>以“:ke ”开头的行是科判条目，其后的文本可加多个减号表示科判层级。</div>
   </div>
   <div>
     <button class="btn btn-default btn-sm" id="to-original" title="滚动到合并区下方的红线处，即未合并内容的上方">到分隔线</button>
@@ -247,6 +267,7 @@
 
 <footer><p></p></footer>
 
+<script>window.pageName = '{{id}}step{{step}}';</script>
 <script src="{{static_url('js/jquery.min.js')}}"></script>
 <script src="{{static_url('js/sweetalert.min.js')}}"></script>
 <script src="{{static_url('js/download.js')}}"></script>
@@ -323,7 +344,8 @@
 
   // 第二步保存段落分组数据，给“移为一组”按钮用
   function saveRowPairs() {
-    $.post('/cb/page/merge/add/{{id}}', {'pairs': window.rowPairs.join('||')}, updateParaIds).error(ajaxError('保存失败'))
+    $.post('/cb/page/pairs/{{id}}', {'pairs': window.rowPairs.join('||')}, updateParaIds)
+            .error(ajaxError('保存失败', reload))
   }
 
   // 段落拆分 {id, text, result=[{id, text}...]}, 或 段落合并 {id, id2}
@@ -337,7 +359,7 @@
   // 应用段落分组数据
   function applyRowPairs() {
     const pairs = $('#row-pairs-area').val().replace(/(^|\n)-(\|-)+($|\n)/g, '').replace(/\n+/g, '||')
-    $.post('/cb/page/merge/add/{{id}}', {'pairs': pairs}, reload)
+    $.post('/cb/page/pairs/{{id}}', {'pairs': pairs}, reload)
             .error(ajaxError('保存失败'))
   }
 
@@ -462,6 +484,13 @@
     $('footer > p').text(`${p.attr('data-tag')}${id}: ${title}`);
   });
 
+  // 切换是否显示右边标注面板
+  $('#hide-label-panel').click(() => {
+    $('body').toggleClass('hide-label-panel');
+    cbOptions.hideLabelPanel = !cbOptions.hideLabelPanel;
+    saveCbOptions();
+  }).toggle($('.label-panel').length > 0);
+  if (cbOptions.hideLabelPanel) $('body').toggleClass('hide-label-panel');
 </script>
 </body>
 </html>

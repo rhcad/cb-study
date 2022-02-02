@@ -30,10 +30,13 @@ body[data-step="3"] #content {
 body[data-step="3"] .label-panel {
   width: 420px;
 }
-body[data-step="3"][data-no-note="true"] #content {
+body[data-step="3"][data-no-note="true"] #content,
+body.hide-label-panel #content,
+body.hide-label-panel #merged {
   margin-right: 0;
 }
-body[data-step="3"][data-no-note="true"] .label-panel {
+body[data-step="3"][data-no-note="true"] .label-panel,
+body.hide-label-panel .label-panel {
   display: none;
 }
 

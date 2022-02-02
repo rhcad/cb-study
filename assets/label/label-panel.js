@@ -1,5 +1,6 @@
 const _panelCls = '.label-panel > .notes', _labelPanel = $(_panelCls),
-  _label = {}, _labelMap = {};
+    _label = {}, _labelMap = {},
+    options = window.options || {};
 
 /**
  * 开始合并注解到原文

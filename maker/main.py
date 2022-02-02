@@ -279,7 +279,7 @@ class HtmlDownloadHandler(CbBaseHandler):
 
 
 class RowPairsHandler(CbBaseHandler):
-    URL = r'/cb/page/merge/add/([\w_]+)'
+    URL = r'/cb/page/pairs/([\w_]+)'
 
     def post(self, page_id):
         """保存段落分组数据"""

@@ -13,6 +13,19 @@
  * insertNotes
  */
 
+try {
+  window.cbOptions = JSON.parse(localStorage.getItem('cbOptions + ' + window.pageName))
+} catch (e) {}
+if (!window.cbOptions || typeof window.cbOptions !== 'object') {
+  window.cbOptions = {};
+}
+
+function saveCbOptions() {
+  if (typeof window.pageName === 'string') {
+    localStorage.setItem('cbOptions + ' + window.pageName, JSON.stringify(cbOptions));
+  }
+}
+
 /**
  * 显隐行号
  */
@@ -94,40 +107,43 @@ function getVisibleColumns() {
  * 更新按钮和菜单状态
  */
 function updateColumnStatus() {
-  const liXu = $('.hide-xu').closest('li'), $showXu = $('.show-xu'),
-      $xu = $('.div-xu'), $more = $('#content .xu-more');
+  clearTimeout(_updateColumnStatusTm);
+  _updateColumnStatusTm = setTimeout(() => {
+    const liXu = $('.hide-xu').closest('li'), $showXu = $('.show-xu'),
+        $xu = $('.div-xu'), $more = $('.xu-more');
 
-  liXu.toggleClass('disabled', !$xu.length && !$more.length);
-  liXu.toggleClass('active', $('body').hasClass('hide-div-xu'));
-  $showXu.toggleClass('disabled', !$xu.length && !$more.length);
-  $showXu.toggleClass('active', !$('body').hasClass('hide-div-xu'));
+    liXu.toggleClass('disabled', !$xu.length && !$more.length);
+    liXu.toggleClass('active', $('body').hasClass('hide-div-xu'));
+    $showXu.toggleClass('disabled', !$xu.length && !$more.length);
+    $showXu.toggleClass('active', !$('body').hasClass('hide-div-xu'));
 
-  const $left = $('.cell-0,.original#body0'),
-      $right = $('.cell-1,.original#body-1'),
-      $all = $('.cell,.original'),
-      n = $all.filter((_, c) => $(c).is(':visible')).length;
+    const $left = $('.cell-0,.original#body0'),
+        $right = $('.cell-1,.original#body-1'),
+        $all = $('.cell,.original'),
+        n = $all.filter((_, c) => $(c).is(':visible')).length;
 
-  $('#show-left').closest('li').toggleClass('active', $left.is(':visible') && $right.is(':hidden'));
-  $('#show-right').closest('li').toggleClass('active', $left.is(':hidden') && $right.is(':visible'));
-  $('#show-both').closest('li').toggleClass('active', n === $all.length);
-  $all.closest('#content,#merged').toggleClass('single-article', n === 1);
+    $('#show-left').closest('li').toggleClass('active', $left.is(':visible') && $right.is(':hidden'));
+    $('#show-right').closest('li').toggleClass('active', $left.is(':hidden') && $right.is(':visible'));
+    $('#show-both').closest('li').toggleClass('active', n === $all.length);
+    $all.closest('#content,#merged').toggleClass('single-article', n === 1);
 
-  $('.toggle-column > button').each(function () {
-    const $btn = $(this), text = $btn.text(), idx = parseInt(text) - 1,
-        $col = $(`.cell-${idx},.original#body${idx}`);
+    $('.toggle-column > button').each(function () {
+      const $btn = $(this), text = $btn.text(), idx = parseInt(text) - 1,
+          $col = $(`.cell-${idx}, .original#body${idx}`),
+          visible = !(cbOptions.colHide || {})['' + idx];
 
-    if (text === '全') {
-      $btn.toggleClass('active', n === $all.length);
-    } else if (idx >= 0) {
-      $btn.toggleClass('active', $col.is(':visible'));
-      $btn.toggle($col.length > 0);
-      $btn.attr('title', $col.find('[id][title]').attr('title'));
-    }
-  });
+      if (idx >= 0) {
+        $btn.toggleClass('active', visible);
+        $btn.toggle($col.length > 0);
+        $btn.attr('title', $col.find('[id][title]').attr('title'));
+      }
+    });
 
-  $('#show-notes').closest('li').toggleClass('disabled', $('.note-tag').length < 1);
-  $('#show-hide-txt').closest('li').toggleClass('disabled', $('.hide-txt').length < 1);
+    $('#show-notes').closest('li').toggleClass('disabled', $('.note-tag').length < 1);
+    $('#show-hide-txt').closest('li').toggleClass('disabled', $('.hide-txt').length < 1);
+  }, 20);
 }
+let _updateColumnStatusTm;
 
 /**
  * 设置左右对照等下拉菜单的状态
@@ -142,7 +158,9 @@ function initCbLiStatus() {
       showLeftColumn();
     }
   }
-
+  setTimeout(() => {
+    Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && toggleColumn(parseInt(k), false));
+  }, 10);
   updateColumnStatus();
 }
 
@@ -153,7 +171,9 @@ function enlargeFont() {
   let fontSize = parseInt($('#content').css('font-size'));
   if (fontSize < 36) {
     fontSize++;
-    $('#content, #merged').css('font-size', fontSize + 'px');
+    $('#content,#merged').css('font-size', fontSize + 'px');
+    cbOptions.fontSize = fontSize;
+    saveCbOptions();
   }
 }
 
@@ -164,8 +184,14 @@ function reduceFont() {
   let fontSize = parseInt($('#content').css('font-size'));
   if (fontSize > 8) {
     fontSize--;
-    $('#content, #merged').css('font-size', fontSize + 'px');
+    $('#content,#merged').css('font-size', fontSize + 'px');
+    cbOptions.fontSize = fontSize;
+    saveCbOptions();
   }
+}
+
+if (cbOptions.fontSize) {
+  $('#content,#merged').css('font-size', cbOptions.fontSize + 'px');
 }
 
 /**
@@ -176,6 +202,8 @@ function enlargeKePanFont() {
   if (fontSize < 24) {
     fontSize += 2;
     $j.css('font-size', fontSize + 'px');
+    cbOptions.keFontSize = fontSize;
+    saveCbOptions();
   }
 }
 
@@ -187,7 +215,13 @@ function reduceKePanFont() {
   if (fontSize > 10) {
     fontSize -= 2;
     $j.css('font-size', fontSize + 'px');
+    cbOptions.keFontSize = fontSize;
+    saveCbOptions();
   }
+}
+
+if (cbOptions.keFontSize) {
+  $('#judgments').css('font-size', cbOptions.keFontSize + 'px');
 }
 
 /**
@@ -198,14 +232,23 @@ function setKePanWidth(ratio) {
   if (ratio === 'toggle') {
     ratio = $('body').hasClass('hide-left-bar') ? $('.left-nav').css('width') : '';
   }
+  _setKePanWidth(ratio);
+  cbOptions.kePanWidth = ratio;
+  saveCbOptions();
+}
+function _setKePanWidth(ratio) {
   if (parseInt(ratio) > 0) {
     $('body').removeClass('hide-left-bar');
     $('.left-nav').css('width', ratio);
-    $('#content').css('padding-left', ratio);
   } else {
     $('body').addClass('hide-left-bar');
-    $('#content').css('padding-left', 0);
+    ratio = 0;
   }
+  $('#content,#merged,.task-steps').css('padding-left', ratio);
+}
+
+if (cbOptions.kePanWidth !== undefined) {
+  _setKePanWidth(cbOptions.kePanWidth);
 }
 
 /**
@@ -238,11 +281,13 @@ function movePairs(idsText) {
   const $merged = $('#merged');
 
   if (/^:ke /.test(idsText)) { // 科判
-    const indent = idsText.replace(/[^-]/g, '').length;
-    idsText = idsText.replace(/^:ke\s+|-/g, '');
+    const text0 = idsText.replace(/^:ke\s+/, ''),
+        m = /^-+/.exec(text0),
+        indent = m && m[0].length || 0,
+        text = text0.replace(/^-+/, '');
 
     const $last = $merged.find('.ke-line:last-child').addClass('has-next-ke');
-    $(`<div ke-pan="${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${idsText}</div>`)
+    $(`<div ke-pan="${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${text}</div>`)
         .appendTo($merged).toggleClass('first-ke', !$last.length);
 
     clearTimeout(_initKePanTm);
@@ -350,7 +395,7 @@ function _initKePanTree() {
     });
   }
 }
-_initKePanTm = setTimeout(_initKePanTree, 10);
+_initKePanTm = setTimeout(_initKePanTree, 20);
 
 /**
  * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号
@@ -429,8 +474,11 @@ function highlightKePan(kePanId, scroll, level) {
     if (scroll === 'click') { // 点击正文
       tree.close_all(); // 折叠其它节点
     }
+    tree.open_node(kePanId);
   }
-  if (scroll === 'click') { // 点击正文
+  if (scroll === 'nav' && level < 2) { // 点击树节点
+    tree.open_node(kePanId); // 展开本节点及其子节点
+  } else if (scroll === 'click' && !level) { // 点击正文
     tree.open_node(kePanId); // 展开本节点及其子节点
   }
   $s.addClass('active');
@@ -438,12 +486,12 @@ function highlightKePan(kePanId, scroll, level) {
   const nodes = tree.get_children_dom(kePanId);
   if (nodes) {
     for (let node of nodes.get()) {
-      let r = highlightKePan(node.getAttribute('id'), false, (level || 0) + 1);
+      let r = highlightKePan(node.getAttribute('id'), scroll, (level || 0) + 1);
       $s = $s[0] ? $s : r;
     }
   }
 
-  if (scroll && scroll !== 'click' && $s[0]) {
+  if (scroll && scroll !== 'click' && $s[0] && !level) {
     scrollToVisible($s[0]);
   }
   if (scroll && scroll !== 'nav') {
@@ -623,20 +671,27 @@ $('#show-hide-txt').click(function() {
   $(this).closest('li').toggleClass('active');
 });
 
+function toggleColumn(index, save) {
+  if (index >= 0) {
+    const $cell = $(`.cell-${index},.original#body${index}`), visible = !$cell.is(':visible');
+    $cell.toggle(100, null, visible);
+    setTimeout(updateColumnStatus, 100);
+    if (save) {
+      cbOptions.colHide = cbOptions.colHide || {};
+      cbOptions.colHide['' + index] = !visible;
+      saveCbOptions();
+    }
+  }
+}
+
 $('.toggle-column > button').click(function () {
-  const $btn = $(this), text = $btn.text(), idx = parseInt(text) - 1;
+  const text = $(this).text(), idx = parseInt(text) - 1;
 
   if (text === '序') {
     return toggleXu();
-  }
-
-  if (idx >= 0) {
-    $(`.cell-${idx},.original#body${idx}`).toggle(100);
   } else {
-    const $all = $('.cell,.original'), n = $all.filter((_, c) => $(c).is(':visible')).length;
-    $all.toggle(n !== $all.length);
+     toggleColumn(idx, true);
   }
-  setTimeout(() => updateColumnStatus(), 100);
 });
 
 $('#show-left').click(showLeftColumn);
