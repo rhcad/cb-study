@@ -199,7 +199,8 @@ class PageHandler(CbBaseHandler):
             name = page_id.split('_')[0]
             juan = int((page_id.split('_')[1:] or [1])[0])
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
-            has_ke_pan = step and ':ke ' in ''.join(page.get('rowPairs', []))
+            has_ke_pan = step and (':ke ' in ''.join(page.get('rowPairs', [])) or
+                                   [1 for s in page['html'] if '<div ke-pan=' in s])
 
             if self.get_argument('export', 0):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
@@ -282,16 +283,71 @@ class RowPairsHandler(CbBaseHandler):
     URL = r'/cb/page/pairs/([\w_]+)'
 
     def post(self, page_id):
-        """保存段落分组数据"""
+        """保存段落分组及科判条目数据"""
         try:
             pairs = self.get_argument('pairs').split('||')
-
             page = self.load_page(page_id)
-            page['rowPairs'] = pairs
-            self.save_page(page)
-            self.write({})
+            rows = page['html']
+            ret = False
+
+            if len(pairs) == 1 and re.match('^:ke-(add|del|set) ', pairs[0]):
+                m = re.search(r':ke-(add|set) ([pg]\d[a-z0-9_-]*|ke\d+) (.+)$', pairs[0])
+                if m:
+                    op, pid, text = m.group(1), m.group(2), m.group(3)
+                    text = re.sub('[><\'"]', '', text)
+                    if op == 'set':
+                        index = self.find_ke_pan_index(rows, pid)
+                        if index >= 0:
+                            rows[index] = re.sub(r'data-indent=[\'"]\w*[\'"]', "data-indent='{}'".format(
+                                len(re.sub('[^-].*$', '', text))), rows[index])
+                            rows[index] = re.sub(r'>.*<', '>' + re.sub('^-*', '', text) + '<', rows[index])
+                            ret = True
+                    else:
+                        if pid.startswith('ke'):
+                            index = self.find_ke_pan_index(rows, pid)
+                        else:
+                            index = self.find_html_index(rows, pid)[0]
+                        if index >= 0:
+                            ret = True
+                            rows.insert(index, "<div ke-pan='ke0' class='ke-line' data-indent='{0}'>{1}</div>".format(
+                                len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text)))
+
+                m = not m and re.search(r':ke-del (ke[0-9]+)$', pairs[0])
+                if m:
+                    index = self.find_ke_pan_index(rows, m.group(1))
+                    if index >= 0:
+                        ret = True
+                        del rows[index]
+
+                self.fill_ke(rows)
+            else:
+                ret = True
+                page['rowPairs'] = pairs
+            if ret:
+                self.save_page(page)
+            self.write(dict(success=ret))
         except Exception as e:
             self.on_error(e)
+
+    @staticmethod
+    def find_ke_pan_index(rows, ke_pan):
+        ke = re.compile('ke-pan=[\'"]{}[\'"]'.format(ke_pan))
+        a = [i for (i, t) in enumerate(rows) if ke.search(t)]
+        return a[0] if a else -1
+
+    @staticmethod
+    def fill_ke(rows):
+        kid = 0
+        for (i, r) in enumerate(rows):
+            if '<div ke-pan=' in r and 'ke-line' in r:
+                last = i > 0 and 'ke-line' in rows[i - 1]
+                kid += 1
+                r = re.sub(r'ke-pan=[\'"]\w*[\'"]', "ke-pan='ke{}'".format(kid), r)
+                r = re.sub(r'class=[\'"][\w -]*[\'"]', "class='ke-line{}'".format('' if last else ' first-ke'), r)
+                rows[i] = r
+                if last:
+                    rows[i - 1] = re.sub(r'class=[\'"][\w -]*[\'"]',
+                                         lambda m: m.group()[:-1] + ' has-next-ke' + m.group()[-1], rows[i - 1])
 
 
 class ParagraphOrderHandler(CbBaseHandler):

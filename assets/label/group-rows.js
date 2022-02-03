@@ -102,7 +102,8 @@ $.contextMenu({
     addKePan: {
       name: '前加科判条目...',
       callback: function() { _setKePanText(this, this.closest('.row')); },
-      disabled: function() { return !this.closest('#merged').length; },
+      disabled: function() { return !this.closest('#merged').length &&
+          $('.label-panel .current-row').length; },
     },
   },
 });
@@ -452,8 +453,10 @@ $.contextMenu({
   },
 });
 function _setKePanText($p, $row) {
-  const textKe = new Array(1 + parseInt($p.attr('data-indent'))).join('-') + $p.text();
-  let text = !$row && textKe || '';
+  const hasGroupPanel = $('.label-panel .current-row').length,
+      indent = $p.attr('data-indent'),
+      textKe = indent && (new Array(1 + parseInt(indent)).join('-') + $p.text()),
+      text = !$row && textKe || '';
   swal({
     title: $row ? '增加科判条目' : '设置科判文本',
     text: $row ? `在 ${ $p.attr('id') || '本条'} 前加科判条目，文本前的减号数量表示科判层级。` :
@@ -465,8 +468,8 @@ function _setKePanText($p, $row) {
     closeOnClickOutside: false,
     buttons: ['取消', '确定'],
   }).then(result => {
-    result = result && document.querySelector('.swal-content__input').value.trim();
-    if (!result) {
+    result = result && result.trim();
+    if (!result || !result.replace(/^-*/, '')) {
       return;
     }
 
@@ -474,22 +477,32 @@ function _setKePanText($p, $row) {
         index = !$row && idxKe, ret = false;
 
     if (/^d/i.test(result)) { // 删除
-      if (!$row) {
+      if (!hasGroupPanel) {
+        return saveRowPairs(true, `:ke-del ${$p.attr('ke-pan')}`);
+      } else if (!$row) {
         rowPairs.splice(index - 1, 1);
         ret = true;
       }
     } else if ($row) { // 增加
-      index = $p.attr('id') ? findRowIndexInPairs($p.attr('id')) : idxKe - 1;
-      rowPairs.splice(index, 0, ':ke ' + result);
-      ret = true;
+      if (!hasGroupPanel) { // 在单栏不需要合并的场合，在当前段落上方加科判条目
+        return saveRowPairs(true, `:ke-add ${$p.attr('id') || $p.attr('ke-pan')} ${result}`);
+      } else {
+        index = $p.attr('id') ? findRowIndexInPairs($p.attr('id')) : idxKe - 1;
+        if (index >= 0) {
+          rowPairs.splice(index, 0, ':ke ' + result);
+          ret = true;
+        }
+      }
     } else if (text !== result) { // 修改
+      if (!hasGroupPanel) {
+        return saveRowPairs(true, `:ke-set ${$p.attr('ke-pan')} ${result}`);
+      }
       rowPairs[index - 1] = rowPairs[index - 1].replace(text, result);
       ret = true;
     }
 
     if (ret) {
-      saveRowPairs();
-      location.reload();
+      saveRowPairs(true);
     }
   });
 }

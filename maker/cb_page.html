@@ -114,6 +114,7 @@
             <li class="ke-pan-ratio"><a>15%</a></li>
             <li class="ke-pan-ratio"><a>20%</a></li>
             <li class="ke-pan-ratio"><a>25%</a></li>
+            <li class="ke-pan-ratio"><a>33%</a></li>
             <li class="ke-pan-ratio"><a>50%</a></li>
             <li class="ke-pan-ratio"><a>75%</a></li>
             <li class="ke-pan-ratio"><a>100%</a></li>
@@ -181,9 +182,9 @@
     <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配，设置科判</p>
     <div class="step-content">
       {% if info.get('cols', 1) > 1 %}
-      <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮。如需拆分段落或插入科判条目可在段落上点鼠标右键菜单。</p>
+      <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮。如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。</p>
       {% else %}
-      <p>如需拆分段落可在段落上点鼠标右键菜单，完成可进入 <a class="end-move-rows"><b>下一步</b></a>。</p>
+      <p>如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。完成可进入 <a class="end-move-rows"><b>下一步</b></a>。</p>
       {% end %}
     </div>
   </div>
@@ -345,8 +346,8 @@
   }
 
   // 第二步保存段落分组数据，给“移为一组”按钮用
-  function saveRowPairs() {
-    $.post('/cb/page/pairs/{{id}}', {'pairs': window.rowPairs.join('||')}, updateParaIds)
+  function saveRowPairs(autoReload, pairs) {
+    $.post('/cb/page/pairs/{{id}}', {'pairs': pairs || window.rowPairs.join('||')}, autoReload ? reload : updateParaIds)
             .error(ajaxError('保存失败', reload))
   }
 
@@ -446,7 +447,7 @@
   function trimHtml(html) {
     const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
     return (html || '').trim()
-            .replace(/ data-line-no="[^"<>]*"/g, '')
+            .replace(/ data-line-no="[^"<>]*"|\s?context-menu-active/g, '')
             .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
             .replace(/(<\/(p|div)>){2,9}/g, s => s.replace(/></g, '>\n<'))
             .replace(/><(p|div class="(cell|row)|div id=)/g, s => s[0] + '\n' + space(s) + s.substr(1))

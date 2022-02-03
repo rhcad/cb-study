@@ -379,6 +379,7 @@ function _initKePanTree() {
       highlightKePan(data.node.id, 'nav');
     });
 
+    // 在多栏正文点击时找到所在单元格上面的科判条目，触发点击操作
     $(document).on('click', '.row > .cell', e => {
       const row = e.target.closest('.row'),
           nodes = $(row).parent().children().get();
@@ -389,6 +390,24 @@ function _initKePanTree() {
           highlightKePan(kid, 'click');
           break;
         }
+      }
+    });
+    // 科判条目上点击
+    $(document).on('click', '.ke-line,p[id^=p]', e => {
+      let kid = e.target.getAttribute('ke-pan');
+      if (!kid) {
+        const arr = $('.ke-line,p[id^=p]').map((i, p) => {
+          const r = p.getBoundingClientRect();
+          return {p: p, y: r ? r.top : 1e6};
+        }).get();
+        arr.sort((a, b) => a.y - b.y);
+        let rows = arr.map(a => a.p), index = rows.indexOf(e.target.closest('p'));
+        for (; index >= 0 && !kid; --index) {
+          kid = rows[index].getAttribute('ke-pan');
+        }
+      }
+      if (kid) {
+        highlightKePan(kid, 'click');
       }
     });
   }
