@@ -8,7 +8,7 @@
   <link rel="icon" href="assets/img/favicon.ico"/>
   <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
   {% if has_ke_pan %}<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>{% end %}
-  <link href="assets/cb.css?v=202" rel="stylesheet"/>
+  <link href="assets/cb.css?v=204" rel="stylesheet"/>
   <link href="assets/note.css?v=129" rel="stylesheet"/>
   <style>
     @media screen {
@@ -84,7 +84,7 @@
             <li class="ke-pan-ratio"><a>75%</a></li>
             <li class="ke-pan-ratio"><a>100%</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="hide-inline-ke-pan" title="切换是否隐藏正文中的科判条目">隐藏文中科判</a></li>
+            <li><a href="#" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
             <li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
@@ -141,14 +141,12 @@
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 {% if has_ke_pan %}<script src="assets/jstree/jstree.min.js"></script>{% end %}
-<script src="assets/reader.js?v=202b"></script>
+<script src="assets/reader.js?v=204"></script>
 {% for fn in json_files %}
 <script src="data/{{fn}}"></script>
 {% end %}
 
 <script>
-  toggleXu();
-  
   {% for a in note_names %}
   insertNotes({% if info.get('cols', 1) > 1 %} $(`.cell-${r.col}`) {% else %} null {% end %}, {{a[0]}}, '{{a[1]}}');
   {% end %}

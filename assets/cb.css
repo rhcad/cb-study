@@ -74,7 +74,7 @@ html, body {
   padding: 0;
   font-size: 14px;
 }
-
+html { overflow-x: hidden; }
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing:grayscale;
@@ -299,8 +299,13 @@ span[ke-pan] > .ke-pan-text {
   margin-top: -1px;
 }
 .hide-inline-ke-pan .ke-line {
-  height: 1px;
+  height: 2px;
+  margin-bottom: -1px;
   overflow: hidden;
+}
+.hide-inline-ke-pan .ke-line.active {
+  background-color: red;
+  border-top: 1px solid red;
 }
 .ke-line:hover {color: #2b669a}
 .ke-line[data-indent="0"] {text-indent: 0;}

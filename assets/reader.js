@@ -39,16 +39,22 @@ function toggleLineNo() {
 
 /**
  * 显隐序言(.div-xu)
+ * @param {boolean} [save] 是否保存选项
  */
-function toggleXu() {
+function toggleXu(save) {
   if ($('.div-xu,.xu-more').length) {
+    const hide = !$('body').hasClass('hide-div-xu');
     $('.div-xu').each(function () {
       if (!$('.xu-more', this).length && !/xu-more/.test(this.className)) {
-        $(this).toggle();
+        $(this).toggle(hide);
       }
     });
-    $('body').toggleClass('hide-div-xu');
+    $('body').toggleClass('hide-div-xu', hide);
     updateColumnStatus();
+    if (save) {
+      cbOptions.hideXu = hide;
+      saveCbOptions();
+    }
   }
 }
 
@@ -161,6 +167,15 @@ function initCbLiStatus() {
   setTimeout(() => {
     Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && toggleColumn(parseInt(k), false));
   }, 10);
+  if (cbOptions.hideXu) {
+    toggleXu(false);
+  }
+  $('.show-inline-ke-pan-btn').toggleClass('active', !cbOptions.hideInlineKePan)
+      .closest('li').toggleClass('active', !cbOptions.hideInlineKePan);
+  if (cbOptions.hideInlineKePan) {
+    $('body').toggleClass('hide-inline-ke-pan', true);
+  }
+
   updateColumnStatus();
 }
 
@@ -232,8 +247,8 @@ function setKePanWidth(ratio) {
   if (ratio === 'toggle') {
     ratio = $('body').hasClass('hide-left-bar') ? $('.left-nav').css('width') : '';
   }
-  _setKePanWidth(ratio);
   cbOptions.kePanWidth = ratio;
+  _setKePanWidth(ratio);
   saveCbOptions();
 }
 function _setKePanWidth(ratio) {
@@ -245,9 +260,13 @@ function _setKePanWidth(ratio) {
     ratio = 0;
   }
   $('#content,#merged,.task-steps').css('padding-left', ratio);
+  $('li.ke-pan-ratio').each((i, li) => $(li).toggleClass('active', li.innerText === cbOptions.kePanWidth ||
+      li.innerText.indexOf('%') < 0 && ('' + cbOptions.kePanWidth).indexOf('%') < 0));
 }
 
-_setKePanWidth(cbOptions.kePanWidth !== undefined ? cbOptions.kePanWidth : '15%');
+if (document.getElementById('judgments')) {
+  _setKePanWidth(cbOptions.kePanWidth !== undefined ? cbOptions.kePanWidth : window.innerWidth < 768 ? '' : '15%');
+}
 
 /**
  * 将多个段落编号的串转换为选择器数组
@@ -686,7 +705,7 @@ $('.ke-pan-ratio a').on('click', function () {
 });
 
 $('#show-line-no').click(toggleLineNo);
-$('.hide-xu').click(toggleXu);
+$('.hide-xu').click(() => toggleXu(true));
 $('#show-box').click(toggleParaBox);
 
 $('#show-hide-txt').click(function() {
@@ -711,7 +730,7 @@ $('.toggle-column > button').click(function () {
   const text = $(this).text(), idx = parseInt(text) - 1;
 
   if (text === '序') {
-    return toggleXu();
+    return toggleXu(true);
   } else {
      toggleColumn(idx, true);
   }
@@ -727,8 +746,13 @@ $('#enlarge-ke-pan-font').click(enlargeKePanFont);
 $('#reduce-ke-pan-font').click(reduceKePanFont);
 $('#show-inline-no-ke-pan').click(showInlineWithoutKePan);
 
-$('#hide-inline-ke-pan').click(function () {
-  $('body').toggleClass('hide-inline-ke-pan');
+$('.show-inline-ke-pan-btn').click(function () {
+  const hide = !$('body').hasClass('hide-inline-ke-pan');
+  $('body').toggleClass('hide-inline-ke-pan', hide);
+  $('.show-inline-ke-pan-btn').toggleClass('active', !hide)
+      .closest('li').toggleClass('active', !hide);
+  cbOptions.hideInlineKePan = hide;
+  saveCbOptions();
 });
 
 // 单击注解锚点标记则展开注解段落

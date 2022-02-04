@@ -51,6 +51,8 @@
     }
     .single-article .original {
       padding: 10px;
+      border-top: none;
+      border-bottom: none;
     }
     .current-row .end-move-rows { float: right; }
     .input-group.note-tag-group { width: calc(100% - 380px); }
@@ -119,7 +121,7 @@
             <li class="ke-pan-ratio"><a>75%</a></li>
             <li class="ke-pan-ratio"><a>100%</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="hide-inline-ke-pan" title="切换是否隐藏正文中的科判条目">隐藏文中科判</a></li>
+            <li><a href="#" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
             <li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
@@ -131,7 +133,7 @@
 
       {% if info.get('cols', 1) > 1 %}
       <div class="btn-group toggle-column" role="group">
-        <button type="button" class="btn btn-default btn-sm navbar-btn show-xu">序</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn show-xu" title="切换是否显示序言">序</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">1</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">2</button>
         <button type="button" class="btn btn-default btn-sm navbar-btn">3</button>
@@ -312,8 +314,6 @@
 {% end %}
 
 <script>
-  toggleXu();
-
   // 给当前步骤组设置活动状态
   $(`.task-step[data-step="{{step}}"]`).addClass('active')
 
@@ -450,7 +450,7 @@
             .replace(/ data-line-no="[^"<>]*"|\s?context-menu-active/g, '')
             .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
             .replace(/(<\/(p|div)>){2,9}/g, s => s.replace(/></g, '>\n<'))
-            .replace(/><(p|div class="(cell|row)|div id=)/g, s => s[0] + '\n' + space(s) + s.substr(1))
+            .replace(/><(p|div class="(cell|row)|div id=|div ke-pan=)/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
 
   // 第4步改动网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容）后，保存网页内容
