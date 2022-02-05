@@ -138,6 +138,15 @@
 <footer><p></p></footer>
 {% end %}
 
+<script>
+  window.pageName = '{{id}}';
+  {% if ke_pan_types %}
+  window.kePanTypes = [{% for p in ke_pan_types %}
+    '{{p}}', {% end %}
+  ].map(s => s.split(' '));
+  {% end %}
+</script>
+
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 {% if has_ke_pan %}<script src="assets/jstree/jstree.min.js"></script>{% end %}

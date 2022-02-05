@@ -489,7 +489,7 @@ function _setKePanText($p, $row) {
       } else {
         index = $p.attr('id') ? findRowIndexInPairs($p.attr('id')) : idxKe - 1;
         if (index >= 0) {
-          rowPairs.splice(index, 0, ':ke ' + result);
+          rowPairs.splice(index, 0, `:ke${cbOptions.kePanType || ''} ` + result);
           ret = true;
         }
       }

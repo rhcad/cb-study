@@ -199,8 +199,10 @@ class PageHandler(CbBaseHandler):
             name = page_id.split('_')[0]
             juan = int((page_id.split('_')[1:] or [1])[0])
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
-            has_ke_pan = step and (':ke ' in ''.join(page.get('rowPairs', [])) or
+            has_ke_pan = step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
                                    [1 for s in page['html'] if '<div ke-pan=' in s])
+            ke_pan_types = step and [r[len(':ke-type '):] for r in page['rowPairs']
+                                     if re.match(r':ke-type \d [^\s]+', r)]
 
             if self.get_argument('export', 0):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
@@ -208,10 +210,12 @@ class PageHandler(CbBaseHandler):
                 note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])), v.get('desc', v['name'])]
                               for tag, v in (page.get('notes') or {}).items()]
                 html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
-                                          json_files=json_files, note_names=note_names, has_ke_pan=has_ke_pan)
+                                          json_files=json_files, note_names=note_names,
+                                          has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types)
                 return self.write(dict(html=to_basestring(html)))
 
-            self.render('cb_page.html', page=page, info=info, step=step, id=page_id, has_ke_pan=has_ke_pan,
+            self.render('cb_page.html', page=page, info=info, step=step, id=page_id,
+                        has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types,
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         cb_ids=cb_ids)
@@ -286,6 +290,7 @@ class RowPairsHandler(CbBaseHandler):
         """保存段落分组及科判条目数据"""
         try:
             pairs = self.get_argument('pairs').split('||')
+            ke_type = self.get_argument('kePanType', '1')
             page = self.load_page(page_id)
             rows = page['html']
             ret = False
@@ -303,14 +308,15 @@ class RowPairsHandler(CbBaseHandler):
                             rows[index] = re.sub(r'>.*<', '>' + re.sub('^-*', '', text) + '<', rows[index])
                             ret = True
                     else:
-                        if pid.startswith('ke'):
+                        if pid.startswith('ke'):  # 在一个科判前加科判
                             index = self.find_ke_pan_index(rows, pid)
-                        else:
+                        else:  # 在一个段落前加科判
                             index = self.find_html_index(rows, pid)[0]
                         if index >= 0:
                             ret = True
-                            rows.insert(index, "<div ke-pan='ke0' class='ke-line' data-indent='{0}'>{1}</div>".format(
-                                len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text)))
+                            rows.insert(index, "<div ke-pan='0' data-ke-type=='{0}' class='ke-line'"
+                                               " data-indent='{1}'>{2}</div>".format(
+                                ke_type, len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text)))
 
                 m = not m and re.search(r':ke-del (ke[0-9]+)$', pairs[0])
                 if m:
@@ -342,7 +348,7 @@ class RowPairsHandler(CbBaseHandler):
             if '<div ke-pan=' in r and 'ke-line' in r:
                 last = i > 0 and 'ke-line' in rows[i - 1]
                 kid += 1
-                r = re.sub(r'ke-pan=[\'"]\w*[\'"]', "ke-pan='ke{}'".format(kid), r)
+                r = re.sub(r'ke-pan=[\'"]\w*[\'"]', "ke-pan='{}'".format(kid), r)
                 r = re.sub(r'class=[\'"][\w -]*[\'"]', "class='ke-line{}'".format('' if last else ' first-ke'), r)
                 rows[i] = r
                 if last:

@@ -205,6 +205,27 @@ footer a:hover {
   cursor: pointer;
 }
 
+footer .col-title,
+footer .ke-pan-type-s {
+  color: #666;
+}
+footer span {
+  display: inline-block;
+  text-indent: 0;
+}
+footer > p > span + span {
+  margin-left: 8px;
+}
+footer > p > span + span::before {
+  content: "|";
+  margin-right: 8px;
+  color: lightgray;
+}
+footer > p > span > span {
+  color: #999;
+  margin: 0 .4em;
+}
+
 span[ke-pan] {
   margin-right: .7em;
   transition: alls .3s ease-in-out;
@@ -308,6 +329,15 @@ span[ke-pan] > .ke-pan-text {
   border-top: 1px solid red;
 }
 .ke-line:hover {color: #2b669a}
+.ke-line.highlight {background-color: rgba(0, 0, 255, .07);}
+
+body:not(.cur-ke-pan-type) .ke-line[data-ke-type]::after {
+  content: attr(data-ke-type);
+  color: #aaa;
+  font-size: 9px;
+  float: right;
+}
+
 .ke-line[data-indent="0"] {text-indent: 0;}
 .ke-line[data-indent="1"] {text-indent: 1em;}
 .ke-line[data-indent="2"] {text-indent: 2em;}
@@ -316,3 +346,12 @@ span[ke-pan] > .ke-pan-text {
 .ke-line[data-indent="5"] {text-indent: 5em;}
 .ke-line[data-indent="6"] {text-indent: 6em;}
 .ke-line[data-indent="7"] {text-indent: 7em;}
+
+#ke-pan-select {
+  width: 100%;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  border-bottom: 1px solid #ddd;
+  padding: 4px;
+}

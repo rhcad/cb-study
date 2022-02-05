@@ -272,7 +272,12 @@
 
 <footer><p></p></footer>
 
-<script>window.pageName = '{{id}}step{{step}}';</script>
+<script>
+  window.pageName = '{{id}}step{{step}}';
+  {% if ke_pan_types %}
+  window.kePanTypes = '{{"|".join(ke_pan_types)}}'.split('|').map(s => s.split(' '));
+  {% end %}
+</script>
 <script src="{{static_url('js/jquery.min.js')}}"></script>
 <script src="{{static_url('js/sweetalert.min.js')}}"></script>
 <script src="{{static_url('js/download.js')}}"></script>
@@ -347,8 +352,9 @@
 
   // 第二步保存段落分组数据，给“移为一组”按钮用
   function saveRowPairs(autoReload, pairs) {
-    $.post('/cb/page/pairs/{{id}}', {'pairs': pairs || window.rowPairs.join('||')}, autoReload ? reload : updateParaIds)
-            .error(ajaxError('保存失败', reload))
+    $.post('/cb/page/pairs/{{id}}', {
+      'pairs': pairs || window.rowPairs.join('||'), kePanType: cbOptions.kePanType || ''
+    }, autoReload ? reload : updateParaIds).error(ajaxError('保存失败', reload))
   }
 
   // 段落拆分 {id, text, result=[{id, text}...]}, 或 段落合并 {id, id2}

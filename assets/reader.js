@@ -251,6 +251,7 @@ function setKePanWidth(ratio) {
   _setKePanWidth(ratio);
   saveCbOptions();
 }
+
 function _setKePanWidth(ratio) {
   if (parseInt(ratio) > 0) {
     $('body').removeClass('hide-left-bar');
@@ -260,8 +261,8 @@ function _setKePanWidth(ratio) {
     ratio = 0;
   }
   $('#content,#merged,.task-steps').css('padding-left', ratio);
-  $('li.ke-pan-ratio').each((i, li) => $(li).toggleClass('active', li.innerText === cbOptions.kePanWidth ||
-      li.innerText.indexOf('%') < 0 && ('' + cbOptions.kePanWidth).indexOf('%') < 0));
+  $('li.ke-pan-ratio').each((i, li) => $(li).toggleClass('active', li.innerText === ratio ||
+      li.innerText.indexOf('%') < 0 && ('' + ratio).indexOf('%') < 0));
 }
 
 if (document.getElementById('judgments')) {
@@ -286,7 +287,8 @@ function _toPairSelectors(idsText) {
   });
 }
 
-let _newKePan = 0, _initKePanTm;
+let _newKePan = 0, _initKePanTm, _hasKeLine;
+const kePanTypes = window.kePanTypes || [];
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
@@ -297,18 +299,21 @@ let _newKePan = 0, _initKePanTm;
 function movePairs(idsText) {
   const $merged = $('#merged');
 
-  if (/^:ke /.test(idsText)) { // 科判
-    const text0 = idsText.replace(/^:ke\s+/, ''),
-        m = /^-+/.exec(text0),
-        indent = m && m[0].length || 0,
-        text = text0.replace(/^-+/, '');
+  if (/^:ke/.test(idsText)) {
+    if (/^:ke\d? /.test(idsText)) { // 科判
+      const type = parseInt(idsText[3]) || 1,
+          text0 = idsText.replace(/^:ke\d?\s+/, ''),
+          m = /^-+/.exec(text0),
+          indent = m && m[0].length || 0,
+          text = text0.replace(/^-+/, '');
 
-    const $last = $merged.find('.ke-line:last-child').addClass('has-next-ke');
-    $(`<div ke-pan="ke${++_newKePan}" class="ke-line first-ke" data-indent="${indent}">${text}</div>`)
-        .appendTo($merged).toggleClass('first-ke', !$last.length);
+      const $last = $merged.find(`.ke-line[data-ke-type="${type}"]:last-child`).addClass('has-next-ke');
+      $(`<div ke-pan="${++_newKePan}" data-ke-type="${type}" class="ke-line first-ke" data-indent="${indent}">${text}</div>`)
+          .appendTo($merged).toggleClass('first-ke', !$last.length);
 
-    clearTimeout(_initKePanTm);
-    _initKePanTm = setTimeout(_initKePanTree, 10);
+      clearTimeout(_initKePanTm);
+      _initKePanTm = setTimeout(_initKePanTree, 10);
+    }
     return '';
   }
 
@@ -324,7 +329,7 @@ function movePairs(idsText) {
   }
   colIds.forEach((ids, col) => {
     let $lg;
-    for (let id of ids) {
+    for (const id of ids) {
       let id2 = id.replace(/[*-]+$/, ''), // 编号末尾有减号表示转为隐藏文本
           $el = $(id2 || 'e', $articles[col]),
           parent = $el.parent(),
@@ -371,18 +376,47 @@ function movePairs(idsText) {
   return ret;
 }
 
-function _initKePanTree() {
-  const $judgments = $('#judgments'), $ke = $('.ke-line'),
-      data = [], levels = [],
-      judgments = {core: {data: data}}
+/**
+ * 切换科判类别
+ * @param {string} type 科判类别，数字
+ * @param {boolean} save 是否保存配置
+ * @private
+ */
+function _switchKePanType(type, save) {
+  const $judgments = $('#judgments'), item = kePanTypes.filter(t => t[0] === type)[0];
 
-  if ($ke.length) {
+  $('body').toggleClass('cur-ke-pan-type', !!item)
+  if (type === 'all') {
+    $('.ke-line').show();
+  } else if (item) {
+    $('.ke-line').hide();
+    $(`.ke-line[data-ke-type="${type}"]`).show();
+    $judgments.text(item && item[1] || '');
+  }
+  $('.ke-pan-type').removeClass('active');
+  $(`.ke-pan-type[data-ke-type="${type}"]`).addClass('active');
+  cbOptions.kePanType = type;
+  if (save) {
+    saveCbOptions();
+  }
+
+  const $ke = item ? $(`.ke-line[data-ke-type="${type}"]`) : $('.ke-line'),
+      data = [], levels = [],
+      judgments = {core: {data: data, animation: 0}};
+
+  const tree = $.jstree && $.jstree.reference('#judgments');
+  if (tree) {
+    tree.destroy();
+  }
+
+  if ($ke.length && $.jstree) {
     $ke.each((_, ke) => {
       const indent = parseInt(ke.getAttribute('data-indent') || 0),
           node = {id: ke.getAttribute('ke-pan'), text: ke.innerText, indent: indent};
       let i;
 
-      for (i = levels.length - 1; i >= 0 && (!levels[i] || i >= indent); i--) {}
+      for (i = levels.length - 1; i >= 0 && (!levels[i] || i >= indent); i--) {
+      }
       if (i >= 0) {
         levels[i].children = levels[i].children || [];
         levels[i].children.push(node);
@@ -394,44 +428,48 @@ function _initKePanTree() {
     });
     $judgments.jstree(judgments);
 
-    $judgments.on('changed.jstree', function (e, data) {
+    $('#judgments').on('changed.jstree', function (e, data) {
       highlightKePan(data.node.id, 'nav');
-    });
-
-    // 在多栏正文点击时找到所在单元格上面的科判条目，触发点击操作
-    $(document).on('click', '.row > .cell', e => {
-      const row = e.target.closest('.row'),
-          nodes = $(row).parent().children().get();
-
-      for (let i = nodes.indexOf(row); i >= 0; i--) {
-        const kid = $(nodes[i]).attr('ke-pan');
-        if (kid) {
-          highlightKePan(kid, 'click');
-          break;
-        }
-      }
-    });
-    // 科判条目上点击
-    $(document).on('click', '.ke-line,p[id^=p]', e => {
-      let kid = e.target.getAttribute('ke-pan');
-      if (!kid) {
-        const arr = $('.ke-line,p[id^=p]').map((i, p) => {
-          const r = p.getBoundingClientRect();
-          return {p: p, y: r ? r.top : 1e6};
-        }).get();
-        arr.sort((a, b) => a.y - b.y);
-        let rows = arr.map(a => a.p), index = rows.indexOf(e.target.closest('p'));
-        for (; index >= 0 && !kid; --index) {
-          kid = rows[index].getAttribute('ke-pan');
-        }
-      }
-      if (kid) {
-        highlightKePan(kid, 'click');
-      }
     });
   }
 }
-_initKePanTm = setTimeout(_initKePanTree, 20);
+
+function _initKePanTree() {
+  const defaultType = cbOptions.kePanType || kePanTypes.length && 'all';
+  if (kePanTypes.length) {
+    const $select = $('<select id="ke-pan-select"/>').insertBefore($('#judgments'));
+    for (let i = 0; i < kePanTypes.length; i++) {
+      $select.append(new Option(kePanTypes[i][1] + ': ' + kePanTypes[i][2], kePanTypes[i][0]));
+    }
+    if (kePanTypes.length > 1) {
+      $select.append(`<option value="all">全部科判</option>`);
+    }
+    $select.val(defaultType);
+    $select.change(() => _switchKePanType($select.val(), true));
+  } else {
+    delete cbOptions.kePanType;
+  }
+  _switchKePanType(defaultType, false);
+  _hasKeLine = $('.ke-line').length > 0;
+}
+
+_initKePanTm = setTimeout(_initKePanTree, 50);
+
+function _findKePanLineId(el) {
+  let kid = el.getAttribute('ke-pan');
+  if (!kid) {
+    const arr = $('.ke-line:visible,p[id^=p]').map((i, p) => {
+      const r = p.getBoundingClientRect();
+      return {p: p, y: r ? r.top : 1e6};
+    }).get();
+    arr.sort((a, b) => a.y - b.y);
+    let rows = arr.map(a => a.p), index = rows.indexOf(el.closest('p'));
+    for (; index >= 0 && !kid; --index) {
+      kid = rows[index].getAttribute('ke-pan');
+    }
+  }
+  return kid;
+}
 
 /**
  * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号
@@ -507,21 +545,24 @@ function highlightKePan(kePanId, scroll, level) {
 
   if (!level) {
     $('[ke-pan]').removeClass('active').removeClass('hover');
-    if (scroll === 'click') { // 点击正文
+
+    const node = tree.get_node(kePanId);
+    if (scroll === 'click' && node && node.parents) { // 点击正文
       tree.close_all(); // 折叠其它节点
+      for (const p of node.parents) {
+        tree.open_node(p);
+      }
     }
     tree.open_node(kePanId);
   }
   if (scroll === 'nav' && level < 2) { // 点击树节点
-    tree.open_node(kePanId); // 展开本节点及其子节点
-  } else if (scroll === 'click' && !level) { // 点击正文
     tree.open_node(kePanId); // 展开本节点及其子节点
   }
   $s.addClass('active');
 
   const nodes = tree.get_children_dom(kePanId);
   if (nodes) {
-    for (let node of nodes.get()) {
+    for (const node of nodes.get()) {
       let r = highlightKePan(node.getAttribute('id'), scroll, (level || 0) + 1);
       $s = $s[0] ? $s : r;
     }
@@ -570,40 +611,47 @@ let _scrollTm;
 /**
  * 在状态栏显示科判路径
  * @param {string|number} kePanId 科判编号
+ * @param {string} [colTitle] 段落所在栏的标题
  */
-function showKePanPath(kePanId) {
+function showKePanPath(kePanId, colTitle) {
   const tree = $.jstree && $.jstree.reference('#judgments');
   const node = tree && tree.get_node(kePanId);
   let texts = [];
 
   if (node) {
-    for (let p of node.parents) {
+    for (const p of node.parents) {
       let t = tree.get_node(p).text;
       if (t) {
-        texts.splice(0, 0, `<a onclick="highlightKePan(${p}, 'footer')">${t}</a>`);
+        texts.splice(0, 0, `<a onclick="highlightKePan('${p}', 'footer')">${t}</a>`);
       }
     }
-    texts.push(`<a onclick="highlightKePan(${kePanId}, 'footer')">${node.text}</a>`);
+    texts.push(`<a onclick="highlightKePan('${kePanId}', 'footer')">${node.text}</a>`);
   }
+  texts = texts.length ? `<span>${texts.join('<span>/</span>')}</span>` : '';
 
-  const sel = '[ke-pan="' + kePanId + '"]',
-    row = $(sel).closest('.row'),
-    leftS = row.find('.cell-0').find(sel),
-    rightS = row.find('.cell-1').find(sel);
-
-  $('footer>p:first-child').html(texts.join(' / ') + (texts.length && window.designMode ?
-    ' <small>(' + leftS.length + ', ' + rightS.length + ')</small>' : ''));
+  if (cbOptions.kePanType === 'all') {
+    const type = $(`[ke-pan="${kePanId}"]`).attr('data-ke-type'),
+        item = kePanTypes.filter(t => t[0] === type)[0];
+    if (item) {
+      texts += ` <span class="ke-pan-type-s" title="${item[2]}">${item[1]}</span>`
+    }
+  }
+  $('footer>p:first-child').html(texts + (colTitle ? `<span class="col-title">${colTitle}</span>`: ''));
 }
 
 /**
  * 得到元素所在的科判编号
  * @param {HTMLElement} el 元素
- * @returns {number} 科判编号
+ * @returns {string} 科判编号
  */
 function getKePanId(el) {
+  const kid = _hasKeLine && _findKePanLineId(el);
+  if (kid) {
+    return kid;
+  }
   for (let i = 0; i < 3 && el; i++, el = el.parentElement) {
     if (el.getAttribute('ke-pan')) {
-      return parseInt(el.getAttribute('ke-pan'));
+      return el.getAttribute('ke-pan');
     }
   }
 }
@@ -683,8 +731,11 @@ $(document).on('mouseover', '[ke-pan]', function (e) {
 });
 
 // 在正文有科判标记的span上鼠标滑入
-$(document).on('mouseenter', '[ke-pan]', function (e) {
-  showKePanPath(getKePanId(e.target));
+$(document).on('mouseenter', '[ke-pan],p[id^=p]', function (e) {
+  const cell = e.target.closest('.cell'),
+      m = cell && /cell-(\d+)/.exec(cell.className),
+      colTitle = m && $(`.cell-${m[1]} [title]`).attr('title');
+  showKePanPath(getKePanId(e.target), colTitle);
 });
 
 // 在正文有科判标记的span上鼠标滑出
@@ -695,8 +746,8 @@ $(document).on('mouseleave', '[ke-pan]', function (e) {
   }
 });
 
-// 在正文有科判标记的span上点击
-$(document).on('click', '[ke-pan]', function (e) {
+// 在正文有科判标记的span、科判条目上点击
+$(document).on('click', '[ke-pan],.ke-line,p[id^=p]', function (e) {
   highlightKePan(getKePanId(e.target), 'click');
 });
 
