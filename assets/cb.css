@@ -331,13 +331,6 @@ span[ke-pan] > .ke-pan-text {
 .ke-line:hover {color: #2b669a}
 .ke-line.highlight {background-color: rgba(0, 0, 255, .07);}
 
-body:not(.cur-ke-pan-type) .ke-line[data-ke-type]::after {
-  content: attr(data-ke-type);
-  color: #aaa;
-  font-size: 9px;
-  float: right;
-}
-
 .ke-line[data-indent="0"] {text-indent: 0;}
 .ke-line[data-indent="1"] {text-indent: 1em;}
 .ke-line[data-indent="2"] {text-indent: 2em;}

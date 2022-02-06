@@ -435,7 +435,7 @@ function _switchKePanType(type, save) {
 }
 
 function _initKePanTree() {
-  const defaultType = cbOptions.kePanType || kePanTypes.length && 'all';
+  const defaultType = cbOptions.kePanType || kePanTypes.length && kePanTypes[0][0];
   if (kePanTypes.length) {
     const $select = $('<select id="ke-pan-select"/>').insertBefore($('#judgments'));
     for (let i = 0; i < kePanTypes.length; i++) {
