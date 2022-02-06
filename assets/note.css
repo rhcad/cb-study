@@ -16,6 +16,9 @@
   color: #99a;
   font-weight: 300;
 }
+.note-raw .org-text {
+  font-size: 9px;
+}
 .note-text {
   color: #444;
 }
@@ -24,6 +27,10 @@
   color: #99a;
   display: inline-block;
   cursor: pointer;
+}
+.note-raw .note-from {
+  display: block;
+  text-align: right;
 }
 .note-tag {
   color: #aaa;

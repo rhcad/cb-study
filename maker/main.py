@@ -473,15 +473,24 @@ class EndMergeHandler(CbBaseHandler):
 
 
 class FetchHtmlHandler(CbBaseHandler):
-    URL = r'/cb/html/(\w+_\d+)'
+    URL = r'/cb/html/([\w_]+)'
 
     @gen.coroutine
     def get(self, name):
         """从CBeta获取原文HTML"""
+        parts, content = name.split('_'), []
         try:
-            html = yield self.fetch_cb(name)
-            if html:
-                self.write(dict(html=html))
+            if len(parts) == 1:
+                html = yield self.fetch_cb(name)
+                if html:
+                    content.append(html)
+            else:
+                for juan in parts[1:]:
+                    name = parts[0] + '_' + juan
+                    html = yield self.fetch_cb(name)
+                    if html:
+                        content.append(html)
+            self.write(dict(html='\n'.join(content)))
             self.finish()
         except Exception as e:
             self.on_error(e)
@@ -503,38 +512,91 @@ class PageNoteHandler(CbBaseHandler):
     def post(self, page_id):
         """保存注解数据"""
         try:
-            tag = self.get_argument('tag')
-            name = self.get_argument('name')
-            desc = self.get_argument('desc', '')
+            tag = to_basestring(self.get_argument('tag'))
+            name = to_basestring(self.get_argument('name', ''))
+            desc = to_basestring(self.get_argument('desc', ''))
             col = int(self.get_argument('col', 0) or 0)
-            lines = json_decode(self.get_argument('lines'))
+            nid = int(self.get_argument('nid', 0))
 
             page = self.load_page(page_id)
-            nid = page['info'].get('note_id', 0)
+            new_id = page['info'].get('note_id', 0)
             page['notes'] = page.get('notes', {})
 
+            if nid and self.get_argument('remove', None) is not None:
+                ids = [int(r) for r in self.get_argument('remove').split(',') if r]
+                item = page['notes'].get(tag)
+                assert item, 'tag not exists'
+                raw = item['raw']
+                upd = [r for r in raw if r[0] == nid]
+                assert len(upd) == 1, 'raw {0} not exists'.format(nid)
+                assert nid not in ids, 'invalid ids'
+                [upd[0].extend(r) for r in raw if r[0] in ids]
+                item['raw'] = [r for r in raw if r[0] not in ids]
+                item['notes'] = [r for r in item['notes'] if r[0] != nid and r[0] not in ids] + upd
+                assert [r for r in item['notes'] if r[0] == nid], 'invalid result'
+                self.save_page(page)
+                return self.write({})
+
+            if nid and self.get_argument('split', 0):
+                split = to_basestring(self.get_argument('split')).split('@')
+                item = page['notes'].get(tag)
+                assert item, 'tag not exists'
+                raw = item['raw']
+                upd = [(i, r) for (i, r) in enumerate(raw) if r[0] == nid]
+                assert len(upd) == 1, 'raw {0} not exists'.format(nid)
+                index, upd = upd[0]
+                assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
+                assert split[0] and upd[2] == ''.join(split), 'text mismatch'
+
+                upd[2] = split[0]
+                for (i, r) in enumerate(item['notes']):
+                    if r[0] == upd[0]:
+                        r[2] = upd[2]
+                        break
+                new_ids = []
+                for (i, text) in enumerate(split[1:]):
+                    new_id += 1
+                    r = [new_id, upd[1], text]
+                    raw.insert(index + i + 1, r)
+                    new_ids.append(str(new_id))
+
+                log = 'Split note #{0} at {1} with #{2}: {3}'.format(nid, index, ','.join(new_ids), '@'.join(split))
+                logging.info(log)
+                page['log'].append(log)
+                page['info']['note_id'] = new_id
+                self.save_page(page)
+                return self.write(dict(ids=','.join(new_ids), raw=raw))
+
             assert tag not in page['notes'], 'tag exists'
-            notes, orig = [], ''
+            notes, raw, orig = [], [], ''
+            new_item = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
+
+            lines = json_decode(self.get_argument('lines'))
             for r in lines:
                 if not r.get('text'):
                     continue
-                if r['orig']:
+                if r.get('orig') == '1':
                     orig = r['text']
-                else:
+                elif r.get('orig') == '0':
                     if not orig:
                         logging.warning('ignore comment: ' + r['text'])
-                    nid += 1
-                    notes.append([nid, orig, r['text']])
+                    new_id += 1
+                    notes.append([new_id, orig, r['text']])
                     orig = None
+                elif r.get('line'):
+                    new_id += 1
+                    raw.append([new_id, r['line'], r['text']])
 
-            if notes:
-                nid = int((nid + 19) / 10) * 10
-                page['notes'][tag] = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
-                page['info']['note_id'] = nid
+            if notes or raw:
+                if raw:
+                    new_item['raw'] = raw
+                new_id = int((new_id + 19) / 10) * 10
+                page['notes'][tag] = new_item
+                page['info']['note_id'] = new_id
 
             logging.info('{0}: add {1} comments'.format(tag, len(notes)))
             self.save_page(page)
-            self.write(dict(tag=tag, count=len(notes)))
+            self.write(dict(tag=tag, count=len(raw or notes)))
         except Exception as e:
             self.on_error(e)
 

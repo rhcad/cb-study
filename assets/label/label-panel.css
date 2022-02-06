@@ -55,22 +55,44 @@ textarea {outline: none;}
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
 }
-.label-panel > .notes > p {
+.label-panel > .notes > p:not(.raw-note) {
   text-indent: 0;
   font-size: 14px;
   overflow: hidden;
   white-space: nowrap;
 }
-.label-panel > .notes > p > span:first-child {
+.label-panel > .notes > p > span:not(.p):first-child {
   font-weight: 700;
 }
-.label-panel > .notes > p:first-child > span:first-child {
+.label-panel > .notes > p:first-child > span:not(.p):first-child {
   color: #00f;
 }
 .label-panel .linked {
   text-decoration: line-through;
   color: #999;
   cursor: pointer;
+}
+
+.label-panel p.raw-note {
+  text-indent: 0;
+}
+.label-panel p.raw-note[data-note-id]::before {
+  content: attr(data-note-id);
+  font-size: 9px;
+  color: lightgray;
+  width: 28px;
+  display: inline-block;
+}
+.label-panel p.raw-note.selected {
+  color: #0000a0;
+}
+.label-panel p.raw-note > .p {
+  display: block;
+  text-indent: 2em;
+}
+#sel-p-count {
+  margin-right: 10px;
+  font-size: 12px;
 }
 
 #merged {

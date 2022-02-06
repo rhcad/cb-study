@@ -58,7 +58,7 @@
     .input-group.note-tag-group { width: calc(100% - 380px); }
   </style>
 </head>
-<body data-step="{{step}}" data-no-note="{{'' if page.get('note_id') else 'true'}}">
+<body data-step="{{step}}" data-no-note="{{'' if info.get('note_id') else 'true'}}">
 
 <nav class="navbar navbar-default navbar-fixed-top">
   <div class="container">
@@ -208,14 +208,17 @@
   <div class="task-step" data-step="3">
     <p class="step-title"><span>第4步</span>：合并注解到论文</p>
     <div class="step-content">
-      <p>在正文中选择标注面板的第一条注解对应的文本（双击第一条也会自动选中文本），按回车键插入注解。</p>
+      <p class="tip-3-pair">在正文中选择标注面板的第一条注解对应的文本（双击第一条也会自动选中文本），按回车键插入注解。</p>
+      <p class="tip-3-raw">先在标注面板点击注解行，然后在正文中对应的文本，按回车键插入注解。</p>
       <p>如果按下了Shift或Ctrl键，则按回车键时不自动切换到下一条，可以将多个连续段落与此注解关联。</p>
-      <div class="input-group note-tag-group">
-        <input type="text" class="form-control" placeholder="按“标记字 注解的经号_卷号 可选的注解名称”格式输入，例如“義 T1846”">
+      <div class="input-group note-tag-group" style="margin-left: 2em">
+        <input type="text" class="form-control" placeholder="按“标记字 注解的经号_卷号 可选的注解名称”格式输入">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default" id="fetch-note">导入注解</button>
         </div>
       </div>
+      <p>按“标记字 注解的经号_卷号 可选的注解名称”格式输入，多个卷号用_分隔。例如“義 T1846 義記，釋法藏撰”、
+        “流 T1511_001_002 T1511 金剛般若波羅蜜經論”。</p>
     </div>
   </div>
   {% end %}
@@ -272,6 +275,7 @@
 <footer><p></p></footer>
 
 <script>
+  window.pageId = '{{id}}';
   window.pageName = '{{id}}step{{step}}';
   {% if ke_pan_types %}
   window.kePanTypes = '{{"|".join(ke_pan_types)}}'.split('|').map(s => s.split(' '));
@@ -301,6 +305,7 @@
 {% if step == 3 %}
 <div class="label-panel">
   <div class="label-panel-bar">
+    <button class="btn btn-default btn-sm hidden" id="sel-p-count"></button>
     <button class="btn btn-default btn-sm" id="skip-top">跳过第一条</button>
     <button class="btn btn-default btn-sm save-html" title="保存网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容）">保存</button>
     <button class="btn btn-default btn-sm" id="gray-linked">已标变灰</button>
@@ -399,7 +404,8 @@
 
   // 增加一个注释来源，自动获取并解析原文
   $('#fetch-note').click(() => {
-    const [tag, name, desc] = $('.note-tag-group>input').val().split(/\s+/)
+    const val = $('.note-tag-group>input').val().split(/\s+/)
+    const [tag, name] = val
     const cols = getVisibleColumns()
 
     if (cols.length > 1) {
@@ -410,38 +416,59 @@
       $(r.html).find('.div-orig,.div-commentary').each((i, div) => {
         const text = div.innerText.split('\n').map(s => s.trim()).filter(s => s && !/^△/.test(s)).join('\n')
         if (text) {
-          lines.push({orig: /div-orig/.test(div.className), text: text})
+          lines.push({orig: /div-orig/.test(div.className) ? '1' : '0', text: text})
         }
       })
+      if (lines.length < 1) {
+        let lastLine = '0000'
+        $(r.html).find('p,.lg-row').each((i, p) => {
+          const text = p.innerText.trim(), line = $('span.lineInfo', p).attr('line')
+          if (text) {
+            lastLine = line || lastLine
+            lines.push({text: text, line: lastLine});
+          }
+        });
+      }
       $.post('/cb/page/note/{{id}}', {
-        'tag': tag, 'name': name, 'desc': desc, 'col': cols[0],
+        'tag': tag, 'name': name, 'desc': val.slice(2).join(' '), 'col': cols[0],
         'lines': JSON.stringify(lines)}, r => {
-        showSuccess('保存注解', `${tag} 导入了 ${r.count} 条注解。`, reload)
+        showSuccess('保存注解', `${tag} 导入了 ${r.count} 条注解。`, r.count && reload)
       }).error(ajaxError('保存注解失败'))
     }).error(ajaxError('获取失败'))
   })
 
   // 第4步导航栏右侧的注解标签，切换注解标引
-  $('.init-notes-btn').click(function () {
-    const tag = this.getAttribute('data-tag'),
-            col = parseInt(this.getAttribute('data-col')),
-            cols = getVisibleColumns()
+  function _initNotesBtnClick(btn, first) {
+    if (btn) {
+      const tag = btn.getAttribute('data-tag'),
+              col = parseInt(btn.getAttribute('data-col')),
+              cols = getVisibleColumns()
 
-    if (cols.length > 1 || cols[0] && cols[0] !== col) {
-      $('.cell').hide()
-      $(`.cell-${col}`).show();
+      if (cols.length > 1 || cols[0] && cols[0] !== col) {
+        if (!first) {
+          $('.cell').hide()
+          $(`.cell-${col}`).show();
+        }
+        cbOptions.colHide = cbOptions.colHide || {};
+        cols.forEach(ci => {
+          cbOptions.colHide['' + ci] = true
+        })
+        cbOptions.colHide['' + col] = false
+        updateColumnStatus()
+      }
+      $.get('/cb/page/note/{{id}}', {tag: tag}, r => {
+        initNotes(r.raw || r.notes, tag, `.cell-${col},#body${col}`, r.desc)
+      }).error(ajaxError('加载注解失败'))
     }
-    $.get('/cb/page/note/{{id}}', {tag: tag}, r => {
-      initNotes(r.notes, tag, `.cell-${col},#body${col}`, r.desc)
-    }).error(ajaxError('加载注解失败'))
-  })
-  $( $('.init-notes-btn')[0]).click();
+  }
+  $('.init-notes-btn').click(e => _initNotesBtnClick(e.target, false))
+  _initNotesBtnClick($('.init-notes-btn')[0], true)
 
   // 获取当前网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容），可用于合并制作页面
   function getHtml() {
     const $content = $('#content').clone().appendTo($('body'))
 
-    $content.find('.div-xu').show()
+    $content.find('.div-xu,.cell:hidden').show()
     $content.find(':hidden,.note-p').remove()
     $content.find('.note-tag').removeAttr('title')
     $content.find('[cur-tag]').removeAttr('cur-tag')
@@ -452,16 +479,17 @@
   function trimHtml(html) {
     const space = s => new Array(/<p/.test(s) ? 3 : /"cell/.test(s) ? 2 : 1).join('\t')
     return (html || '').trim()
-            .replace(/ data-line-no="[^"<>]*"|\s?context-menu-active/g, '')
+            .replace(/ data-line-no="[^"<>]*"|\s?(context-menu-active|note-expanded)/g, '')
             .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
             .replace(/(<\/(p|div)>){2,9}/g, s => s.replace(/></g, '>\n<'))
             .replace(/><(p|div class="(cell|row)|div id=|div ke-pan=)/g, s => s[0] + '\n' + space(s) + s.substr(1))
   }
 
   // 第4步改动网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容）后，保存网页内容
-  $('.save-html').click(() => {
-    $.post('/cb/page/{{id}}', {html: getHtml(), step: '{{step}}'}).error(ajaxError('保存失败'))
-  })
+  function saveHtml() {
+    $.post('/cb/page/{{id}}', {html: getHtml(), step: '{{step}}'}).error(ajaxError('保存网页失败'))
+  }
+  $('.save-html').click(saveHtml)
 
   // 下载合并后的网页内容
   $('#download-html').click(() => {

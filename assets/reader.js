@@ -686,6 +686,23 @@ function getKePanId(el) {
   }
 }
 
+function getNoteContent(note, title, rows, rawNote, desc) {
+  for (let i = 0; i + 2 < note.length; i += 3) {
+    title.push(note[i + 1]);
+    rows.push(`<span class="note-item${rawNote ? ' note-raw' : ''}"><span class="org-text">` +
+        (!rawNote && note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
+            '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
+        '</span><span class="note-text">' + note[i + 2] + '</span> ' +
+        (!desc || i + 5 < note.length ? '' :
+            `<span class="note-from" title="双击注解块可隐藏">${desc} ×</span>`)
+        + '</span>');
+  }
+  if (rawNote) {
+    title[0] += ' ' + note[2] + '\n' + desc;
+    title.length = 1;
+  }
+}
+
 /**
  * 根据注解锚点插入注解段落
  * @param {jQuery} $side 占一栏的正文，如果只有一栏就可为 null
@@ -699,25 +716,13 @@ function insertNotes($side, notes, desc) {
       id = parseInt($tag.attr('data-nid')),
       note = notes.filter(item => item[0] === id)[0],
       $judg = $tag.closest('[ke-pan],p,.lg'),
+      rawNote = note && /^\d\w+$/.test(note[1]),
       title = [], rows = [];
 
     if (!note) {
       return;
     }
-    console.assert(note && note.length % 3 === 0, id + ' mismatch');
-    for (let i = 0; i + 2 < note.length; i += 3) {
-      title.push(note[i + 1]);
-      rows.push('<span class="note-item"><span class="org-text">' +
-        (note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
-          '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
-          '</span><span class="note-text">' + note[i + 2] + '</span> ' +
-          (desc ? '<span class="note-from" title="双击注解块可隐藏">' + desc + ' ×</span>' : '') + '</span>');
-    }
-    if (rows.length > 1 && 0) {
-      console.log(rows);
-      $tag.text($tag.text() + rows.length);
-      setTimeout(() => $tag.click() );
-    }
+    getNoteContent(note, title, rows, rawNote, desc);
     $tag.attr('title', title.join('\n'));
 
     const $exist = $(`.note-p[data-nid="${id}"]`);
@@ -843,6 +848,12 @@ $(document).on('click', '.note-tag', function (e) {
       $p = $(`.note-p[data-nid=${id}]`),
       show = !$this.hasClass('note-expanded');
 
+  if (!$p.length) {
+    console.warn(id + ' note-p not exist');
+  }
+  if (show) {
+    $p.insertAfter($this.closest('.lg').length ? $this.closest('.lg') : $this.closest('[ke-pan],p'));
+  }
   $p.toggle(100, null, show);
   $(`.note-tag[data-nid=${id}]`).toggleClass('note-expanded', show);
   $(`note[data-nid=${id}]`).toggleClass('note-expanded', show);
