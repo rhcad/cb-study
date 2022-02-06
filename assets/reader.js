@@ -446,6 +446,21 @@ function _initKePanTree() {
     }
     $select.val(defaultType);
     $select.change(() => _switchKePanType($select.val(), true));
+
+    const $ratio = $('.dropdown-menu > .ke-pan-ratio:first-child');
+    for (let i = 0; i < kePanTypes.length; i++) {
+      $(`<li class="ke-pan-type" data-ke-type="${kePanTypes[i][0]}" title="${kePanTypes[i][2]}">
+        <a>${kePanTypes[i][1]}</a></li>`).insertBefore($ratio);
+    }
+    if (kePanTypes.length > 1) {
+      $(`<li class="ke-pan-type" data-ke-type="all"><a>全部科判</a></li>`).insertBefore($ratio);
+    }
+    $('<li role="separator" class="divider"></li>').insertBefore($ratio);
+    $('.dropdown-menu > .ke-pan-type').click(e => {
+      const type = e.target.closest('[data-ke-type]').getAttribute('data-ke-type');
+      _switchKePanType(type, true);
+      $select.val(type);
+    });
   } else {
     delete cbOptions.kePanType;
   }
@@ -577,9 +592,24 @@ function highlightKePan(kePanId, scroll, level) {
     }
     tree.deselect_all(true);
     tree.select_node(kePanId, true);
+    _scrollTreeToVisible(tree, tree.get_node(kePanId));
   }
 
   return $s;
+}
+
+function _scrollTreeToVisible(tree, node) {
+  const scrollOwner = document.getElementById('judgments').parentElement,
+      sr = $(scrollOwner).offset(),
+      $prev = tree.get_prev_dom(node), $next = tree.get_next_dom(node),
+      r2 = $prev && $prev.offset(), r3 = $next && $next.offset();
+
+  if (r2 && r2.top < sr.top + 50) {
+    scrollOwner.scrollTop -= sr.top + 50 - r2.top;
+  }
+  if (r3 && r3.top - sr.top + 50 > scrollOwner.clientHeight) {
+    scrollOwner.scrollTop += r3.top - sr.top + 50 - scrollOwner.clientHeight;
+  }
 }
 
 /**
