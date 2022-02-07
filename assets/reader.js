@@ -116,7 +116,7 @@ function updateColumnStatus() {
   clearTimeout(_updateColumnStatusTm);
   _updateColumnStatusTm = setTimeout(() => {
     const liXu = $('.hide-xu').closest('li'), $showXu = $('.show-xu'),
-        $xu = $('.div-xu'), $more = $('.xu-more');
+        $xu = $('.div-xu:visible'), $more = $('.xu-more:visible');
 
     liXu.toggleClass('disabled', !$xu.length && !$more.length);
     liXu.toggleClass('active', $('body').hasClass('hide-div-xu'));
@@ -163,6 +163,10 @@ function initCbLiStatus() {
     } else if (!$right.length) {
       showLeftColumn();
     }
+  }
+  if (!cbOptions.colHide && Array.isArray(window.colHideDefault)) {
+    cbOptions.colHide = {};
+    window.colHideDefault.forEach(c => (cbOptions.colHide['' + c] = true));
   }
   setTimeout(() => {
     Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && toggleColumn(parseInt(k), false));
