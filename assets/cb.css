@@ -101,6 +101,18 @@ body {
 
 .navbar {
   font-size: 14px;
+  transition: height .3s ease-in-out;
+}
+.hide-navbar .navbar:not(:hover) {
+  height: 2px;
+  min-height: 2px;
+  overflow-y: hidden;
+}
+
+@media screen {
+  body:not(.hide-navbar) {
+    padding-top: 60px;
+  }
 }
 
 .single-article {
@@ -271,7 +283,10 @@ span[ke-pan] > .ke-pan-text {
   overflow: auto;
   border-right: 1px solid #ddd;
 }
-
+.hide-navbar .left-nav {
+  top: 0;
+  height: calc(100% - 40px);
+}
 .hide-left-bar .left-nav {
   display: none;
 }

@@ -799,6 +799,13 @@ $('#show-hide-txt').click(function() {
   $(this).closest('li').toggleClass('active');
 });
 
+$('#hide-navbar').click(function () {
+  $('body').toggleClass('hide-navbar');
+  cbOptions.hideNavbar = !cbOptions.hideNavbar;
+  saveCbOptions();
+}).toggle(window.innerWidth > 768);
+if (cbOptions.hideNavbar) $('body').toggleClass('hide-navbar');
+
 function toggleColumn(index, save) {
   if (index >= 0) {
     const $cell = $(`.cell-${index},.original#body${index}`), visible = !$cell.is(':visible');

@@ -555,6 +555,7 @@ class PageNoteHandler(CbBaseHandler):
                 orig = None
             elif r.get('line'):
                 new_id += 1
+                r['text'] = re.sub(r'^【經文資訊】', lambda m: '-' + m.group(), r['text'])
                 raw.append([new_id, r['line'], r['text']])
 
         if notes or raw:
@@ -621,9 +622,12 @@ class PageNoteHandler(CbBaseHandler):
     def ignore_note(self, page, tag):
         ids = [int(r) for r in self.get_argument('ignore').split(',') if r]
         item = page['notes'].get(tag)
-        raw = [r for r in item['raw'] if r[0] in ids and r[2][0] != '-']
+        raw = [r for r in item['raw'] if r[0] in ids]
         for r in raw:
-            r[2] = '-' + r[2]
+            if r[2][0] == '-':
+                r[2] = r[2][1:]
+            else:
+                r[2] = '-' + r[2]
         self.save_page(page)
         self.write(dict(count=len(raw)))
 

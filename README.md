@@ -30,7 +30,7 @@
   python3 -m pip install -r requirements.txt
   ```
 
-- 运行脚本，打开 http://<ip>:8002 浏览页面
+- 如下运行脚本，或在 PyCharm 中 `main.py` 调试，然后选中打开 http://localhost:8002 浏览页面
   ```shell
   python3 main.py
   ```

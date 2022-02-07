@@ -355,14 +355,15 @@ $.contextMenu({
     ignoreP: {
       name: '忽略段落',
       disabled: function () {
-        return this.hasClass('linked');
+        return _label.$cells.find(`[data-nid=${this.attr('data-note-id')}]`).length > 0;
       },
+      checked: function () { return this.hasClass('linked'); },
       callback: function () {
-        const $sel = $(_panelCls + ' p.selected');
+        const $sel = $(_panelCls + ` p.selected,p[data-note-id="${this.attr('data-note-id')}"]`);
         $.post('/cb/page/note/' + pageId, {
-          tag: _label.tag, nid: this.attr('data-note-id'),
+          tag: _label.tag,
           ignore: $sel.map((_, p) => p.getAttribute('data-note-id')).get().join(',')
-        }, () => $sel.addClass('linked').removeClass('selected') && _updateSelCount())
+        }, () => $sel.toggleClass('linked').removeClass('selected') && _updateSelCount())
             .error(ajaxError('保存注解失败'));
       },
     },

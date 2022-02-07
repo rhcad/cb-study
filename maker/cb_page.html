@@ -11,7 +11,6 @@
   <style>
     @media screen {
       body {
-        padding-top: 60px;
         padding-bottom: 50px;
       }
     }
@@ -54,8 +53,8 @@
       border-top: none;
       border-bottom: none;
     }
-    .current-row .end-move-rows { float: right; }
-    .input-group.note-tag-group { width: calc(100% - 380px); }
+    .current-row .end-move-rows, .current-row .hide-label-panel { float: right; }
+    body:not(.hide-label-panel) .input-group.note-tag-group { width: calc(100% - 380px); }
   </style>
 </head>
 <body data-step="{{step}}" data-no-note="{{'' if info.get('note_id') else 'true'}}">
@@ -85,8 +84,9 @@
              aria-expanded="false">显示 <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
-            <li><a href="#" id="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
+            <li><a href="#" class="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
             <li><a href="#" id="show-notes" title="切换是否显示全部注解">注解</a></li>
+            <li><a href="#" id="hide-navbar" title="切换是否显示隐藏导航栏">导航栏</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
             <li><a href="#" id="reduce-font" title="减少正文字号">减少字号</a></li>
@@ -243,6 +243,7 @@
     {% end %}
     <button class="btn btn-default btn-sm" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
     <button class="btn btn-default btn-sm" title="重新应用下面输入区域的分组设置" onclick="applyRowPairs()">应用输入</button>
+    <button class="btn btn-sm hide-label-panel" title="隐藏标注面板">×</button>
     <button class="btn btn-primary btn-sm end-move-rows" title="段落分组完成，进入下一步">完成</button>
   </div>
   <div class="row-pairs-div">
@@ -419,12 +420,17 @@
         }
       })
       if (lines.length < 1) {
-        let lastLine = '0000'
+        let lastNoLine;
         $(r.html).find('p,.lg-row').each((i, p) => {
-          const text = p.innerText.trim(), line = $('span.lineInfo', p).attr('line')
+          const text = p.innerText.trim(),
+                  line = $('span.lineInfo', p).attr('line'),
+                  item = {text: text, line: line}
           if (text) {
-            lastLine = line || lastLine
-            lines.push({text: text, line: lastLine});
+            if (line && lastNoLine) {
+              lastNoLine.line = line
+            }
+            lastNoLine = !line && item
+            lines.push(item);
           }
         });
       }
@@ -519,12 +525,12 @@
   });
 
   // 切换是否显示右边标注面板
-  $('#hide-label-panel').click(() => {
+  $('.hide-label-panel').click(() => {
     $('body').toggleClass('hide-label-panel');
     cbOptions.hideLabelPanel = !cbOptions.hideLabelPanel;
     saveCbOptions();
   }).toggle($('.label-panel').length > 0);
-  if (cbOptions.hideLabelPanel) $('body').toggleClass('hide-label-panel');
+  if (cbOptions.hideLabelPanel || window.innerWidth < 400) $('body').toggleClass('hide-label-panel', true);
 </script>
 </body>
 </html>
