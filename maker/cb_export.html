@@ -152,7 +152,7 @@
 
 <script>
   {% for a in note_names %}
-  insertNotes({% if info.get('cols', 1) > 1 %} $(`.cell-${r.col}`) {% else %} null {% end %}, {{a[0]}}, '{{a[1]}}');
+  insertNotes({% if info.get('cols', 1) > 1 %} $('.cell-{{a[1]}}') {% else %} null {% end %}, {{a[0]}}, '{{a[2]}}');
   {% end %}
 
   {% if note_names %}

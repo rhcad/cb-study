@@ -168,7 +168,7 @@ body {
 }
 
 @media screen {
-  .show-line-no [data-line-no]::before {
+  .show-line-no [data-line-no]:not(.lg-cell)::before {
     content: attr(data-line-no);
     font-size: 9px;
     color: #999;

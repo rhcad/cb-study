@@ -436,7 +436,8 @@ function _switchKePanType(type, save) {
 
 function _initKePanTree() {
   const defaultType = cbOptions.kePanType || kePanTypes.length && kePanTypes[0][0];
-  if (kePanTypes.length) {
+
+  if (kePanTypes.length > 1) {
     const $select = $('<select id="ke-pan-select"/>').insertBefore($('#judgments'));
     for (let i = 0; i < kePanTypes.length; i++) {
       $select.append(new Option(kePanTypes[i][1] + ': ' + kePanTypes[i][2], kePanTypes[i][0]));
@@ -446,7 +447,9 @@ function _initKePanTree() {
     }
     $select.val(defaultType);
     $select.change(() => _switchKePanType($select.val(), true));
+  }
 
+  if (kePanTypes.length) {
     const $ratio = $('.dropdown-menu > .ke-pan-ratio:first-child');
     for (let i = 0; i < kePanTypes.length; i++) {
       $(`<li class="ke-pan-type" data-ke-type="${kePanTypes[i][0]}" title="${kePanTypes[i][2]}">
@@ -459,11 +462,12 @@ function _initKePanTree() {
     $('.dropdown-menu > .ke-pan-type').click(e => {
       const type = e.target.closest('[data-ke-type]').getAttribute('data-ke-type');
       _switchKePanType(type, true);
-      $select.val(type);
+      $('#ke-pan-select').val(type);
     });
   } else {
     delete cbOptions.kePanType;
   }
+
   _switchKePanType(defaultType, false);
   _hasKeLine = $('.ke-line').length > 0;
 }

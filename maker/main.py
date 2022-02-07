@@ -32,15 +32,27 @@ class CbBaseHandler(RequestHandler):
     @staticmethod
     def load_page(page_id):
         filename = path.join(DATA_DIR, page_id + '.json')
+        html_file = path.join(DATA_DIR, page_id + '.html')
         assert path.exists(filename), 'page {} not exists'.format(page_id)
         with open(filename) as f:
-            return json.load(f)
+            page = json.load(f)
+        if not page.get('html_end') and path.exists(html_file):
+            with open(html_file) as f:
+                page['html_end'] = f.read().split('\n')
+        return page
 
     @staticmethod
-    def save_page(page):
+    def save_page(page, save_html=False):
         filename = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
+        html_file = path.join(DATA_DIR, '{}.html'.format(page['info']['id']))
+        html = page.get('html_end')
         with open(filename, 'w') as f:
+            page.pop('html_end', 0)
             json.dump(page, f, ensure_ascii=False, indent=2, sort_keys=True)
+        page['html_end'] = html
+        if html and save_html:
+            with open(html_file, 'w') as f:
+                f.write('\n'.join(html))
 
     @staticmethod
     def reset_html(page):
@@ -201,13 +213,14 @@ class PageHandler(CbBaseHandler):
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
             has_ke_pan = step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
                                    [1 for s in page['html'] if '<div ke-pan=' in s])
-            ke_pan_types = step and [r[len(':ke-type '):] for r in page.get('rowPairs', [])
+            ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
                                      if re.match(r':ke-type \d [^\s]+', r)]
 
             if self.get_argument('export', 0):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
                               for tag, v in (page.get('notes') or {}).items()]
-                note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])), v.get('desc', v['name'])]
+                note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])),
+                               v.get('col', 0), v.get('desc', v['name'])]
                               for tag, v in (page.get('notes') or {}).items()]
                 html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
                                           json_files=json_files, note_names=note_names,
@@ -233,7 +246,7 @@ class PageHandler(CbBaseHandler):
             if re.search('<p id', html) and html != '\n'.join(page[field]):
                 logging.info('save html')
                 page[field] = html.split('\n')
-                self.save_page(page)
+                self.save_page(page, field == 'html_end')
                 self.write({})
         except Exception as e:
             self.on_error(e)
@@ -467,7 +480,7 @@ class EndMergeHandler(CbBaseHandler):
 
             if not self.get_argument('test', ''):
                 logging.info('end merge {0}: update={1}, miss={2}'.format(page_id, update_count, miss_ids))
-                self.save_page(page)
+                self.save_page(page, True)
             self.write(dict(update_count=update_count, miss_count=len(miss_ids), miss_ids=','.join(miss_ids)[:60]))
         except Exception as e:
             self.on_error(e)
