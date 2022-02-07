@@ -689,7 +689,7 @@ function getKePanId(el) {
 function getNoteContent(note, title, rows, rawNote, desc) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     title.push(note[i + 1]);
-    rows.push(`<span class="note-item${rawNote ? ' note-raw' : ''}"><span class="org-text">` +
+    rows.push(`<span data-id="${note[i]}" class="note-item${rawNote ? ' note-raw' : ''}"><span class="org-text">` +
         (!rawNote && note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
             '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
         '</span><span class="note-text">' + note[i + 2] + '</span> ' +

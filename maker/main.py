@@ -201,7 +201,7 @@ class PageHandler(CbBaseHandler):
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
             has_ke_pan = step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
                                    [1 for s in page['html'] if '<div ke-pan=' in s])
-            ke_pan_types = step and [r[len(':ke-type '):] for r in page['rowPairs']
+            ke_pan_types = step and [r[len(':ke-type '):] for r in page.get('rowPairs', [])
                                      if re.match(r':ke-type \d [^\s]+', r)]
 
             if self.get_argument('export', 0):
@@ -513,92 +513,119 @@ class PageNoteHandler(CbBaseHandler):
         """保存注解数据"""
         try:
             tag = to_basestring(self.get_argument('tag'))
-            name = to_basestring(self.get_argument('name', ''))
-            desc = to_basestring(self.get_argument('desc', ''))
-            col = int(self.get_argument('col', 0) or 0)
             nid = int(self.get_argument('nid', 0))
 
             page = self.load_page(page_id)
-            new_id = page['info'].get('note_id', 0)
             page['notes'] = page.get('notes', {})
 
             if nid and self.get_argument('remove', None) is not None:
-                ids = [int(r) for r in self.get_argument('remove').split(',') if r]
-                item = page['notes'].get(tag)
-                assert item, 'tag not exists'
-                raw = item['raw']
-                upd = [r for r in raw if r[0] == nid]
-                assert len(upd) == 1, 'raw {0} not exists'.format(nid)
-                assert nid not in ids, 'invalid ids'
-                [upd[0].extend(r) for r in raw if r[0] in ids]
-                item['raw'] = [r for r in raw if r[0] not in ids]
-                item['notes'] = [r for r in item['notes'] if r[0] != nid and r[0] not in ids] + upd
-                assert [r for r in item['notes'] if r[0] == nid], 'invalid result'
-                self.save_page(page)
-                return self.write({})
+                return self.link_note(page, tag, nid)
 
             if nid and self.get_argument('split', 0):
-                split = to_basestring(self.get_argument('split')).split('@')
-                item = page['notes'].get(tag)
-                assert item, 'tag not exists'
-                raw = item['raw']
-                upd = [(i, r) for (i, r) in enumerate(raw) if r[0] == nid]
-                assert len(upd) == 1, 'raw {0} not exists'.format(nid)
-                index, upd = upd[0]
-                assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
-                assert split[0] and upd[2] == ''.join(split), 'text mismatch'
+                return self.split_note(page, tag, nid)
 
-                upd[2] = split[0]
-                for (i, r) in enumerate(item['notes']):
-                    if r[0] == upd[0]:
-                        r[2] = upd[2]
-                        break
-                new_ids = []
-                for (i, text) in enumerate(split[1:]):
-                    new_id += 1
-                    r = [new_id, upd[1], text]
-                    raw.insert(index + i + 1, r)
-                    new_ids.append(str(new_id))
+            if self.get_argument('ignore', 0):
+                return self.ignore_note(page, tag)
 
-                log = 'Split note #{0} at {1} with #{2}: {3}'.format(nid, index, ','.join(new_ids), '@'.join(split))
-                logging.info(log)
-                page['log'].append(log)
-                page['info']['note_id'] = new_id
-                self.save_page(page)
-                return self.write(dict(ids=','.join(new_ids), raw=raw))
-
-            assert tag not in page['notes'], 'tag exists'
-            notes, raw, orig = [], [], ''
-            new_item = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
-
-            lines = json_decode(self.get_argument('lines'))
-            for r in lines:
-                if not r.get('text'):
-                    continue
-                if r.get('orig') == '1':
-                    orig = r['text']
-                elif r.get('orig') == '0':
-                    if not orig:
-                        logging.warning('ignore comment: ' + r['text'])
-                    new_id += 1
-                    notes.append([new_id, orig, r['text']])
-                    orig = None
-                elif r.get('line'):
-                    new_id += 1
-                    raw.append([new_id, r['line'], r['text']])
-
-            if notes or raw:
-                if raw:
-                    new_item['raw'] = raw
-                new_id = int((new_id + 19) / 10) * 10
-                page['notes'][tag] = new_item
-                page['info']['note_id'] = new_id
-
-            logging.info('{0}: add {1} comments'.format(tag, len(notes)))
-            self.save_page(page)
-            self.write(dict(tag=tag, count=len(raw or notes)))
+            self.add_notes(page, tag)
         except Exception as e:
             self.on_error(e)
+
+    def add_notes(self, page, tag):
+        name = to_basestring(self.get_argument('name', ''))
+        desc = to_basestring(self.get_argument('desc', ''))
+        col = int(self.get_argument('col', 0) or 0)
+
+        assert tag not in page['notes'], 'tag exists'
+        notes, raw, orig = [], [], ''
+        new_item = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
+        lines = json_decode(self.get_argument('lines'))
+        new_id = page['info'].get('note_id', 0)
+
+        for r in lines:
+            if not r.get('text'):
+                continue
+            if r.get('orig') == '1':
+                orig = r['text']
+            elif r.get('orig') == '0':
+                if not orig:
+                    logging.warning('ignore comment: ' + r['text'])
+                new_id += 1
+                notes.append([new_id, orig, r['text']])
+                orig = None
+            elif r.get('line'):
+                new_id += 1
+                raw.append([new_id, r['line'], r['text']])
+
+        if notes or raw:
+            if raw:
+                new_item['raw'] = raw
+            new_id = int((new_id + 19) / 10) * 10
+            page['notes'][tag] = new_item
+            page['info']['note_id'] = new_id
+            logging.info('{0}: add {1} comments'.format(tag, len(notes)))
+            self.save_page(page)
+        self.write(dict(tag=tag, count=len(raw or notes)))
+
+    def split_note(self, page, tag, nid):
+        split = to_basestring(self.get_argument('split')).split('@')
+        item = page['notes'].get(tag)
+        assert item, 'tag not exists'
+        raw = item['raw']
+        upd = [(i, r) for (i, r) in enumerate(raw) if r[0] == nid]
+        assert len(upd) == 1, 'raw {0} not exists'.format(nid)
+        index, upd = upd[0]
+        assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
+        assert split[0] and upd[2] == ''.join(split), 'text mismatch'
+
+        upd[2] = split[0]
+        for (i, r) in enumerate(item['notes']):
+            if r[0] == upd[0]:
+                r[2] = upd[2]
+                break
+        new_ids = []
+        new_id = page['info'].get('note_id', 0)
+        for (i, text) in enumerate(split[1:]):
+            new_id += 1
+            r = [new_id, upd[1], text]
+            raw.insert(index + i + 1, r)
+            new_ids.append(str(new_id))
+
+        log = 'Split note #{0} at {1} with #{2}: {3}'.format(nid, index, ','.join(new_ids), '@'.join(split))
+        logging.info(log)
+        page['log'].append(log)
+        page['info']['note_id'] = new_id
+
+        self.save_page(page)
+        self.write(dict(ids=','.join(new_ids), raw=raw))
+
+    def link_note(self, page, tag, nid):
+        ids = [int(r) for r in self.get_argument('remove').split(',') if r]
+        item = page['notes'].get(tag)
+        assert item, 'tag not exists'
+        raw = item.get('raw', item['notes'])
+        upd = [r for r in raw if r[0] == nid]
+        assert len(upd) == 1, 'note {0} not exists'.format(nid)
+        assert nid not in ids, 'invalid ids'
+
+        [upd[0].extend(r) for r in raw if r[0] in ids]
+        if item.get('raw'):
+            upd[0][2] = re.sub('^-', '', upd[0][2])
+            item['raw'] = [r for r in raw if r[0] not in ids]
+            item['notes'] = [r for r in item['notes'] if r[0] != nid and r[0] not in ids] + upd
+        assert [r for r in item['notes'] if r[0] == nid], 'invalid result'
+
+        self.save_page(page)
+        self.write({})
+
+    def ignore_note(self, page, tag):
+        ids = [int(r) for r in self.get_argument('ignore').split(',') if r]
+        item = page['notes'].get(tag)
+        raw = [r for r in item['raw'] if r[0] in ids and r[2][0] != '-']
+        for r in raw:
+            r[2] = '-' + r[2]
+        self.save_page(page)
+        self.write(dict(count=len(raw)))
 
 
 handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,

@@ -5,27 +5,28 @@ const _panelCls = '.label-panel > .notes', _labelPanel = $(_panelCls),
 /**
  * 开始合并注解到原文
  * @param {Array[]} notes 每个注解元素为一个数组，其元素个数为三的整数倍，依次为注解ID、原文、注解内容
- * @param {string} noteTag 单字的标签
+ * @param {string} tag 单字的标签
  * @param {string} cellClass 正文栏的选择器
  * @param {string} [desc] 注解来源
  */
-function initNotes(notes, noteTag, cellClass, desc) {
-  _label.noteTag = noteTag;
+function initNotes(notes, tag, cellClass, desc) {
+  _label.tag = tag;
   _label.cellClass = cellClass;
   _label.$cells = $(cellClass);
-  _label.desc = desc || '[' + noteTag + ']';
+  _label.desc = desc || '[' + tag + ']';
   _label.notes = notes;
   _label.rawMode = false;
 
   // 切换导航条的标记高亮状态
   $('.init-notes-btn').parent().removeClass('active');
-  $(`.init-notes-btn[data-tag="${noteTag.replace(/[\[\]]/g, '')}"]`).parent().addClass('active');
+  $(`.init-notes-btn[data-tag="${tag.replace(/[\[\]]/g, '')}"]`).parent().addClass('active');
   _label.$cells.find('note').removeAttr('cur-tag');
 
   // 设置标注面板的内容
   const makeText = t => t.length < 25 ? t : t.substr(0, 14) + '…' + t.substr(t.length - 10);
   _labelPanel.html(notes.map(note => {
     const $tag = _label.$cells.find(`[data-nid=${note[0]}]`),
+        linked = $tag.length || note[2][0] === '-',
         titles = [], content = [];
 
     _label.rawMode = _label.rawMode || /^\d{4}/.test(note[1]);
@@ -37,18 +38,17 @@ function initNotes(notes, noteTag, cellClass, desc) {
     _label.$cells.find(`note[data-nid="${note[0]}"]`).attr('cur-tag', true);
     _labelMap['' + note[0]] = note;
     if (_label.rawMode) {
-      return `<p data-note-id="${note[0]}" class="raw-note ${($tag.length ? 'linked' : '')}" ` +
+      return `<p data-note-id="${note[0]}" class="raw-note${linked ? ' linked' : ''}" ` +
           `data-line-no="${note[1]}">${content.join('')}</p>`;
     } else {
-      const title = titles.join('\n');
-      return `<p data-note-id="${note[0]}" class="${($tag.length ? 'linked' : '')}" data-title="${titles[0]}">${note[0]}: ` +
-          `<span title="${title.indexOf('\n') > 0 || title.length > 20 ? title : ''}">${makeText(note[1])}</span><br/>${content.join('')}</p>`;
+      const title = titles.join('\n'), titleS = title.indexOf('\n') > 0 || title.length > 20 ? title : '';
+      return `<p data-note-id="${note[0]}" class="${linked ? 'linked' : ''}" data-title="${titles[0]}">${note[0]}: ` +
+          `<span title="${titleS}">${makeText(note[1])}</span><br/>${content.join('')}</p>`;
     }
   }).join('\n'));
 
   $('.tip-3-pair').toggle(!_label.rawMode);
   $('.tip-3-raw').toggle(_label.rawMode);
-  $('.save-html').toggle(!_label.rawMode);
 
   // 为正文中已标记处设置title属性为注解对应的原文
   _label.$cells.find('.note-tag').each(function() {
@@ -229,9 +229,14 @@ $(document).on('dblclick', _panelCls + ' p:not(.raw-note):first-child:not(.linke
 // 在标注面板单击普通注解行，切换选中状态
 $(document).on('click', _panelCls + ' p.raw-note', e => {
   $(e.target).closest('p').toggleClass('selected');
+  _updateSelCount();
+});
+function _updateSelCount() {
   const n = $(_panelCls + ' p.selected').length;
   $('#sel-p-count').text(`取消选中(${n})`).toggleClass('hidden', !n);
-});
+}
+
+// 点击注解行选中数量按钮，取消标注面板的选中状态
 $('#sel-p-count').click(function() {
   $(_panelCls + ' p.selected').removeClass('selected');
   $(this).addClass('hidden');
@@ -269,7 +274,7 @@ function _addNote(id) {
     // 在 note 节点后插入注解锚点标记，允许一个注解有多个注解锚点标记
     const tagEl = document.createElement('sup');
     tagEl.classList.add('note-tag');
-    tagEl.setAttribute('data-tag', '[' + _label.noteTag + ']');
+    tagEl.setAttribute('data-tag', '[' + _label.tag + ']');
     tagEl.setAttribute('data-nid', id);
     tagEl.setAttribute('title', title[0]);
     $(tagEl).insertAfter(el);
@@ -309,7 +314,7 @@ function addNote(autoSwitch) {
   }
   if (note && _addNote(id)) {
     $.post('/cb/page/note/' + pageId, {
-      tag: _label.noteTag, nid: id,
+      tag: _label.tag, nid: id,
       remove: removeIds.join(',')
     }, saveHtml).error(ajaxError('保存注解失败'));
 
@@ -323,6 +328,7 @@ function addNote(autoSwitch) {
         _selectForCurrent();
       }
     }
+    _updateSelCount();
   }
 }
 
@@ -345,6 +351,20 @@ $.contextMenu({
     splitP: {
       name: '拆分段落...',
       callback: function() { _splitNote(this); },
+    },
+    ignoreP: {
+      name: '忽略段落',
+      disabled: function () {
+        return this.hasClass('linked');
+      },
+      callback: function () {
+        const $sel = $(_panelCls + ' p.selected');
+        $.post('/cb/page/note/' + pageId, {
+          tag: _label.tag, nid: this.attr('data-note-id'),
+          ignore: $sel.map((_, p) => p.getAttribute('data-note-id')).get().join(',')
+        }, () => $sel.addClass('linked').removeClass('selected') && _updateSelCount())
+            .error(ajaxError('保存注解失败'));
+      },
     },
   },
 });
@@ -374,7 +394,7 @@ function _splitNote($p) {
       return showError('拆分段落', '不能改动内容。');
     }
     $.post('/cb/page/note/' + pageId, {
-      tag: _label.noteTag, nid: id, split: result
+      tag: _label.tag, nid: id, split: result
     }, r => {
       let ids = r.ids.split(','), line = $p.attr('data-line-no'), $last;
       result.split('@').forEach((text, i) => {
@@ -401,6 +421,7 @@ $.contextMenu({
         const id = this.attr('data-nid');
         $(`note[data-nid="${id}"]`).each((i, p) => $(p).replaceWith(p.innerHTML));
         $(`.note-tag[data-nid="${id}"],.note-p[data-nid="${id}"]`).remove();
+        saveHtml();
       },
     },
   },
