@@ -65,14 +65,18 @@ def merge_cb_html(content):
             ids['rid'] = 0
         elif not m.group(1) and m.group(2) == 'lg-row':
             ids['rid'] += 1
+            ids['cid'] = 0
             return m.group().replace('<div', "<div id='g{0}-{1}'".format(ids['gid'], ids['rid']))
+        elif not m.group(1) and m.group(2) == 'lg-cell':
+            ids['cid'] += 1
+            return m.group().replace('<div', "<div id='g{0}-{1}-{2}'".format(ids['gid'], ids['rid'], ids['cid']))
         return m.group()
 
-    ids = dict(pid=0, gid=0, rid=0)
+    ids = dict(pid=0, gid=0, rid=0, cid=0)
     for (i, html) in enumerate(content):
         html = re.sub("<div ([^<>]*)id='body'>", lambda m: "<div {0}id='body{1}'>".format(m.group(1), i), html)
         html = re.sub(r' style=\"[^"\'<>]+\"', '', html)
         html = re.sub(r'<(p)[ >]', sub_p, html)
         html = re.sub(r'<div (class="lg[ "])', sub_g, html)
-        html = re.sub(r'<div( id=\'g\d+\')? class="(lg|lg-row)[ "]', sub_lg_row, html)
+        html = re.sub(r'<div( id=\'g\d+\')? class="(lg|lg-row|lg-cell)[ "]', sub_lg_row, html)
         content[i] = html

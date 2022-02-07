@@ -101,12 +101,16 @@ body {
 
 .navbar {
   font-size: 14px;
-  transition: height .3s ease-in-out;
 }
 .hide-navbar .navbar:not(:hover) {
-  height: 2px;
-  min-height: 2px;
-  overflow-y: hidden;
+  height: 40px;
+  min-height: 40px;
+  max-width: 55px;
+  margin-left: -10px;
+  margin-top: -10px;
+  overflow: hidden;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 8px;
 }
 
 @media screen {

@@ -463,6 +463,7 @@ class EndMergeHandler(CbBaseHandler):
                             update_count += 1
                             continue
                     miss_ids.append(pid)
+                    logging.info('miss {0}: {1}'.format(pid, html))
 
             if not self.get_argument('test', ''):
                 logging.info('end merge {0}: update={1}, miss={2}'.format(page_id, update_count, miss_ids))

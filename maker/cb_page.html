@@ -444,11 +444,16 @@
 
   // 第4步导航栏右侧的注解标签，切换注解标引
   function _initNotesBtnClick(btn, first) {
+    if (!btn && first) {
+      btn = cbOptions.curNoteTag && $(`.init-notes-btn[data-tag="${cbOptions.curNoteTag}"]`)[0] ||
+              $('.init-notes-btn')[0]
+    }
     if (btn) {
       const tag = btn.getAttribute('data-tag'),
               col = parseInt(btn.getAttribute('data-col')),
               cols = getVisibleColumns()
 
+      cbOptions.curNoteTag = tag
       if (cols.length > 1 || cols[0] && cols[0] !== col) {
         if (!first) {
           $('.cell').hide()
@@ -461,13 +466,16 @@
         cbOptions.colHide['' + col] = false
         updateColumnStatus()
       }
+      if (!first) {
+        saveCbOptions()
+      }
       $.get('/cb/page/note/{{id}}', {tag: tag}, r => {
         initNotes(r.raw || r.notes, tag, `.cell-${col},#body${col}`, r.desc)
       }).error(ajaxError('加载注解失败'))
     }
   }
   $('.init-notes-btn').click(e => _initNotesBtnClick(e.target, false))
-  _initNotesBtnClick($('.init-notes-btn')[0], true)
+  _initNotesBtnClick(null, true)
 
   // 获取当前网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容），可用于合并制作页面
   function getHtml() {
