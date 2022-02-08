@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang=zh-CN>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -8,7 +9,7 @@
   <link rel="icon" href="assets/img/favicon.ico"/>
   <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
   {% if has_ke_pan %}<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>{% end %}
-  <link href="assets/cb.css?v=206" rel="stylesheet"/>
+  <link href="assets/cb.css?v=207" rel="stylesheet"/>
   <link href="assets/note.css?v=129" rel="stylesheet"/>
   <style>
     {% if note_names or has_ke_pan %}@media screen {body {padding-bottom: 50px;}} {% end %}
@@ -47,7 +48,7 @@
           <ul class="dropdown-menu">
             <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
             <li><a href="#" id="show-notes" title="切换是否显示全部注解">注解</a></li>
-            <li><a href="#" id="hide-navbar" title="切换是否显示隐藏导航栏">导航栏</a></li>
+            <li><a href="#" id="hide-navbar" title="切换是否隐藏导航栏">导航栏</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
             <li><a href="#" id="reduce-font" title="减少正文字号">减少字号</a></li>
@@ -104,7 +105,7 @@
   </div>
 </nav>
 
-<div class="phone-bar">
+<div class="phone-bar no-print">
   {% if info.get('cols', 1) > 1 %}
   <div class="btn-group toggle-column" role="group">
     <button type="button" class="btn btn-default btn-sm show-xu">序</button>
@@ -145,7 +146,7 @@
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 {% if has_ke_pan %}<script src="assets/jstree/jstree.min.js"></script>{% end %}
-<script src="assets/reader.js?v=206"></script>
+<script src="assets/reader.js?v=207"></script>
 {% for fn in json_files %}
 <script src="data/{{fn}}"></script>
 {% end %}

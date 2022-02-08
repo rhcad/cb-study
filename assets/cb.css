@@ -81,14 +81,16 @@ body {
   font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', 'Microsoft YaHei', arial, sans-serif;
 }
 
-.no-print, nav, footer, .note-tag, .task-step {
+.no-print, nav, footer, .note-tag, .task-step,
+.note-raw .org-text, .note-p .p-close {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
 }
 
 @media print {
-  .no-print, nav, footer, .note-tag {
+  .no-print, nav, footer, .note-tag,
+  .note-raw .org-text, .note-p .p-close {
     display: none;
   }
 }
@@ -306,6 +308,9 @@ span[ke-pan] > .ke-pan-text {
 #content td {
   padding: .5em;
   font-size: 18px;
+}
+#content td.ke-line {
+  padding: 0 .5em;
 }
 
 .dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover {

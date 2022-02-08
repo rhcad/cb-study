@@ -104,9 +104,18 @@ function showTwoColumns() {
 function getVisibleColumns() {
   const $cols = $( $('.cell,.original')[0]).closest('.row').children('.cell:visible');
   return $cols.map(function () {
-    const m = Array.from(this.className.matchAll(/cell-(\d+)/g))[0];
-    return parseInt(m && m[1]);
+    return parseInt(matchAll(/cell-(\d+)/g, this.className)[0]);
   }).get().filter(v => !isNaN(v));
+}
+
+function matchAll(re, str) {
+  let match;
+  const matches = [];
+
+  while (match = re.exec(str)) {
+    matches.push.apply(matches, match.slice(1));
+  }
+  return matches;
 }
 
 /**
@@ -702,7 +711,7 @@ function getNoteContent(note, title, rows, rawNote, desc) {
             '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
         '</span><span class="note-text">' + note[i + 2] + '</span> ' +
         (!desc || i + 5 < note.length ? '' :
-            `<span class="note-from" title="双击注解块可隐藏">${desc} ×</span>`)
+            `<span class="note-from" title="双击注解块可隐藏">${desc} <span class="p-close">×</span></span>`)
         + '</span>');
   }
   if (rawNote) {
@@ -930,6 +939,7 @@ $('#to-table').click(() => {
 
   let $table = $('#content table'),
     $rows = $('#content > .row,#content > .ke-line'),
+    visCols = getVisibleColumns().length,
     colCount = parseInt($('body').attr('data-col-count')) || 2,
     w = Math.floor(1000 / colCount) / 10;
 
@@ -939,11 +949,13 @@ $('#to-table').click(() => {
   $rows.each((i, el) => {
     const $tr = $('<tr/>');
     if (/ke-line/.test(el.className)) {
-      $tr.append($(el).changeElementType('td'));
+      const $td = $(el.outerHTML.replace(/^<div |<\/div>$/g, s => s.replace('div', 'td')));
+      $tr.append($td.attr({colspan: visCols}));
     } else {
       for (let i = 0; i < colCount; i++) {
         const $td = $(`<td class="cell cell-${i}" width="${w}%"/>`).appendTo($tr);
-        $td.append($('.cell-' + i, el).html());
+        const $cell = $('.cell-' + i, el);
+        $td.append($cell.html()).toggle($cell.is(':visible'));
       }
     }
     $table.append($tr);
