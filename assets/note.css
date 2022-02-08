@@ -5,7 +5,7 @@
   border-radius: 4px;
   padding: .5em;
   text-indent: 0;
-  font-size: .8em;
+  font-size: .9em;
   -moz-box-shadow: 1px 1px 1px #aaa;
   box-shadow: 1px 1px 1px #aaa;
   transition: background-color 200ms ease-out,display 200ms ease-out;
@@ -17,16 +17,27 @@
   font-weight: 300;
 }
 .note-raw .org-text {
-  font-size: 9px;
+  font-size: .5em;
+  display: none;
+}
+.note-item {
+  display: block;
+}
+.note-raw {
+  text-indent: 2em;
 }
 .note-text {
   color: #444;
+  font-family: STKaiti,"Kaiti SC","楷体","楷体_GB2312",KaiTi,KaiTi_GB2312,DFKai-SB;
 }
 .note-from {
   font-size: .7em;
   color: #99a;
   display: inline-block;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .note-raw .note-from {
   display: block;

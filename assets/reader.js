@@ -711,7 +711,7 @@ function getNoteContent(note, title, rows, rawNote, desc) {
             '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
         '</span><span class="note-text">' + note[i + 2] + '</span> ' +
         (!desc || i + 5 < note.length ? '' :
-            `<span class="note-from" title="双击注解块可隐藏">${desc} <span class="p-close">×</span></span>`)
+            `<span class="note-from" title="单击此处隐藏，双击注解块也可隐藏">${desc} <span class="p-close">×</span></span>`)
         + '</span>');
   }
   if (rawNote) {
@@ -748,7 +748,7 @@ function insertNotes($side, notes, desc) {
       $exist.length = 0;
     }
     if (!$exist.length) {
-      $(`<p class="note-p" data-nid="${id}">${rows.join('<br>')}</p>`)
+      $(`<p class="note-p" data-nid="${id}">${rows.join('')}</p>`)
           .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
     }
   });
@@ -826,7 +826,7 @@ if (cbOptions.hideNavbar) $('body').toggleClass('hide-navbar');
 function toggleColumn(index, save) {
   if (index >= 0) {
     const $cell = $(`.cell-${index},.original#body${index}`), visible = !$cell.is(':visible');
-    $cell.toggle(100, null, visible);
+    $cell.toggle(visible);
     setTimeout(updateColumnStatus, 100);
     if (save) {
       cbOptions.colHide = cbOptions.colHide || {};
