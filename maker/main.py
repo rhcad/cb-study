@@ -20,7 +20,7 @@ THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
 
-define('port', default=8002, help='run port', type=int)
+define('port', default=8003, help='run port', type=int)
 define('debug', default=True, help='the debug mode', type=bool)
 
 
@@ -259,11 +259,12 @@ class HtmlDownloadHandler(CbBaseHandler):
     def post(self, page_id):
         """从CBeta获取原文HTML"""
         try:
-            cb_ids = to_basestring(self.get_argument('urls', ''))
-            urls = [s.split('+') for s in cb_ids.split('|')] if cb_ids else []
-
             page = self.load_page(page_id)
-            if urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
+            cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
+            force = self.get_argument('reset', 0)
+
+            urls = [s.split('+') for s in cb_ids.split('|')] if cb_ids else []
+            if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
                 page['info']['step'] = 1
             else:
                 content = []
@@ -536,7 +537,7 @@ class PageNoteHandler(CbBaseHandler):
                 return self.link_note(page, tag, nid)
 
             if nid and self.get_argument('split', 0):
-                return self.split_note(page, tag, nid)
+                return self.split_note(page, tag, nid, to_basestring(self.get_argument('split')))
 
             if self.get_argument('ignore', 0):
                 return self.ignore_note(page, tag)
@@ -545,16 +546,44 @@ class PageNoteHandler(CbBaseHandler):
         except Exception as e:
             self.on_error(e)
 
+    @staticmethod
+    def find_note(notes, line_no, text):
+        for (i, t) in enumerate(notes or []):
+            for j in range(int(len(t) / 3)):
+                if (not line_no or line_no == t[j * 3 + 1]) and t[j * 3 + 2].replace('-', '') in text:
+                    return i, t[j * 3: j * 3 + 3]
+
+    @staticmethod
+    def get_ids_by_line(notes, line_no):
+        ids = []
+        for (i, t) in enumerate(notes or []):
+            for j in range(int(len(t) / 3)):
+                if line_no == t[j * 3 + 1]:
+                    ids.append(t[j * 3])
+        return ids
+
     def add_notes(self, page, tag):
         name = to_basestring(self.get_argument('name', ''))
         desc = to_basestring(self.get_argument('desc', ''))
         col = int(self.get_argument('col', 0) or 0)
+        reset = self.get_argument('reset', 0)
 
-        assert tag not in page['notes'], 'tag exists'
+        assert reset or tag not in page['notes'], 'tag exists'
         notes, raw, orig = [], [], ''
         new_item = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
+        old_item = page['notes'].get(tag, {})
         lines = json_decode(self.get_argument('lines'))
-        new_id = page['info'].get('note_id', 0)
+        
+        new_id = 0 if reset else page['info'].get('note_id', 0)
+        if page['notes'].get(tag):
+            min_id = 9999
+            for a in old_item.get('raw', []):
+                min_id = min(min_id, a[0])
+            for a in old_item.get('notes', []):
+                min_id = min(min_id, a[0])
+            if min_id < 9999:
+                new_id = min_id - 1
+        start_id = new_id + 1
 
         for r in lines:
             if not r.get('text'):
@@ -573,17 +602,40 @@ class PageNoteHandler(CbBaseHandler):
                 raw.append([new_id, r['line'], r['text']])
 
         if notes or raw:
+            if not reset and tag not in page['notes']:
+                page['info']['notes'] = page['info'].get('notes', []) + [' '.join([str(col), tag, name, desc])]
             if raw:
                 new_item['raw'] = raw
-            new_id = int((new_id + 19) / 10) * 10
+                new_item['notes'] = notes or old_item.get('notes', [])
+                for r in raw:
+                    ids = self.get_ids_by_line(old_item.get('raw'), r[1])
+                    if ids:
+                        r[0] = min(ids)
+                    else:
+                        logging.warning('new note: {}'.format(json.dumps(r, ensure_ascii=False)))
+            if not old_item:
+                new_id = int((new_id + 19) / 10) * 10
+                page['info']['note_id'] = new_id
             page['notes'][tag] = new_item
-            page['info']['note_id'] = new_id
-            logging.info('{0}: add {1} comments'.format(tag, len(notes)))
+            logging.info('{0}: add {1}+{2} comments, {3} to {4}'.format(tag, len(notes), len(raw), start_id, new_id))
+
+            for (li, log) in enumerate([]):  # reset and page['log']
+                m = re.search(r'^Split note #(\d+) at (\w+) of {0} with #([\d,]+): (.+@.*)$'.format(tag), log)
+                if m:
+                    nid, new_ids, line_no, text = m.group(1), m.group(3), m.group(2), m.group(4)
+                    nid, new_ids = int(nid), [int(t) for t in new_ids.split(',')]
+                    r = self.find_note(raw, line_no, text.replace('@', ''))
+                    if not r:
+                        logging.warning('{0} {1} not found: {2}'.format(nid, line_no, text))
+                        assert 0, '{0} {1} not found'.format(nid, line_no)
+                    i, note = r
+                    self.split_note(None, page, tag, raw[i][0], text, new_ids)
             self.save_page(page)
         self.write(dict(tag=tag, count=len(raw or notes)))
 
-    def split_note(self, page, tag, nid):
-        split = to_basestring(self.get_argument('split')).split('@')
+    @staticmethod
+    def split_note(self, page, tag, nid, split, give_ids=None):
+        split = split.split('@')
         item = page['notes'].get(tag)
         assert item, 'tag not exists'
         raw = item['raw']
@@ -591,7 +643,9 @@ class PageNoteHandler(CbBaseHandler):
         assert len(upd) == 1, 'raw {0} not exists'.format(nid)
         index, upd = upd[0]
         assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
-        assert split[0] and upd[2] == ''.join(split), 'text mismatch'
+        if not split[0] or upd[2] != ''.join(split):
+            logging.warning('{0} text mismatch: {1} != {2}'.format(nid, upd[2], ''.join(split)))
+            assert 0, '{0} text mismatch'.format(nid)
 
         upd[2] = split[0]
         for (i, r) in enumerate(item['notes']):
@@ -601,18 +655,25 @@ class PageNoteHandler(CbBaseHandler):
         new_ids = []
         new_id = page['info'].get('note_id', 0)
         for (i, text) in enumerate(split[1:]):
-            new_id += 1
+            if give_ids:
+                assert i < len(give_ids), '{0} out of range: {1}'.format(i, ','.join(give_ids))
+                new_id = give_ids[i]
+            else:
+                new_id += 1
             r = [new_id, upd[1], text]
             raw.insert(index + i + 1, r)
             new_ids.append(str(new_id))
 
-        log = 'Split note #{0} at {1} with #{2}: {3}'.format(nid, index, ','.join(new_ids), '@'.join(split))
-        logging.info(log)
-        page['log'].append(log)
-        page['info']['note_id'] = new_id
+        if not give_ids and not self:
+            log = 'Split note #{0} at {1} of {2} with #{3}: {4}'.format(
+                nid, upd[1], tag, ','.join(new_ids), '@'.join(split))
+            logging.info(log)
+            page['log'].append(log)
+            page['info']['note_id'] = new_id
 
-        self.save_page(page)
-        self.write(dict(ids=','.join(new_ids), raw=raw))
+        if self:
+            self.save_page(page)
+            self.write(dict(ids=','.join(new_ids), raw=raw))
 
     def link_note(self, page, tag, nid):
         ids = [int(r) for r in self.get_argument('remove').split(',') if r]

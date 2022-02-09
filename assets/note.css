@@ -26,6 +26,12 @@
 .note-raw {
   text-indent: 2em;
 }
+.show-line-no .note-raw .org-text {
+  display: inline-block;
+}
+.show-line-no .note-raw {
+  text-indent: 0;
+}
 .note-text {
   color: #444;
   font-family: STKaiti,"Kaiti SC","楷体","楷体_GB2312",KaiTi,KaiTi_GB2312,DFKai-SB;

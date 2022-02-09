@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang=zh-CN>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta charset="UTF-8">
   <title>{{info['caption']}}制作</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="{{static_url('img/favicon.ico')}}"/>
@@ -91,8 +91,8 @@
           <ul class="dropdown-menu">
             <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
             <li><a href="#" class="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
-            <li><a href="#" id="show-notes" title="切换是否显示全部注解">注解</a></li>
-            <li><a href="#" id="hide-navbar" title="切换是否隐藏导航栏">导航栏</a></li>
+            <li><a href="#" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
+            <li><a href="#" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
             <li><a href="#" id="reduce-font" title="减少正文字号">减少字号</a></li>
@@ -310,6 +310,7 @@
 <script src="{{static_url('reader.js')}}"></script>
 <link href="{{static_url('js/jquery.contextMenu.css')}}" rel="stylesheet"/>
 <script src="{{static_url('js/jquery.contextMenu.js')}}"></script>
+<script src="{{static_url('label/fetch-note.js')}}"></script>
 
 {% if step == 1 %}
 <script src="{{static_url('label/group-rows.js')}}"></script>
@@ -370,9 +371,6 @@
   })
 
   const reload = () => location.reload()
-  function ajaxError(title, op) {
-    return xhr => showError(title, `[${xhr.status}] ${xhr.statusText}`, op)
-  }
 
   // 第二步保存段落分组数据，给“移为一组”按钮用
   function saveRowPairs(autoReload, pairs) {
@@ -423,44 +421,7 @@
   window.paraIds = '{{paragraph_ids}}'.split(',')
 
   // 增加一个注释来源，自动获取并解析原文
-  $('.fetch-note').click(() => {
-    const val = $('.note-tag-group>input').val().split(/\s+/)
-    const [tag, name] = val
-    const cols = getVisibleColumns()
-
-    if (cols.length > 1) {
-      return showError('获取失败', '请切换为只显示一栏再重试。')
-    }
-    $.get('/cb/html/' + name, r => {
-      const lines = []
-      $(r.html).find('.div-orig,.div-commentary').each((i, div) => {
-        const text = div.innerText.split('\n').map(s => s.trim()).filter(s => s && !/^△/.test(s)).join('\n')
-        if (text) {
-          lines.push({orig: /div-orig/.test(div.className) ? '1' : '0', text: text})
-        }
-      })
-      if (lines.length < 1) {
-        let lastNoLine;
-        $(r.html).find('p,.lg-row').each((i, p) => {
-          const text = p.innerText.trim(),
-                  line = $('span.lineInfo', p).attr('line'),
-                  item = {text: text, line: line}
-          if (text) {
-            if (line && lastNoLine) {
-              lastNoLine.line = line
-            }
-            lastNoLine = !line && item
-            lines.push(item);
-          }
-        });
-      }
-      $.post('/cb/page/note/{{id}}', {
-        'tag': tag, 'name': name, 'desc': val.slice(2).join(' '), 'col': cols[0],
-        'lines': JSON.stringify(lines)}, r => {
-        showSuccess('保存注解', `${tag} 导入了 ${r.count} 条注解。`, r.count && reload)
-      }).error(ajaxError('保存注解失败'))
-    }).error(ajaxError('获取失败'))
-  })
+  $('.fetch-note').click(() => fetchNote(pageName, $('.note-tag-group>input').val().split(/\s+/g), getVisibleColumns()))
 
   // 第4步导航栏右侧的注解标签，切换注解标引
   function _initNotesBtnClick(btn, first) {

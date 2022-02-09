@@ -28,6 +28,15 @@ def convert_cb_html(content, html, name):
         text = re.sub(r"<p class='juan'>[^<>]+</p>\n</div>",
                       lambda _: _.group().replace("'juan'", "'juan juan-end'"), text)
 
+        def sub_juan(_):
+            juan[1] += 1
+            return _.group().replace("'juan'", "'juan juan-end'") if juan[1] == 2 else _.group()
+
+        juan = re.findall(r"class='juan'[^>]*>([^<>]+)<", text)
+        if juan:
+            juan = [juan[0], 0]
+            text = re.sub(r"class='juan'[^>]*>{}<".format(juan[0]), sub_juan, text)
+
         # 后面有卷时加上编号文本，将先前的(序言)去掉编号文本
         if re.search("(class='juan')(>[^<]+?)</p>", text):
             text = text.replace(s_no, '')
@@ -76,7 +85,9 @@ def merge_cb_html(content):
     for (i, html) in enumerate(content):
         html = re.sub("<div ([^<>]*)id='body'>", lambda m: "<div {0}id='body{1}'>".format(m.group(1), i), html)
         html = re.sub(r' style=\"[^"\'<>]+\"', '', html)
+        html = re.sub(r'(</(p|div)>){2,9}', lambda m: m.group().replace('><', '>\n<'), html)
+        html = re.sub(r'><(p|div)', lambda m: '>\n' + m.group()[1:], html)
         html = re.sub(r'<(p)[ >]', sub_p, html)
         html = re.sub(r'<div (class="lg[ "])', sub_g, html)
-        html = re.sub(r'<div( id=\'g\d+\')? class="(lg|lg-row|lg-cell)[ "]', sub_lg_row, html)
-        content[i] = html
+        html = re.sub(r'<div( id=\'g\d+\')? class=[\'"](lg|lg-row|lg-cell)[ \'"]', sub_lg_row, html)
+        content[i] = re.sub(r'\n{2,5}', '\n', html).strip()

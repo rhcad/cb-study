@@ -1,8 +1,12 @@
 // reader.js
-// Updated on 2022.1.21
+// Updated on 2022.2.9
 /**
+ * matchAll, scrollToVisible
+ * saveCbOptions
  * toggleLineNo, toggleXu, toggleParaBox
  * showLeftColumn, showRightColumn, showTwoColumns
+ * getVisibleColumns
+ * updateColumnStatus
  * enlargeFont, reduceFont, enlargeKePanFont, reduceKePanFont
  * setKePanWidth
  * movePairs
@@ -10,7 +14,7 @@
  * showInlineKePan, showInlineWithoutKePan
  * highlightKePan, showKePanPath
  * getKePanId
- * insertNotes
+ * insertNotes, getNoteContent
  */
 
 try {
@@ -20,6 +24,9 @@ if (!window.cbOptions || typeof window.cbOptions !== 'object') {
   window.cbOptions = {};
 }
 
+/**
+ * 保存UI配置，需要在页面定义 window.pageName
+ */
 function saveCbOptions() {
   if (typeof window.pageName === 'string') {
     localStorage.setItem('cbOptions' + window.pageName, JSON.stringify(cbOptions));
@@ -67,7 +74,7 @@ function toggleParaBox() {
 }
 
 /**
- * 显示左边文(.row > .cell-0)
+ * 显示左边文(.row > .cell-0)，将废弃
  */
 function showLeftColumn() {
   const $left = $('.cell-0,.original#body0'), $right = $('.cell,.original');
@@ -77,7 +84,7 @@ function showLeftColumn() {
 }
 
 /**
- * 显示右边文(.row > .cell-1)
+ * 显示右边文(.row > .cell-1)，将废弃
  */
 function showRightColumn() {
   const $left = $('.cell,.original'), $right = $('.cell-1,.original#body1');
@@ -87,7 +94,7 @@ function showRightColumn() {
 }
 
 /**
- * 显示左右对照文(.row > .cell-0.col-xs-6)
+ * 显示左右对照文(.row > .cell-0.col-xs-6)，将废弃
  */
 function showTwoColumns() {
   const $col = $('.cell,.original'),
@@ -100,6 +107,7 @@ function showTwoColumns() {
 
 /**
  * 得到可见栏的栏序
+ * @return {number[]}
  */
 function getVisibleColumns() {
   const $cols = $( $('.cell,.original')[0]).closest('.row').children('.cell:visible');
@@ -108,6 +116,12 @@ function getVisibleColumns() {
   }).get().filter(v => !isNaN(v));
 }
 
+/**
+ * 代替 string.matchAll
+ * @param {RegExp} re 正则式，每个()括号部分对应一个匹配元素
+ * @param {string} str 待查找的串
+ * @return {string[]} 每个匹配元素
+ */
 function matchAll(re, str) {
   let match;
   const matches = [];
@@ -162,8 +176,9 @@ let _updateColumnStatusTm;
 
 /**
  * 设置左右对照等下拉菜单的状态
+ * @private
  */
-function initCbLiStatus() {
+function _initCbLiStatus() {
   const $left = $('.cell-0,.original#body0'), $right = $('.cell-1,.original#body1');
 
   if ($left.length || $right.length) {
@@ -178,7 +193,7 @@ function initCbLiStatus() {
     window.colHideDefault.forEach(c => (cbOptions.colHide['' + c] = true));
   }
   setTimeout(() => {
-    Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && toggleColumn(parseInt(k), false));
+    Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && _toggleColumn(parseInt(k), false));
   }, 10);
   if (cbOptions.hideXu) {
     toggleXu(false);
@@ -300,8 +315,12 @@ function _toPairSelectors(idsText) {
   });
 }
 
-let _newKePan = 0, _initKePanTm, _hasKeLine;
+/**
+ * 科判类型定义，每一个元素为一种科判类型，为 [数字的类型号, 名称, 说明]
+ * @type {string[][]}
+ */
 const kePanTypes = window.kePanTypes || [];
+let _newKePan = 0, _initKePanTm, _hasKeLine;
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
@@ -504,7 +523,7 @@ function _findKePanLineId(el) {
 }
 
 /**
- * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号
+ * 单击科判节点后将当前选中文本提取为一个span，并设置其科判编号，将废弃
  * @param {string} tag 科判标记的属性名，一般为 'ke-pan'
  * @param {string} value 科判编号
  * @param {string} text 科判文本
@@ -703,6 +722,14 @@ function getKePanId(el) {
   }
 }
 
+/**
+ * 得到注解块的构建HTML
+ * @param {*[]} note 注解ID{number}、原文内容或行号{string}、注解内容，元素个数为3的整数倍
+ * @param {string[]} title: note 的每一组注解的原文内容
+ * @param {string[]} rows 注解块的构建HTML
+ * @param {boolean} rawNote 原注解是否为普通网页，即在CBeta平台中页面内容未标注为原文与注解
+ * @param {string} desc 注解来源的简要说明
+ */
 function getNoteContent(note, title, rows, rawNote, desc) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     title.push(note[i + 1]);
@@ -803,6 +830,7 @@ $(document).on('click', '[ke-pan],.ke-line,p[id^=p]', function (e) {
   highlightKePan(getKePanId(e.target), 'click');
 });
 
+// 科判树的显示比例菜单项的点击
 $('.ke-pan-ratio a').on('click', function () {
   setKePanWidth($(this).text());
 });
@@ -823,11 +851,17 @@ $('#hide-navbar').click(function () {
 }).toggle(window.innerWidth > 768);
 if (cbOptions.hideNavbar) $('body').toggleClass('hide-navbar');
 
-function toggleColumn(index, save) {
+/**
+ * 切换正文栏的可见性
+ * @param {number} index 栏序号
+ * @param {boolean} save 是否保存配置
+ * @private
+ */
+function _toggleColumn(index, save) {
   if (index >= 0) {
     const $cell = $(`.cell-${index},.original#body${index}`), visible = !$cell.is(':visible');
     $cell.toggle(visible);
-    setTimeout(updateColumnStatus, 100);
+    updateColumnStatus();
     if (save) {
       cbOptions.colHide = cbOptions.colHide || {};
       cbOptions.colHide['' + index] = !visible;
@@ -842,7 +876,7 @@ $('.toggle-column > button').click(function () {
   if (text === '序') {
     return toggleXu(true);
   } else {
-     toggleColumn(idx, true);
+     _toggleColumn(idx, true);
   }
 });
 
@@ -884,7 +918,7 @@ $(document).on('click', '.note-tag', function (e) {
   e.stopPropagation();
 });
 
-function toggleNoteP(e) {
+function _toggleNoteP(e) {
   const $p = $(e.target).closest('.note-p'),
       id = $p.attr('data-nid'),
       $tag = $(`.note-tag[data-nid=${id}]`);
@@ -896,8 +930,8 @@ function toggleNoteP(e) {
 }
 
 // 双击注解段落则收起隐藏
-$(document).on('dblclick', '.note-p', toggleNoteP);
-$(document).on('click', '.note-p .note-from', toggleNoteP);
+$(document).on('dblclick', '.note-p', _toggleNoteP);
+$(document).on('click', '.note-p .note-from', _toggleNoteP);
 
 // 单击 … 展开文字
 $(document).on('click', '.more', function (e) {
@@ -963,4 +997,4 @@ $('#to-table').click(() => {
   });
 });
 
-initCbLiStatus();
+_initCbLiStatus();
