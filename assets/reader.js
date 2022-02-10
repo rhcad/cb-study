@@ -52,8 +52,8 @@ function toggleXu(save) {
   if ($('.div-xu,.xu-more').length) {
     const hide = !$('body').hasClass('hide-div-xu');
     $('.div-xu').each(function () {
-      if (!$('.xu-more', this).length && !/xu-more/.test(this.className)) {
-        $(this).toggle(hide);
+      if (!$('.xu-more', this).length && !/xu-more/.test(this.className) && this.innerText.length > 20) {
+        $(this).toggle(!hide);
       }
     });
     $('body').toggleClass('hide-div-xu', hide);
@@ -139,7 +139,7 @@ function updateColumnStatus() {
   clearTimeout(_updateColumnStatusTm);
   _updateColumnStatusTm = setTimeout(() => {
     const liXu = $('.hide-xu').closest('li'), $showXu = $('.show-xu'),
-        $xu = $('.div-xu:visible'), $more = $('.xu-more:visible');
+        $xu = $('.div-xu'), $more = $('.xu-more');
 
     liXu.toggleClass('disabled', !$xu.length && !$more.length);
     liXu.toggleClass('active', $('body').hasClass('hide-div-xu'));
@@ -194,10 +194,10 @@ function _initCbLiStatus() {
   }
   setTimeout(() => {
     Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && _toggleColumn(parseInt(k), false));
+    if (cbOptions.hideXu) {
+      toggleXu(false);
+    }
   }, 10);
-  if (cbOptions.hideXu) {
-    toggleXu(false);
-  }
   $('.show-inline-ke-pan-btn').toggleClass('active', !cbOptions.hideInlineKePan)
       .closest('li').toggleClass('active', !cbOptions.hideInlineKePan);
   if (cbOptions.hideInlineKePan) {
@@ -324,7 +324,8 @@ let _newKePan = 0, _initKePanTm, _hasKeLine;
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
- * @param {string} idsText 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，编号末尾有减号表示转为隐藏文本，有星号为移动原文
+ * @param {string} idsText 多行编号，每行用竖线符 | 隔开，编号之间用空格分隔，
+ *                         编号末尾有减号表示转为隐藏文本，有星号为移动原文，有点号“.”为序言
  *                         如果行首是“:ke ”，则解析为科判条目，随后的文本用减号表示缩减层级
  * @return {string} 警告文本
  */
@@ -362,20 +363,20 @@ function movePairs(idsText) {
   colIds.forEach((ids, col) => {
     let $lg;
     for (const id of ids) {
-      let id2 = id.replace(/[*-]+$/, ''), // 编号末尾有减号表示转为隐藏文本
+      let id2 = id.replace(/[*.-]+$/, ''), // 编号末尾有减号表示转为隐藏文本
           $el = $(id2 || 'e', $articles[col]),
           parent = $el.parent(),
           xu = $el.closest('.div-xu');
 
       if ($el.length) {
         $el.remove();
-        if (xu.length) {
+        if (xu.length || /\.[*-]?$/.test(id)) {
           $el.addClass($el.text().length > 40 ? 'xu-more' : 'div-xu');
         }
         if (/\*/.test(id)) {
           $el.addClass('moved');
         }
-        if (/-[*]?$/.test(id)) {
+        if (/-[*.]?$/.test(id)) {
           $el.addClass('hide-txt');
         } else {
           count++;

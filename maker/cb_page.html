@@ -268,7 +268,7 @@
   </div>
   <div class="row-pairs-div">
     <textarea rows="10" id="row-pairs-area"></textarea>
-    <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击）。<br/>以“:ke ”开头的行是科判条目，其后的文本可加多个减号表示科判层级。</div>
+    <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击），有点号“.”为序言。<br/>以“:ke ”开头的行是科判条目，其后的文本可加多个减号表示科判层级。</div>
   </div>
   <div>
     <button class="btn btn-default btn-sm" id="to-original" title="滚动到合并区下方的红线处，即未合并内容的上方">到分隔线</button>
@@ -421,7 +421,7 @@
   window.paraIds = '{{paragraph_ids}}'.split(',')
 
   // 增加一个注释来源，自动获取并解析原文
-  $('.fetch-note').click(() => fetchNote(pageName, $('.note-tag-group>input').val().split(/\s+/g), getVisibleColumns()))
+  $('.fetch-note').click(() => fetchNote(pageId, $('.note-tag-group>input').val().split(/\s+/g), getVisibleColumns()))
 
   // 第4步导航栏右侧的注解标签，切换注解标引
   function _initNotesBtnClick(btn, first) {

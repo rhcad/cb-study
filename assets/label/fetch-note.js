@@ -1,4 +1,4 @@
-function fetchNote(pageName, val, cols, reset, success) {
+function fetchNote(pageId, val, cols, reset, success) {
   const [tag, name] = val
 
   if (cols.length > 1) {
@@ -27,7 +27,7 @@ function fetchNote(pageName, val, cols, reset, success) {
         }
       });
     }
-    $.post('/cb/page/note/' + pageName, {
+    $.post('/cb/page/note/' + pageId, {
       tag: tag, name: name, desc: val.slice(2).join(' '), col: cols[0], reset: reset,
       lines: JSON.stringify(lines)}, r => {
       showSuccess('保存注解', `${tag} 导入了 ${r.count} 条注解。`, r.count && (success || reload))
