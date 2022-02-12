@@ -60,7 +60,14 @@
     body:not(.hide-label-panel)[data-step="3"] .input-group.note-tag-group { width: calc(100% - 380px); }
 
     .list-note { margin-left: 2em; }
-    .list-note > span { border: 1px solid rgba(27,31,35,0.1); padding: 2px 4px; border-radius: 3px; }
+    .list-note > span {
+      display: inline-block;
+      border: 1px solid rgba(27, 31, 35, 0.2);
+      padding: 2px 4px;
+      border-radius: 3px;
+      min-width: 20px;
+      text-indent: 0;
+    }
   </style>
 </head>
 <body data-step="{{step}}" data-no-note="{{'' if info.get('note_id') else 'true'}}">
@@ -82,31 +89,31 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#">{{info['caption']}}</a></li>
+        <li class="active"><a href="javascript:">{{info['caption']}}</a></li>
 
         {% if page.get('html') %}
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
              aria-expanded="false">显示 <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
-            <li><a href="#" class="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
-            <li><a href="#" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
-            <li><a href="#" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+            <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+            <li><a href="javascript:" class="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
+            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
+            <li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
-            <li><a href="#" id="reduce-font" title="减少正文字号">减少字号</a></li>
+            <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
+            <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="show-left" title="只显示左文、第1栏">左文</a></li>
-            <li><a href="#" id="show-right" title="只显示右文、第2栏">右文</a></li>
-            <li><a href="#" id="show-both" title="左右对照显示">对照</a></li>
+            <li><a href="javascript:" id="show-left" title="只显示左文、第1栏">左文</a></li>
+            <li><a href="javascript:" id="show-right" title="只显示右文、第2栏">右文</a></li>
+            <li><a href="javascript:" id="show-both" title="左右对照显示">对照</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
-            <li><a href="#" id="show-line-no" title="切换是否显示行号">行号</a></li>
-            <li><a href="#" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
+            <li><a href="javascript:" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
+            <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
+            <li><a href="javascript:" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
             {% if step > 1 %}
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
+            <li><a href="javascript:" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
             {% end %}
           </ul>
         </li>
@@ -114,7 +121,7 @@
 
         {% if has_ke_pan %}
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
              aria-expanded="false">科判 <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li class="ke-pan-ratio"><a>隐藏</a></li>
@@ -126,10 +133,10 @@
             <li class="ke-pan-ratio"><a>50%</a></li>
             <li class="ke-pan-ratio"><a>100%</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
+            <li><a href="javascript:" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
-            <li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+            <li><a href="javascript:" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+            <li><a href="javascript:" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
           </ul>
         </li>
         {% end %}
@@ -159,8 +166,8 @@
       </div>
 
       <ul class="nav navbar-nav navbar-right">
-        {% for tag, v in (step==3 and page.get('notes') or {}).items() %}
-        <li><a href="#" data-tag="{{tag}}" data-col="{{v['col']}}"
+        {% for tag, v in (step==3 and notes or []) %}
+        <li><a href="javascript:" data-tag="{{tag}}" data-col="{{v['col']}}"
                title="{{v.get('desc') or v['name']}}"
                class="init-notes-btn init-notes-{{v['col']}}">[{{tag}}]</a></li>
         {% end %}
@@ -174,7 +181,8 @@
   <div class="task-step" data-step="0">
     <p class="step-title"><span>第1步</span>：获取CBeta网页原文</p>
     <div class="step-content">
-      <p>请输入要获取原文的<i>经号_卷号</i>，用“|”分隔需要左右对照的经文（最多12篇），用“+”分隔需要合并多卷的经文，可加经文简要描述并用空格分隔。</p>
+      <p>请输入要获取原文的<i>经号_卷号</i>，用“|”分隔需要左右对照的经文（最多12篇），可加经文简要描述并用空格分隔。</p>
+      <p>可用“_”分隔需要合并的多卷，卷号为三位数，例如“T1666 梁譯|T1667_001_002 唐譯”。</p>
       <p>“获取原文”后，将重置原始网页内容，不改变段落分组设置、嵌入的注解。</p>
       <div class="input-group">
         <input type="text" class="form-control" id="cb_ids" value="{{cb_ids}}">
@@ -185,15 +193,15 @@
 
       <p style="margin-top: 10px">在“获取原文”前可提前导入注解，将在第4步中使用。</p>
       <div class="input-group note-tag-group">
-        <input type="text" class="form-control" placeholder="按“标记字 注解的经号_卷号 可选的注解名称”格式输入">
+        <input type="text" class="form-control" placeholder="按“栏序号 标记字 注解的经号_卷号 可选的注解名称”格式输入">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default fetch-note">导入注解</button>
         </div>
       </div>
-      <p>按“标记字 注解的经号_卷号 可选的注解名称”格式输入，多个卷号用_分隔。例如“義 T1846 義記，釋法藏撰”、
-        “流 T1511_001_002 T1511 金剛般若波羅蜜經論”。</p>
-      {% for tag, v in (page.get('notes') or {}).items() %}
-      <p class="list-note"><span>{{tag}}</span> <span>{{v['name']}}</span> <span>{{v['desc']}}</span></p>
+      <p>按“栏序号|标记字|注解的经号_卷号|可选的注解名称”格式输入，多个卷号用_分隔。例如“0|義|T1846|義記，釋法藏撰”、
+        “1|流|T1511_001_002|T1511 金剛般若波羅蜜經論”。</p>
+      {% for row in info.get('notes', []) %}
+      <p class="list-note">{% for s in row.split('|') %}<span>{{s}}</span> {% end %}</p>
       {% end %}
     </div>
   </div>
@@ -202,7 +210,7 @@
     <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配，设置科判</p>
     <div class="step-content">
       {% if info.get('cols', 1) > 1 %}
-      <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮。如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。</p>
+      <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮或按回车。如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。</p>
       {% else %}
       <p>如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。完成可进入 <a class="end-move-rows"><b>下一步</b></a>。</p>
       {% end %}
@@ -217,8 +225,8 @@
         <li>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</li>
         <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>，
           以便在正文中随时阅读相关经典释文。</li>
-        <li>可 <a href="#" id="download-html">下载当前HTML</a>
-          {% if page.get('notes') %}<a href="#" id="download-notes">下载注解</a>{% end %}
+        <li>可 <a href="javascript:" id="download-html">下载当前HTML</a>
+          {% if notes %}<a href="javascript:" id="download-notes">下载注解</a>{% end %}
           以便发布离线网页。</li>
       </ul>
     </div>
@@ -232,13 +240,13 @@
       <p>如果按下了Shift或Ctrl键，则按回车键时不自动切换到下一条，可以将多个连续段落与此注解关联。</p>
 
       <div class="input-group note-tag-group">
-        <input type="text" class="form-control" placeholder="按“标记字 注解的经号_卷号 可选的注解名称”格式输入">
+        <input type="text" class="form-control" placeholder="按“标记字|注解的经号_卷号|可选的注解名称”格式输入">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default fetch-note">导入注解</button>
         </div>
       </div>
-      <p>按“标记字 注解的经号_卷号 可选的注解名称”格式输入，多个卷号用_分隔。例如“義 T1846 義記，釋法藏撰”、
-        “流 T1511_001_002 T1511 金剛般若波羅蜜經論”。</p>
+      <p>按“标记字|注解的经号_卷号|可选的注解名称”格式输入，多个卷号用_分隔。例如“義|T1846|義記，釋法藏撰”、
+        “流|T1511_001_002|T1511 金剛般若波羅蜜經論”。</p>
     </div>
   </div>
   {% end %}
@@ -261,7 +269,7 @@
       <div class="col-xs-8 row-ids row-ids-{{ic}}"></div>
     </div>
     {% end %}
-    <button class="btn btn-default btn-sm" id="move-row" title="将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
+    <button class="btn btn-default btn-sm" id="move-row" title="（可按回车）将此组段落移到左上的合并区，成为左右对照的一组">移为一组</button>
     <button class="btn btn-default btn-sm" title="重新应用下面输入区域的分组设置" onclick="applyRowPairs()">应用输入</button>
     <button class="btn btn-sm hide-label-panel" title="隐藏标注面板">×</button>
     <button class="btn btn-primary btn-sm end-move-rows" title="段落分组完成，进入下一步">完成</button>
@@ -421,7 +429,7 @@
   window.paraIds = '{{paragraph_ids}}'.split(',')
 
   // 增加一个注释来源，自动获取并解析原文
-  $('.fetch-note').click(() => fetchNote(pageId, $('.note-tag-group>input').val().split(/\s+/g), getVisibleColumns()))
+  $('.fetch-note').click(() => fetchNote(pageId, $('.note-tag-group>input').val().split('|'), getVisibleColumns()))
 
   // 第4步导航栏右侧的注解标签，切换注解标引
   function _initNotesBtnClick(btn, first) {
@@ -503,14 +511,14 @@
     {% end %}
   })
 
-  {% for tag, v in (step > 1 and page.get('notes') or {}).items() %}
+  {% for tag, v in (step > 1 and notes or []) %}
   $.get('/cb/page/note/{{id}}', {tag: '{{tag}}'}, r => {
     insertNotes($(`.cell-${r.col},#body${r.col}`), r.notes, r.desc)
   })
   {% end %}
 
   $(document).on('mouseenter', '[data-nid]', function (e) {
-    const id = e.target.getAttribute('data-nid'),
+    const id = e.target.closest('[data-nid]').getAttribute('data-nid'),
             p = $(`.note-tag[data-nid=${id}]`), title = p.attr('title') || '';
     $('footer > p').text(`${p.attr('data-tag')}${id}: ${title}`);
   });

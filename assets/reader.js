@@ -78,9 +78,11 @@ function toggleParaBox() {
  */
 function showLeftColumn() {
   const $left = $('.cell-0,.original#body0'), $right = $('.cell,.original');
-  $right.hide();
-  $left.show();
-  updateColumnStatus();
+  if ($left.length !== $right.length || $left[0] !== $right[0]) {
+    $right.hide();
+    $left.show();
+    updateColumnStatus();
+  }
 }
 
 /**
@@ -319,7 +321,7 @@ function _toPairSelectors(idsText) {
  * 科判类型定义，每一个元素为一种科判类型，为 [数字的类型号, 名称, 说明]
  * @type {string[][]}
  */
-const kePanTypes = window.kePanTypes || [];
+let kePanTypes = window.kePanTypes || [];
 let _newKePan = 0, _initKePanTm, _hasKeLine;
 
 /**
@@ -689,7 +691,7 @@ function showKePanPath(kePanId, colTitle) {
     for (const p of node.parents) {
       let t = tree.get_node(p).text;
       if (t) {
-        texts.splice(0, 0, `<a onclick="highlightKePan('${p}', 'footer')">${t}</a>`);
+        texts.unshift(`<a onclick="highlightKePan('${p}', 'footer')">${t}</a>`);
       }
     }
     texts.push(`<a onclick="highlightKePan('${kePanId}', 'footer')">${node.text}</a>`);
@@ -703,7 +705,14 @@ function showKePanPath(kePanId, colTitle) {
       texts += ` <span class="ke-pan-type-s" title="${item[2]}">${item[1]}</span>`
     }
   }
-  $('footer>p:first-child').html(texts + (colTitle ? `<span class="col-title">${colTitle}</span>`: ''));
+
+  texts += colTitle ? `<span class="col-title">${colTitle}</span>`: '';
+  if (/undef/.test(texts)) {
+    console.assert(0, kePanId)
+  }
+  if (texts) {
+    $('footer>p:first-child').html(texts);
+  }
 }
 
 /**
@@ -733,14 +742,18 @@ function getKePanId(el) {
  */
 function getNoteContent(note, title, rows, rawNote, desc) {
   for (let i = 0; i + 2 < note.length; i += 3) {
+    const m = /\d{4}\w*$/.exec(note[i + 2]),
+        line = m && m[0] || rawNote && note[i + 1] || '',
+        text = note[i + 2].replace(/\d{4}\w*$/, ''),
+        orgText = !rawNote && note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
+            `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : note[i + 1];
+
     title.push(note[i + 1]);
-    rows.push(`<span data-id="${note[i]}" class="note-item${rawNote ? ' note-raw' : ''}"><span class="org-text">` +
-        (!rawNote && note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
-            '<span class="more" data-more="' + note[i + 1].substring(3) + '">…</span>' : note[i + 1]) +
-        '</span><span class="note-text">' + note[i + 2] + '</span> ' +
+    rows.push(`<span data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
+        `<span class="org-text">${orgText}</span><span class="note-text">${text}</span> ` +
         (!desc || i + 5 < note.length ? '' :
             `<span class="note-from" title="单击此处隐藏，双击注解块也可隐藏">${desc} <span class="p-close">×</span></span>`)
-        + '</span>');
+        + '</span>'.replace(/ data-line-no=""/g, ''));
   }
   if (rawNote) {
     title[0] += ' ' + note[2] + '\n' + desc;

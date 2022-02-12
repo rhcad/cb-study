@@ -27,12 +27,18 @@ function initNotes(notes, tag, cellClass, desc) {
   _labelPanel.html(notes.map(note => {
     const $tag = _label.$cells.find(`[data-nid=${note[0]}]`),
         linked = $tag.length || note[2][0] === '-',
-        titles = [], content = [];
+        titles = [], content = [], lines = [];
 
     _label.rawMode = _label.rawMode || /^\d{4}/.test(note[1]);
     for (let i = 0; i + 2 < note.length; i += 3) {
+      const m = /\d{4}\w*$/.exec(note[i + 2]),
+          line = m && m[0] || _label.rawMode && note[1] || '',
+          text = note[i + 2].replace(/\d{4}\w*$/, '');
+      if (line) {
+        lines.push(line);
+      }
       titles.push(note[i + 1]);
-      content.push(i > 0 ? `<span class="p">${note[i + 2]}</span>` : note[i + 2]);
+      content.push(i > 0 ? `<span class="p" data-line-no="${line}">${text}</span>` : note[i + 2]);
     }
 
     _label.$cells.find(`note[data-nid="${note[0]}"]`).attr('cur-tag', true);
@@ -41,11 +47,14 @@ function initNotes(notes, tag, cellClass, desc) {
       return `<p data-note-id="${note[0]}" class="raw-note${linked ? ' linked' : ''}" ` +
           `data-line-no="${note[1]}">${content.join('')}</p>`;
     } else {
-      const title = titles.join('\n'), titleS = title.indexOf('\n') > 0 || title.length > 20 ? title : '';
-      return `<p data-note-id="${note[0]}" class="${linked ? 'linked' : ''}" data-title="${titles[0]}">${note[0]}: ` +
-          `<span title="${titleS}">${makeText(note[1])}</span><br/>${content.join('')}</p>`;
+      const title = titles.join('\n'),
+          titleS = title.indexOf('\n') > 0 || title.length > 20 ? title : '',
+          content_ = content.join('').replace(/\d{4}\w*$/, '');
+      return `<p data-note-id="${note[0]}" data-line-no="${lines[0] || ''}" ` +
+          `class="${linked ? 'linked' : ''}" data-title="${titles[0]}">${note[0]}: ` +
+          `<span title="${titleS}">${makeText(note[1])}</span><br/><span class="content">${content_}</span></p>`;
     }
-  }).join('\n'));
+  }).join('\n').replace(/ data-line-no=""/g, ''));
 
   $('.tip-3-pair').toggle(!_label.rawMode);
   $('.tip-3-raw').toggle(_label.rawMode);
@@ -70,7 +79,7 @@ function initNotes(notes, tag, cellClass, desc) {
 }
 
 // 在正文中选中第一条注解对应的文本
-function _selectForCurrent() {
+function _selectForCurrent(expand) {
   const sign = /[\s.,:;!?{}()[\]，。、：；！？．【】（）《》「」『』‘’“”]+/g,
       endSign = /[:;!?})\]。：；！？】）》」』’”]+/g,
       $lp = $(_panelCls + ' p:not(.linked)'),
@@ -115,6 +124,10 @@ function _selectForCurrent() {
 
     return false;
   };
+
+  if (expand && !$lp.hasClass('raw-note')) {
+    wrapNoteP($lp.first());
+  }
 
   window.getSelection().removeAllRanges();
   if (title) {
@@ -199,7 +212,7 @@ $('#skip-top').click(function() {
         remove();
       });
     } else {
-      _selectForCurrent();
+      _selectForCurrent(true);
     }
   }
   remove(true);
@@ -223,8 +236,17 @@ $(document).on('click', _panelCls + ' p.linked', function (e) {
   }
 });
 
-// 在标注面板双击第一条注解行，在正文中选中文本
-$(document).on('dblclick', _panelCls + ' p:not(.raw-note):first-child:not(.linked)', _selectForCurrent);
+// 在标注面板双击第一条注解行，在正文中选中文本；点击注解行切换内容展开
+$(document).on('dblclick', _panelCls + ' p:not(.raw-note):first-child:not(.linked)', () => _selectForCurrent());
+$(document).on('click', _panelCls + ' p:not(.raw-note)', e => wrapNoteP($(e.target).closest('p')));
+
+function wrapNoteP($p) {
+  if (!$p.hasClass('wrap')) {
+    $('p.wrap').removeClass('wrap');
+    $p.addClass('wrap');
+  }
+  $('footer > p').text($p.attr('data-title'));
+}
 
 // 在标注面板单击普通注解行，切换选中状态
 $(document).on('click', _panelCls + ' p.raw-note', e => {
@@ -297,9 +319,9 @@ function _addNote(id) {
 }
 
 function addNote(autoSwitch) {
-  const $p = $(_panelCls + (_label.rawMode ? ' p.selected' : ' p:first-child:not(.linked)')),
+  const $p = $(_panelCls + (_label.rawMode ? ' p.selected' : ' p:first-child')),
       id = $p.attr('data-note-id'),
-      note = _labelMap[id],
+      note = (!$p.hasClass('linked') || !autoSwitch) && _labelMap[id],
       removeIds = [];
 
   if (note && $p.length > 1) {
@@ -319,23 +341,28 @@ function addNote(autoSwitch) {
     }, saveHtml).error(ajaxError('保存注解失败'));
 
     window.getSelection().removeAllRanges();
-    $p.addClass('linked');
+    $p.addClass('linked').removeClass('wrap');
     if (autoSwitch) {
       if (_label.rawMode) {
         $p.removeClass('selected');
       } else {
         $p.remove();
-        _selectForCurrent();
+        _selectForCurrent(true);
       }
     }
     _updateSelCount();
+  }
+  else if (window.getSelection().rangeCount) {
+    showError('未插入注解', '要将一个注解插入到多个段落，请按Shift或Ctrl键然后回车。');
   }
 }
 
 // 按回车插入注解，未按Shift、Ctrl时自动切换到下一条注解
 $(document).on('keyup', function (e) {
-  if (e.keyCode === 13 && $('.swal-overlay--show-modal').length < 1) {
-    addNote(!e.ctrlKey && !e.shiftKey);
+  if (!/TEXTAREA|BUTTON/.test(document.activeElement.tagName) && $('.swal-overlay--show-modal').length < 1) {
+    if (e.key === 'Enter') {
+      addNote(!e.ctrlKey && !e.shiftKey);
+    }
   }
 });
 

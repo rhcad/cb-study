@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import sys
 import json
 import logging
 import traceback
@@ -19,6 +20,7 @@ from tornado.httpclient import HTTPError
 THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
+pat_note_inv = re.compile(r'^-|[　\s]|\d{4}\w*$')
 
 define('port', default=8003, help='run port', type=int)
 define('debug', default=True, help='the debug mode', type=bool)
@@ -26,7 +28,14 @@ define('debug', default=True, help='the debug mode', type=bool)
 
 class CbBaseHandler(RequestHandler):
     def on_error(self, e):
-        traceback.print_exc()
+        if isinstance(e, AssertionError):
+            _, _, tb = sys.exc_info()
+            # traceback.print_tb(tb)  # Fixed format
+            tb_info = traceback.extract_tb(tb)
+            filename, line, func, text = tb_info[-1]
+            logging.error('{0} {1}, in {2}: {3}'.format(path.basename(filename), line, func, str(e)))
+        else:
+            traceback.print_exc()
         self.send_error(500, reason=str(e))
 
     @staticmethod
@@ -46,19 +55,31 @@ class CbBaseHandler(RequestHandler):
         filename = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
         html_file = path.join(DATA_DIR, '{}.html'.format(page['info']['id']))
         html = page.get('html_end')
+        if html and save_html:
+            page['info']['note_count'] = len([1 for r in (html or []) if 'note-tag' in r])
+            with open(html_file, 'w') as f:
+                f.write('\n'.join(html))
         with open(filename, 'w') as f:
             page.pop('html_end', 0)
             json.dump(page, f, ensure_ascii=False, indent=2, sort_keys=True)
         page['html_end'] = html
-        if html and save_html:
-            with open(html_file, 'w') as f:
-                f.write('\n'.join(html))
 
     @staticmethod
     def reset_html(page):
         page['html'] = []
         for a in page['html_org']:
             page['html'].extend(a)
+
+    @staticmethod
+    def extract_commentary(html):
+        """从注解网页中提取段落中的原文与注解"""
+        if 'div-commentary' not in html and len(re.findall(r'<p .+?</span>[^　]{2,60}　.{10,999}</p>', html)) > 5:
+            pat = "<span class='div-orig'>%s</span>", "<span class='div-commentary'>%s</span>"
+            rows = [re.sub(r'<p .+?</span>([^　]+)　(.+?)</p>',
+                           lambda m: m.group().replace(m.group(1), pat[0] % m.group(1), 1)
+                           .replace(m.group(2), pat[1] % m.group(2)), t) for t in html.split('\n')]
+            return '\n'.join(rows).replace('div.div-orig', '.div-orig')
+        return html
 
     @gen.coroutine
     def fetch_cb(self, name):
@@ -69,14 +90,14 @@ class CbBaseHandler(RequestHandler):
         url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
         client = AsyncHTTPClient()
         try:
-            r = yield client.fetch(url, connect_timeout=15, request_timeout=15)
+            r = yield client.fetch(url, connect_timeout=30, request_timeout=30)
             if r.error:
                 return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(r.error)))
 
-            r = to_basestring(r.body)
+            html = self.extract_commentary(to_basestring(r.body))
             with open(cache_file, 'w') as f:
-                f.write(r)
-            return r
+                f.write(html)
+            return html
         except HTTPError as e:
             return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(e)))
 
@@ -128,17 +149,19 @@ class CbBaseHandler(RequestHandler):
             return True
 
     @staticmethod
-    def _split_p_in_rollback(id_map, index, new_ids, page, pid, text):
+    def _split_p_in_rollback(ids, index, new_ids, page, pid, text):
         new_ids = new_ids and new_ids.split('#')[1].split(',')
-        base_id = re.sub(r'\d[a-z].*$', lambda _: _.group(0)[0], pid)
+        bid = re.sub(r'\d[a-z].*$', lambda _: _.group(0)[0], pid)
         texts = text.split('@')
         r = [{'text': texts[0]}]
         for (i, text) in enumerate(texts[1:]):
             if new_ids:
                 r.append({'id': new_ids[i], 'text': text})
             else:
-                id_map[base_id] = id_map.get(base_id, ord('a') - 1) + 1
-                r.append({'id': base_id + chr(id_map[base_id]), 'text': text})
+                ids[bid] = ids.get(bid, -1) + 1
+                assert ids[bid] < 26 * 9, 'id out of range'
+                char = chr(ord('a') + ids[bid] % 26) + ('' if ids[bid] < 26 else chr(ord('0') + ids[bid] // 26))
+                r.append({'id': bid + char, 'text': text})
                 logging.info('split paragraph from #{0} as #{1}: {2}'.format(pid, r[-1]['id'], text[0:20]))
         SplitParagraphHandler.split_p(index, r, page)
 
@@ -155,9 +178,8 @@ class CbHomeHandler(CbBaseHandler):
 
             files = sorted(glob(path.join(DATA_DIR, '*.json')))
             pages = [json.load(open(fn)) for fn in files]
-            self.render('cb_home.html', pages=[
-                dict(id=p['info']['id'], caption=p['info']['caption'], url='/cb/page/' + p['info']['id'])
-                for p in pages])
+            self.render('cb_home.html', pages=[(p['info'], dict(id=p['info']['id'],
+                                                                url='/cb/page/' + p['info']['id'])) for p in pages])
         except Exception as e:
             self.on_error(e)
 
@@ -211,10 +233,11 @@ class PageHandler(CbBaseHandler):
             name = page_id.split('_')[0]
             juan = int((page_id.split('_')[1:] or [1])[0])
             cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
-            has_ke_pan = step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
-                                   [1 for s in page['html'] if '<div ke-pan=' in s])
+            has_ke_pan = bool(step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
+                                        [1 for s in page['html'] if '<div ke-pan=' in s]))
             ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
-                                     if re.match(r':ke-type \d [^\s]+', r)]
+                                     if re.match(r':ke-type \d [^\s]+', r)] or []  # 'num name desc'
+            note_tags = [s.split('|')[1] for s in info.get('notes', [])]
 
             if self.get_argument('export', 0):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
@@ -231,6 +254,7 @@ class PageHandler(CbBaseHandler):
                         has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types,
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
+                        notes=[(tag, page['notes'][tag]) for tag in note_tags if tag in page.get('notes', {})],
                         cb_ids=cb_ids)
         except Exception as e:
             self.on_error(e)
@@ -263,21 +287,23 @@ class HtmlDownloadHandler(CbBaseHandler):
             cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
             force = self.get_argument('reset', 0)
 
-            urls = [s.split('+') for s in cb_ids.split('|')] if cb_ids else []
+            urls = cb_ids.split('|') if cb_ids else []
             if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
                 page['info']['step'] = 1
             else:
                 content = []
                 for col in urls:
                     html = None
-                    for name in col:
-                        name_desc = re.split(r'\s+', name.strip())
-                        name, desc = name_desc[0], len(name_desc) > 1 and ' ' + name_desc[1] or ''
-                        if not name:
-                            continue
+                    name_desc = re.split(r'\s+', col.strip())
+                    col, desc = name_desc[0].split('_'), len(name_desc) > 1 and ' ' + name_desc[-1] or ''
+                    jin = col[0]
+                    for juan in (col[1:] or ['']):
+                        name = jin + ('_' + juan if juan else '')
                         r = yield self.fetch_cb(name)
                         if not r:
                             return
+                        if len(name_desc[0].split('_')) > 2:
+                            name = name.split('_')[0]
                         html = fix.convert_cb_html(html, r, name + desc)
                     if html:
                         content.append(html)
@@ -505,8 +531,10 @@ class FetchHtmlHandler(CbBaseHandler):
                     html = yield self.fetch_cb(name)
                     if html:
                         content.append(html)
-            self.write(dict(html='\n'.join(content)))
-            self.finish()
+
+            if not self._finished:
+                self.write(dict(html='\n'.join(content)))
+                self.finish()
         except Exception as e:
             self.on_error(e)
 
@@ -537,7 +565,7 @@ class PageNoteHandler(CbBaseHandler):
                 return self.link_note(page, tag, nid)
 
             if nid and self.get_argument('split', 0):
-                return self.split_note(page, tag, nid, to_basestring(self.get_argument('split')))
+                return self.split_note(self, page, tag, nid, to_basestring(self.get_argument('split')))
 
             if self.get_argument('ignore', 0):
                 return self.ignore_note(page, tag)
@@ -550,8 +578,8 @@ class PageNoteHandler(CbBaseHandler):
     def find_note(notes, line_no, text):
         for (i, t) in enumerate(notes or []):
             for j in range(int(len(t) / 3)):
-                if (not line_no or line_no == t[j * 3 + 1]) and t[j * 3 + 2].replace('-', '') in text:
-                    return i, t[j * 3: j * 3 + 3]
+                if (not line_no or line_no == t[j * 3 + 1]) and pat_note_inv.sub('', t[j * 3 + 2]) == text:
+                    return i, j, t[j * 3: j * 3 + 3]
 
     @staticmethod
     def get_ids_by_line(notes, line_no):
@@ -566,81 +594,153 @@ class PageNoteHandler(CbBaseHandler):
         name = to_basestring(self.get_argument('name', ''))
         desc = to_basestring(self.get_argument('desc', ''))
         col = int(self.get_argument('col', 0) or 0)
-        reset = self.get_argument('reset', 0)
+        reset = self.get_argument('reset', '')
+        lines = json_decode(self.get_argument('lines'))
 
         assert reset or tag not in page['notes'], 'tag exists'
         notes, raw, orig = [], [], ''
+        split_count = [0, 0]
         new_item = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
-        old_item = page['notes'].get(tag, {})
-        lines = json_decode(self.get_argument('lines'))
-        
-        new_id = 0 if reset else page['info'].get('note_id', 0)
-        if page['notes'].get(tag):
-            min_id = 9999
-            for a in old_item.get('raw', []):
-                min_id = min(min_id, a[0])
-            for a in old_item.get('notes', []):
-                min_id = min(min_id, a[0])
-            if min_id < 9999:
-                new_id = min_id - 1
-        start_id = new_id + 1
+
+        if reset[0] == '0':
+            new_id = 0
+            page['old_notes'] = page.get('old_notes', {}) or json.loads(json.dumps(page['notes']))
+        else:
+            new_id = page['info'].get('note_id', 0)
 
         for r in lines:
-            if not r.get('text'):
+            if not r.get('text') or '【經文資訊】' in r['text']:
                 continue
-            if r.get('orig') == '1':
+            if r.get('raw'):
+                new_id += 1
+                raw.append([new_id, r.get('line', ''), r['text']])
+            elif r.get('orig') == '1':
                 orig = r['text']
             elif r.get('orig') == '0':
                 if not orig:
                     logging.warning('ignore comment: ' + r['text'])
+                    continue
                 new_id += 1
-                notes.append([new_id, orig, r['text']])
+                notes.append([new_id, orig, r['text'] + r.get('line', '')])
                 orig = None
-            elif r.get('line'):
-                new_id += 1
-                r['text'] = re.sub(r'^【經文資訊】', lambda m: '-' + m.group(), r['text'])
-                raw.append([new_id, r['line'], r['text']])
 
         if notes or raw:
             if not reset and tag not in page['notes']:
-                page['info']['notes'] = page['info'].get('notes', []) + [' '.join([str(col), tag, name, desc])]
+                page['info']['notes'] = page['info'].get('notes', []) + ['|'.join([str(col), tag, name, desc])]
             if raw:
-                new_item['raw'] = raw
-                new_item['notes'] = notes or old_item.get('notes', [])
-                for r in raw:
-                    ids = self.get_ids_by_line(old_item.get('raw'), r[1])
-                    if ids:
-                        r[0] = min(ids)
-                    else:
-                        logging.warning('new note: {}'.format(json.dumps(r, ensure_ascii=False)))
-            if not old_item:
-                new_id = int((new_id + 19) / 10) * 10
-                page['info']['note_id'] = new_id
-            page['notes'][tag] = new_item
-            logging.info('{0}: add {1}+{2} comments, {3} to {4}'.format(tag, len(notes), len(raw), start_id, new_id))
+                new_item.update(raw=raw, notes=notes)
 
-            for (li, log) in enumerate([]):  # reset and page['log']
+            new_id = int((new_id + 19) / 10) * 10
+            page['info']['note_id'] = new_id
+            page['notes'][tag] = new_item
+            logging.info('{0}: add {1}+{2} notes'.format(tag, len(notes), len(raw)))
+
+            for (li, log) in enumerate(reset and page['log'] or []):
                 m = re.search(r'^Split note #(\d+) at (\w+) of {0} with #([\d,]+): (.+@.*)$'.format(tag), log)
                 if m:
                     nid, new_ids, line_no, text = m.group(1), m.group(3), m.group(2), m.group(4)
                     nid, new_ids = int(nid), [int(t) for t in new_ids.split(',')]
-                    r = self.find_note(raw, line_no, text.replace('@', ''))
+                    r = PageNoteHandler.find_note(raw, None, text.replace('@', ''))
                     if not r:
                         logging.warning('{0} {1} not found: {2}'.format(nid, line_no, text))
-                        assert 0, '{0} {1} not found'.format(nid, line_no)
-                    i, note = r
-                    self.split_note(None, page, tag, raw[i][0], text, new_ids)
-            self.save_page(page)
-        self.write(dict(tag=tag, count=len(raw or notes)))
+                        continue
+                    i, j, note = r
+                    res = dict(new_ids=new_ids)
+                    PageNoteHandler.split_note(None, page, tag, raw[i][j * 3], text, res)
+                    if res.get('log'):
+                        page['log'][li] = res['log']
+                        split_count[0] += 1
+                        split_count[1] += len(res['new_ids'])
+                    else:
+                        logging.warning('not found: ' + log)
+            if split_count[0]:
+                logging.info('{0}: split {1} notes, {2} added'.format(tag, split_count[0], split_count[1]))
+                new_id = int((new_id + 19) / 10) * 10
+
+        if 'end' in reset and page['old_notes']:
+            self.apply_notes(page)
+
+        CbBaseHandler.save_page(page)
+        self.write(dict(tag=tag, count=len(raw or notes), split=split_count[1]))
+
+    def apply_notes(self, page):
+        old_notes = page.get('old_notes')
+        for tag, v in page['notes'].items():
+            tmp_r, tmp_s = v.get('raw', []), v['notes']
+            tmp_ts = tmp_r or tmp_s
+            tmp_ids = [r[0] for r in tmp_ts]
+            texts1 = [t[1] + pat_note_inv.sub('', t[2]) for t in tmp_ts]
+            texts2 = [pat_note_inv.sub('', t[1]) + pat_note_inv.sub('', t[2]) for t in tmp_ts]
+            assert (tmp_r and not tmp_s) or (not tmp_r and tmp_s)
+            assert not [r for r in tmp_ts if len(r) != 3]
+
+            old_rs = old_notes.get(tag, {})
+            old_r, old_s = old_rs.get('raw', []), old_rs.get('notes', [])
+            old_ids, old_ts = [], []
+            old_rs = [r for r in (old_r or old_s) if '【經文資訊】' not in r[2]]
+            for (i, r) in enumerate(old_rs):
+                for j in range(int(len(r) / 3)):
+                    old_ids.append(r[j * 3])
+                    old_ts.append(r[j * 3: j * 3 + 3] + [i, j * 3])
+
+            old2new, new2old = {}, {}
+            print([t[2] for t in tmp_ts])
+            for (i, old_t) in enumerate(old_ts):
+                text = old_t[1] + pat_note_inv.sub('', old_t[2])
+                if text in texts1:
+                    tmp_t = tmp_ts[texts1.index(text)]
+                else:
+                    text = pat_note_inv.sub('', old_t[1]) + pat_note_inv.sub('', old_t[2])
+                    if text in texts2:
+                        tmp_t = tmp_ts[texts2.index(text)]
+                    else:
+                        assert 0, 'old note {0} not in new notes: {1}'.format(old_t[0], text)
+
+                assert old_t[0] not in old2new, '{0} in old2new: {1}'.format(old_t[0], text)
+                assert tmp_t[0] not in new2old, '{0} in new2old: {1}'.format(tmp_t[0], text)
+                old2new[old_t[0]] = tmp_t
+                new2old[tmp_t[0]] = old_t
+
+            free_ids = list(set(tmp_ids) - set(list(old2new.keys())))
+            new_notes, notes_added, last_t = old_rs[:], [], None
+            for tmp_t in tmp_ts:
+                if tmp_t[0] in new2old:
+                    old_t = new2old[tmp_t[0]]
+                    old_orig = old_rs[old_t[3]]
+                    old_orig[old_t[4] + 1] = old_t[1] = tmp_t[1]
+                    old_orig[old_t[4] + 2] = old_t[2] = tmp_t[2] = ('-' if old_t[2][0] == '-' else '') + tmp_t[2]
+                    last_t = old_orig
+                else:
+                    tmp_t[0] = free_ids.pop(0)
+                    if last_t:
+                        new_notes.insert(new_notes.index(last_t) + 1, tmp_t)
+                    else:
+                        notes_added.append(tmp_t)
+            new_notes = notes_added + new_notes
+
+            if old_r and old_s:
+                for (i, r) in enumerate(old_s):
+                    for j in range(int(len(r) / 3)):
+                        new_t = old2new[r[j * 3]]
+                        r[j * 3 + 1] = new_t[1]
+                        r[j * 3 + 2] = new_t[2]
+
+            if old_r:
+                v['raw'] = new_notes
+                v['notes'] = old_s
+            else:
+                assert 'raw' not in v
+                v['notes'] = new_notes
+        page.pop('old_notes')
 
     @staticmethod
-    def split_note(self, page, tag, nid, split, give_ids=None):
+    def split_note(self, page, tag, nid, split, res=None):
         split = split.split('@')
         item = page['notes'].get(tag)
         assert item, 'tag not exists'
         raw = item['raw']
         upd = [(i, r) for (i, r) in enumerate(raw) if r[0] == nid]
-        assert len(upd) == 1, 'raw {0} not exists'.format(nid)
+        assert len(upd) == 1, 'raw {0} not exists: {1}'.format(nid, json.dumps(upd, ensure_ascii=False))
         index, upd = upd[0]
         assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
         if not split[0] or upd[2] != ''.join(split):
@@ -655,23 +755,18 @@ class PageNoteHandler(CbBaseHandler):
         new_ids = []
         new_id = page['info'].get('note_id', 0)
         for (i, text) in enumerate(split[1:]):
-            if give_ids:
-                assert i < len(give_ids), '{0} out of range: {1}'.format(i, ','.join(give_ids))
-                new_id = give_ids[i]
-            else:
-                new_id += 1
+            new_id += 1
             r = [new_id, upd[1], text]
             raw.insert(index + i + 1, r)
             new_ids.append(str(new_id))
 
-        if not give_ids and not self:
-            log = 'Split note #{0} at {1} of {2} with #{3}: {4}'.format(
-                nid, upd[1], tag, ','.join(new_ids), '@'.join(split))
-            logging.info(log)
+        page['info']['note_id'] = new_id
+        log = 'Split note #{0} at {1} of {2} with #{3}: {4}'.format(
+            nid, upd[1], tag, ','.join(new_ids), '@'.join(split))
+        if res:
+            res.update(dict(log=log, new_ids=new_ids))
+        elif self:
             page['log'].append(log)
-            page['info']['note_id'] = new_id
-
-        if self:
             self.save_page(page)
             self.write(dict(ids=','.join(new_ids), raw=raw))
 

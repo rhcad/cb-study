@@ -170,13 +170,14 @@ body {
 }
 
 @media screen {
-  .show-line-no [data-line-no]:not(.lg-cell)::before {
+  .show-line-no [data-line-no]:not(.lg-cell):not(.raw-note)::before {
     content: attr(data-line-no);
+    margin-right: .5em;
     font-size: 9px;
     color: #999;
   }
 
-  .show-line-no [data-line-no]:hover::before {
+  .show-line-no [data-line-no]:not(.note-item):hover::before {
     color: #00f;
   }
 }

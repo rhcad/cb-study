@@ -12,7 +12,7 @@
 }
 .note-p + .note-p { margin-top: 4px; }
 .org-text {
-  margin-right: 1em;
+  margin-right: .5em;
   color: #99a;
   font-weight: 300;
 }
@@ -33,7 +33,7 @@
   text-indent: 0;
 }
 .note-text {
-  color: #444;
+  color: #333;
   font-family: STKaiti,"Kaiti SC","楷体","楷体_GB2312",KaiTi,KaiTi_GB2312,DFKai-SB;
 }
 .note-from {
@@ -48,6 +48,7 @@
 .note-raw .note-from {
   display: block;
   text-align: right;
+  font-weight: 300;
 }
 .note-tag {
   color: #aaa;

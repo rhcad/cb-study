@@ -66,6 +66,10 @@ textarea {outline: none;}
   font-size: 14px;
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.label-panel > .notes > p:not(.raw-note).wrap {
+  white-space: normal;
 }
 .label-panel > .notes > p > span:not(.p):first-child {
   font-weight: 700;
@@ -74,9 +78,12 @@ textarea {outline: none;}
   color: #00f;
 }
 .label-panel .linked {
-  text-decoration: line-through;
   color: #999;
   cursor: pointer;
+}
+.label-panel .linked > [title]:first-child,
+.label-panel .linked:not(.wrap) > .content {
+  text-decoration: line-through;
 }
 
 .label-panel p.raw-note {

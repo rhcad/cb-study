@@ -147,11 +147,18 @@ function _splitParagraph($p) {
           $p.text(text.trim());
           saveData.result.push({text: text.trim()});
         } else if (text.trim()) {
-          for (let j = 0; j < 26; j++) {
-            id = id0 + String.fromCharCode('a'.charCodeAt(0) + j);
-            if ($('#' + id).length < 1) {
-              break;
+          let x, j = 26;
+          for (x = 0; x <= 9 && j === 26; x++) {
+            for (j = 0; j < 26; j++) {
+              id = id0 + String.fromCharCode('a'.charCodeAt(0) + j) +
+                  (x ? String.fromCharCode('0'.charCodeAt(0) + x) : '');
+              if ($('#' + id).length < 1) {
+                break;
+              }
             }
+          }
+          if (x > 9) {
+            return showError('拆分段落失败', '超过了最大分段数量。', () => location.reload());
           }
           const $new = $(`<p id="${id}" data-line-no="[${id}]">${text.trim()}</p>`);
           $new.insertAfter($last);
@@ -246,7 +253,7 @@ function _moveP($p, up, test) {
         while (index2 < rowPairs.length && rowPairs[index2].startsWith(':')) index2++;
         cols = rowPairs[index2].split('|'); // 下一行块的各列的段落号
         ids = cols[colIndex].trim().replace(/^-$/, '').split(/\s+/g);
-        ids.splice(0, 0, id); // 在前面插入此id
+        ids.unshift(id);
         cols[colIndex] = ids.join(' ');
         rowPairs[index2] = cols.join('|');
       }
@@ -506,3 +513,12 @@ function _setKePanText($p, $row) {
     }
   });
 }
+
+// 分组快捷键：回车移为一组
+$(document).on('keyup', function (e) {
+  if (!/TEXTAREA|BUTTON/.test(document.activeElement.tagName) && $('.swal-overlay--show-modal').length < 1) {
+    if (e.key === 'Enter') {
+      $('#move-row').click();
+    }
+  }
+});

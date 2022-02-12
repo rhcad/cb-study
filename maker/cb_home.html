@@ -7,9 +7,13 @@
   <link rel="icon" href="{{static_url('img/favicon.ico')}}"/>
   <link rel="stylesheet" href="{{static_url('bootstrap/css/bootstrap.min.css')}}"/>
   <style>
-    .input-group {
-      margin-top: 20px;
+    .input-group { margin-top: 18px; }
+    h3 {
+      font-weight: normal;
+      font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', 'Microsoft YaHei', arial, sans-serif;
     }
+    h3 > span { display: inline-block; font-size: 16px; }
+    h3 > span > span { margin-left: 1em; color: #555; }
   </style>
 </head>
 <body>
@@ -31,15 +35,19 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#">首页</a></li>
+        <li class="active"><a href="javascript:">首页</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
 <div class="container">
-  {% for p in pages %}
-  <h3><a href="{{p['url']}}">{{p['id']}}: {{p['caption']}}</a></h3>
+  {% for (info, p) in pages %}
+  <h3><a href="{{p['url']}}">{{p['id']}}: {{info['caption']}}</a><span>
+    {% if info.get('cols', 1) > 1 %}<span>{{info['cols']}}个对照版本</span>{% end %}
+    {% if info.get('notes') %}<span>{{len(info['notes'])}}种注解</span>{% end %}
+    {% if info.get('note_count') %}<span>{{info['note_count']}}处注解</span>{% end %}
+  </span></h3>
   {% end %}
 
   <div class="input-group">
@@ -54,14 +62,27 @@
 <script src="{{static_url('js/jquery.min.js')}}"></script>
 <script src="{{static_url('js/sweetalert.min.js')}}"></script>
 <script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+<script src="{{static_url('label/fetch-note.js')}}"></script>
 <script>
   $('#new-page').click(() => {
     const v = $('#page-id').val().split(/\s*[:：]\s*/)
     $.post('/cb/page/new', {id: v[0], caption: v[1]}, response => {
       window.location.href = response.url
-    }).error(xhr => showError('创建失败', errors[xhr.status] || xhr.statusText))
+    }).error(xhr => showError('创建失败', errors[xhr.status] || xhr.responseText))
     return false
   })
+
+  // <a href="javascript:" onclick="resetPage(`{{p['id']}}`, `{{'@'.join(info.get('notes', []))}}`.split('@'))">重置</a>
+  function resetPage(pageId, notes) {
+    let i = -1
+    function loop() {
+      const val = notes.shift()
+      if (val) {
+        fetchNote(pageId, val.split('|'), null, ++i + (notes.length ? '' : 'end'), loop)
+      }
+    }
+    loop()
+  }
 
   const errors = {
     501: '页面编号为 经号 或 经号_卷号，经号由2~8位字母数字组成',

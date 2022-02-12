@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>心經(七合一)</title>
-    <meta name="keywords" contect="心經,T0251"/>
-    <meta name="description" contect="心经(七种对照)"/>
+    <meta name="keywords" content="心經,T0251"/>
+    <meta name="description" content="心经(七种对照)"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/img/favicon.ico"/>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
 	<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
-    <link href="assets/cb.css?v=209" rel="stylesheet"/>
-    <link href="assets/note.css?v=209" rel="stylesheet"/>
+    <link href="assets/cb.css?v=210" rel="stylesheet"/>
+    <link href="assets/note.css?v=210" rel="stylesheet"/>
     <style>
         @media screen {
             body {
@@ -43,30 +43,30 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">心經</a></li>
+                <li class="active"><a href="javascript:">心經</a></li>
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                    <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">显示 <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
-                        <li><a href="#" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
-						<li><a href="#" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+                        <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+                        <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
+						<li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="#" id="enlarge-font" title="增加正文字号">增加字号</a></li>
-                        <li><a href="#" id="reduce-font" title="减少正文字号">减少字号</a></li>
+                        <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
+                        <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="#" id="show-left" title="只显示左文、第1栏">左文</a></li>
-                        <li><a href="#" id="show-right" title="只显示右文、第2栏">右文</a></li>
-                        <li><a href="#" id="show-both" title="左右对照显示">对照</a></li>
+                        <li><a href="javascript:" id="show-left" title="只显示左文、第1栏">左文</a></li>
+                        <li><a href="javascript:" id="show-right" title="只显示右文、第2栏">右文</a></li>
+                        <li><a href="javascript:" id="show-both" title="左右对照显示">对照</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="#" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
-                        <li><a href="#" id="show-line-no" title="切换是否显示行号">行号</a></li>
-                        <li><a href="#" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
-                        <li><a href="#" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
+                        <li><a href="javascript:" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
+                        <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
+                        <li><a href="javascript:" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
+                        <li><a href="javascript:" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
                     </ul>
                 </li>
 				<li class="dropdown">
-				  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+				  <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
 					 aria-expanded="false">科判 <span class="caret"></span></a>
 				  <ul class="dropdown-menu">
 					<li class="ke-pan-ratio"><a>隐藏</a></li>
@@ -78,10 +78,10 @@
 					<li class="ke-pan-ratio"><a>50%</a></li>
 					<li class="ke-pan-ratio"><a>100%</a></li>
 					<li role="separator" class="divider"></li>
-					<li><a href="#" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
+					<li><a href="javascript:" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
 					<li role="separator" class="divider"></li>
-					<li><a href="#" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
-					<li><a href="#" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+					<li><a href="javascript:" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+					<li><a href="javascript:" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
 				  </ul>
 				</li>
             </ul>
@@ -730,7 +730,7 @@
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 <script src="assets/jstree/jstree.min.js"></script>
-<script src="assets/reader.js?v=209"></script>
+<script src="assets/reader.js?v=210"></script>
 
 </body>
 </html>
