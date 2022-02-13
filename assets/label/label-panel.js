@@ -335,22 +335,24 @@ function addNote(autoSwitch) {
     }
   }
   if (note && _addNote(id)) {
+    const ended = () => {
+      window.getSelection().removeAllRanges();
+      $p.addClass('linked').removeClass('wrap');
+      if (autoSwitch) {
+        if (_label.rawMode) {
+          $p.removeClass('selected');
+        } else {
+          $p.remove();
+          _selectForCurrent(true);
+        }
+      }
+      _updateSelCount();
+    };
+    $('#sel-p-count').text('正保存...').show();
     $.post('/cb/page/note/' + pageId, {
       tag: _label.tag, nid: id,
       remove: removeIds.join(',')
-    }, saveHtml).error(ajaxError('保存注解失败'));
-
-    window.getSelection().removeAllRanges();
-    $p.addClass('linked').removeClass('wrap');
-    if (autoSwitch) {
-      if (_label.rawMode) {
-        $p.removeClass('selected');
-      } else {
-        $p.remove();
-        _selectForCurrent(true);
-      }
-    }
-    _updateSelCount();
+    }, () => saveHtml(ended)).error(ajaxError('保存注解失败'));
   }
   else if (window.getSelection().rangeCount) {
     showError('未插入注解', '要将一个注解插入到多个段落，请按Shift或Ctrl键然后回车。');

@@ -20,7 +20,7 @@ from tornado.httpclient import HTTPError
 THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
-pat_note_inv = re.compile(r'^-|[　\s]|\d{4}\w*$')
+pat_note_inv = re.compile(r'^-|[　\s\n]|\d{4}\w*$')
 
 define('port', default=8003, help='run port', type=int)
 define('debug', default=True, help='the debug mode', type=bool)
@@ -178,8 +178,13 @@ class CbHomeHandler(CbBaseHandler):
 
             files = sorted(glob(path.join(DATA_DIR, '*.json')))
             pages = [json.load(open(fn)) for fn in files]
-            self.render('cb_home.html', pages=[(p['info'], dict(id=p['info']['id'],
-                                                                url='/cb/page/' + p['info']['id'])) for p in pages])
+            self.render('cb_home.html', pages=[(p['info'], dict(
+                id=p['info']['id'], url='/cb/page/' + p['info']['id'],
+                ke_pan_type_count=len([1 for r in p.get('rowPairs', []) if re.match(r'^:ke-type \d [^\s]+', r)])
+                                  or (1 if [1 for s in p.get('html', []) if '<div ke-pan=' in s] or
+                                           [1 for r in p.get('rowPairs', []) if re.match(r':ke', r)] else 0)
+            )) for p in pages])
+
         except Exception as e:
             self.on_error(e)
 
@@ -236,7 +241,7 @@ class PageHandler(CbBaseHandler):
             has_ke_pan = bool(step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
                                         [1 for s in page['html'] if '<div ke-pan=' in s]))
             ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
-                                     if re.match(r':ke-type \d [^\s]+', r)] or []  # 'num name desc'
+                                     if re.match(r'^:ke-type \d [^\s]+', r)] or []  # 'num name desc'
             note_tags = [s.split('|')[1] for s in info.get('notes', [])]
 
             if self.get_argument('export', 0):
@@ -336,7 +341,7 @@ class RowPairsHandler(CbBaseHandler):
             ret = False
 
             if len(pairs) == 1 and re.match('^:ke-(add|del|set) ', pairs[0]):
-                m = re.search(r':ke-(add|set) ([pg]\d[a-z0-9_-]*|ke\d+) (.+)$', pairs[0])
+                m = re.search(r':ke-(add|append|set) ([pg]\d[a-z0-9_-]*|ke\d+) (.+)$', pairs[0])
                 if m:
                     op, pid, text = m.group(1), m.group(2), m.group(3)
                     text = re.sub('[><\'"]', '', text)
@@ -352,11 +357,11 @@ class RowPairsHandler(CbBaseHandler):
                             index = self.find_ke_pan_index(rows, pid)
                         else:  # 在一个段落前加科判
                             index = self.find_html_index(rows, pid)[0]
+                        t = "<div ke-pan='0' data-ke-type=='{0}' class='ke-line' data-indent='{1}'>{2}</div>".format(
+                            ke_type, len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text))
                         if index >= 0:
                             ret = True
-                            rows.insert(index, "<div ke-pan='0' data-ke-type=='{0}' class='ke-line'"
-                                               " data-indent='{1}'>{2}</div>".format(
-                                ke_type, len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text)))
+                            rows.insert(index + 1 if op == 'append' else index, t)
 
                 m = not m and re.search(r':ke-del (ke[0-9]+)$', pairs[0])
                 if m:

@@ -363,6 +363,8 @@ span[ke-pan] > .ke-pan-text {
 .ke-line[data-indent="5"] {text-indent: 5em;}
 .ke-line[data-indent="6"] {text-indent: 6em;}
 .ke-line[data-indent="7"] {text-indent: 7em;}
+.ke-line[data-indent="8"] {text-indent: 8em;}
+.ke-line[data-indent="9"] {text-indent: 9em;}
 
 #ke-pan-select {
   width: 100%;

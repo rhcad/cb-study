@@ -137,6 +137,7 @@
             <li role="separator" class="divider"></li>
             <li><a href="javascript:" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
             <li><a href="javascript:" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+            {% if step == 1 %}<li id="set-ke-pan-type"><a>设置科判类型...</a></li>{% end %}
           </ul>
         </li>
         {% end %}
@@ -443,7 +444,7 @@
               cols = getVisibleColumns()
 
       cbOptions.curNoteTag = tag
-      if (cols.length > 1 || cols[0] && cols[0] !== col) {
+      if (cols.length > 1 || cols[0] >= 0 && cols[0] !== col) {
         if (!first) {
           $('.cell').hide()
           $(`.cell-${col}`).show();
@@ -490,8 +491,8 @@
   }
 
   // 第4步改动网页内容（已完成段落分组时是最终网页内容，否则为中间网页内容）后，保存网页内容
-  function saveHtml() {
-    $.post('/cb/page/{{id}}', {html: getHtml(), step: '{{step}}'}).error(ajaxError('保存网页失败'))
+  function saveHtml(ended) {
+    $.post('/cb/page/{{id}}', {html: getHtml(), step: '{{step}}'}, ended).error(ajaxError('保存网页失败'))
   }
 
   // 下载合并后的网页内容

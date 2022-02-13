@@ -45,6 +45,7 @@
   {% for (info, p) in pages %}
   <h3><a href="{{p['url']}}">{{p['id']}}: {{info['caption']}}</a><span>
     {% if info.get('cols', 1) > 1 %}<span>{{info['cols']}}个对照版本</span>{% end %}
+    {% if p.get('ke_pan_type_count') %}<span>{{p['ke_pan_type_count']}}种科判</span>{% end %}
     {% if info.get('notes') %}<span>{{len(info['notes'])}}种注解</span>{% end %}
     {% if info.get('note_count') %}<span>{{info['note_count']}}处注解</span>{% end %}
   </span></h3>

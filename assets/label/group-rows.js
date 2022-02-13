@@ -105,6 +105,35 @@ $.contextMenu({
       disabled: function() { return !this.closest('#merged').length &&
           $('.label-panel .current-row').length; },
     },
+    appendKePan: {
+      name: '后加科判条目...',
+      callback: function() { _setKePanText(this, this.closest('.row'), true); },
+      disabled: function() { return !this.closest('#merged').length &&
+          $('.label-panel .current-row').length; },
+    },
+  },
+});
+$.contextMenu({
+  selector: '.lg-row',
+  items: {
+    extractRow: {
+      name: '分离为新行...',
+      callback: function() { _extractRow(this, false); },
+      disabled: function() { return !this.closest('#merged').length || !_extractRow(this, true)},
+    },
+    sep2: {name: '--'},
+    addKePan: {
+      name: '前加科判条目...',
+      callback: function() { _setKePanText(this, this.closest('.row')); },
+      disabled: function() { return !this.closest('#merged').length &&
+          $('.label-panel .current-row').length; },
+    },
+    appendKePan: {
+      name: '后加科判条目...',
+      callback: function() { _setKePanText(this, this.closest('.row'), true); },
+      disabled: function() { return !this.closest('#merged').length &&
+          $('.label-panel .current-row').length; },
+    },
   },
 });
 
@@ -135,7 +164,7 @@ function _splitParagraph($p) {
     if (!result || /-/.test(saveData.id)) {
       return;
     }
-    result = document.querySelector('.swal-content__textarea').value.replace(/[@\n]+/g, '@')
+    result = document.querySelector('.swal-content__textarea').value.replace(/[@\n]+/g, '@');
     if (result.replace(/@/g, '') !== text0) {
       return showError('拆分段落', '只能插入@，不能改动内容。');
     }
@@ -192,7 +221,7 @@ function _mergeUp($p, test) {
       colIndex = parseInt(cell_m ? cell_m[1] : 0), // 列序号
       cols = rowIndex < 0 ? [] : rowPairs[rowIndex].split('|'), // 当前行块的每列的段落号
       ids = (cols[colIndex] || '').trim().split(/\s+/g), // 当前单元格的每个段落号
-      pid = (ids[lineNo] || '').replace(/[a-z][*-]?$/, ''); // 未拆分段落时的原始段落号
+      pid = (ids[lineNo] || '').replace(/[a-z]\d?[*-]?$/, ''); // 未拆分段落时的原始段落号
 
   if (!/^p\d/.test(id) || lineNo < 1) {
   }
@@ -274,24 +303,25 @@ function _extractRow($p, test) {
   const id = $p.attr('id'), // 段落号
       $row = $p.closest('.row'), // 行块，有多列，每列有多行的单元格
       $curCol = $p.closest('.cell'), // 当前单元格
-      rows = $curCol.children().get(), // 所在单元格的所有段落
+      rows = $curCol.find('p,.lg-row').get(), // 所在单元格的所有段落
       lineNo = rows.indexOf($p[0]), // 在所在单元格中的行号
-      cols = $row.children('.cell').map((i, c) => [$(c).children().get().slice(0, lineNo + 1)]).get(),
+      cols = $row.children('.cell').map((i, c) => [$(c).find('p,.lg-row').get().slice(0, lineNo + 1)]).get(),
       colIds = cols.map(c => c.map(p => p.getAttribute('id')).join(' ') || '-'),
       colIndex = parseInt(/cell-(\d+)/.exec($curCol[0].className)[1]); // 列序号
 
   // 当前单元格下面还有单元格、新行块的有段落的单元格超过一个
   if (lineNo >= 0 && lineNo < rows.length - 1 && colIds.filter(c => c.length > 1).length > 1) {
     const newRow = colIds.join('|'), // 新行块，列间用|分隔，相邻段落号用空格隔开，没有段落的列用减号表示
-        rest = $row.children('.cell').map((i, c) => [$(c).children().get().slice(lineNo + 1)]).get()
-            .map(c => c.map(p => p.getAttribute('id')).join(' ') || '-').join('|');
+        rest = $row.children('.cell').map((i, c) => [$(c).find('p,.lg-row').get().slice(lineNo + 1)]).get()
+            .map(c => c.map(p => p.getAttribute('id')).join(' ') || '-').join('|'),
+        newRowSpan = colIds.map((s, i) => i === colIndex ? '<b>' + s + '</b>' : s).join(' | ');
 
     if (!test) {
       swal({
         title: '分离为新行',
         content: {
           element: 'span',
-          attributes: {innerHTML: colIds.map((s, i) => i === colIndex ? '<b>' + s + '</b>' : s).join(' | ')}
+          attributes: {innerHTML: newRowSpan + '<br/><br/>下一行：<br/>' + rest.replace(/\|/g, ' | ')}
         },
         buttons: ['取消', '分离'],
       }).then(result => {
@@ -457,16 +487,21 @@ $.contextMenu({
       name: '前加科判条目...',
       callback: function() { _setKePanText(this, this); },
     },
+    appendKePan: {
+      name: '后加科判条目...',
+      callback: function() { _setKePanText(this, this, true); },
+    },
   },
 });
-function _setKePanText($p, $row) {
+
+function _setKePanText($p, $row, after) {
   const hasGroupPanel = $('.label-panel .current-row').length,
       indent = $p.attr('data-indent'),
       textKe = indent && (new Array(1 + parseInt(indent)).join('-') + $p.text()),
       text = !$row && textKe || '';
   swal({
     title: $row ? '增加科判条目' : '设置科判文本',
-    text: $row ? `在 ${ $p.attr('id') || '本条'} 前加科判条目，文本前的减号数量表示科判层级。` :
+    text: $row ? `在 ${ $p.attr('id') || '本条'} ${after ? '后' : '前'}加科判条目，文本前的减号数量表示科判层级。` :
         '文本前的减号数量表示科判层级，输入d表示删除科判条目。',
     content: {
       element: 'input',
@@ -491,12 +526,14 @@ function _setKePanText($p, $row) {
         ret = true;
       }
     } else if ($row) { // 增加
-      if (!hasGroupPanel) { // 在单栏不需要合并的场合，在当前段落上方加科判条目
-        return saveRowPairs(true, `:ke-add ${$p.attr('id') || $p.attr('ke-pan')} ${result}`);
+      if (!hasGroupPanel) { // 在单栏不需要合并的场合，在当前段落上方或下方加科判条目
+        const cmd = `:ke-${after ? 'append' : 'add'} ${$p.attr('id') || $p.attr('ke-pan')} ${result}`;
+        return saveRowPairs(true, cmd);
       } else {
         index = $p.attr('id') ? findRowIndexInPairs($p.attr('id')) : idxKe - 1;
         if (index >= 0) {
-          rowPairs.splice(index, 0, `:ke${cbOptions.kePanType || ''} ` + result);
+          rowPairs.splice(after ? index + 1 : index, 0,
+              `:ke${cbOptions.kePanType || ''} ` + result);
           ret = true;
         }
       }
@@ -521,4 +558,39 @@ $(document).on('keyup', function (e) {
       $('#move-row').click();
     }
   }
+});
+
+$('#set-ke-pan-type').click(() => {
+  const showInput = text => {
+    swal({
+      title: '设置科判类型',
+      text: '按“类型数字 科判类型名 科判说明”输入每种科判类型。',
+      content: {
+        element: 'textarea',
+        attributes: {
+          rows: 6,
+          value: text,
+        }
+      },
+      buttons: ['取消', '确定'],
+    }).then(result => {
+      result = result && document.querySelector('.swal-content__textarea').value;
+      if (result) {
+        let error = false;
+        const rows = result.split('\n').filter(s => s).map(r => {
+          if (!error && !/^\d [^\s]+/.test(r)) {
+            showError('格式错误', r, () => showInput(result));
+            error = true;
+          }
+          return `:ke-type ${r}||`;
+        });
+
+        if (!error) {
+          showRowPairs(rows.join('') + rowPairs.filter(r => !/^:ke-type/.test(r)).join('||'));
+          applyRowPairs();
+        }
+      }
+    });
+  };
+  showInput(rowPairs.filter(r => /^:ke-type/.test(r)).map(r => r.replace(/^:ke-type\s+/, '')).join('\n'));
 });

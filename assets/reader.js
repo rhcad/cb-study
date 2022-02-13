@@ -440,7 +440,7 @@ function _switchKePanType(type, save) {
       judgments = {core: {data: data, animation: 0}};
 
   const tree = $.jstree && $.jstree.reference('#judgments');
-  if (tree) {
+  if (tree && $ke.length) {
     tree.destroy();
   }
 
@@ -484,7 +484,7 @@ function _initKePanTree() {
     $select.change(() => _switchKePanType($select.val(), true));
   }
 
-  if (kePanTypes.length) {
+  if (kePanTypes.length || $('li#set-ke-pan-type').length) {
     const $ratio = $('.dropdown-menu > .ke-pan-ratio:first-child');
     for (let i = 0; i < kePanTypes.length; i++) {
       $(`<li class="ke-pan-type" data-ke-type="${kePanTypes[i][0]}" title="${kePanTypes[i][2]}">
@@ -493,6 +493,7 @@ function _initKePanTree() {
     if (kePanTypes.length > 1) {
       $(`<li class="ke-pan-type" data-ke-type="all"><a>全部科判</a></li>`).insertBefore($ratio);
     }
+    $('li#set-ke-pan-type').insertBefore($ratio);
     $('<li role="separator" class="divider"></li>').insertBefore($ratio);
     $('.dropdown-menu > .ke-pan-type').click(e => {
       const type = e.target.closest('[data-ke-type]').getAttribute('data-ke-type');
