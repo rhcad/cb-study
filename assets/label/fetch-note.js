@@ -1,6 +1,9 @@
 function fetchNote(pageId, val, cols, reset, success) {
   const [tag, name, desc] = /^\d+$/.test(val[0]) ? val.slice(1) : val
 
+  if (/\s/.test(tag) || !name) {
+    return showError('格式错误', '标记字或经卷号错误，请按提示格式输入。')
+  }
   if (/^\d+$/.test(val[0])) {
     cols = [parseInt(val.shift())]
   }

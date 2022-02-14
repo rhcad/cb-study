@@ -315,6 +315,7 @@ function _addNote(nid) {
 
     testDiv.appendChild(range.cloneContents());
     if (/<(p|div|td)[ >]/i.test(testDiv.innerHTML)) { // 跨段落选择
+      el = null;
       $('.no-select', testDiv).remove();
       $('p,.lg-cell', testDiv).each((i, p) => {
         const id = p.getAttribute('id'),
@@ -331,6 +332,9 @@ function _addNote(nid) {
           }
         }
       });
+      if (!el) {
+        return showError('标记失败', '未能在多个段落中标记文本。')
+      }
     } else {
       // 将选中文本移入 note 节点
       el.appendChild(range.extractContents());
@@ -349,7 +353,8 @@ function _addNote(nid) {
 
     // 在 note 节点后插入注解锚点标记，跳过已有的标记
     let ref = el;
-    for (let pa = !el.nextElementSibling && el.parentElement; pa && pa.tagName === 'NOTE'; pa = pa.parentElement) {
+    for (let pa = !el.nextElementSibling && el.parentElement;
+         pa && pa.tagName === 'NOTE' && pa.innerText.length === el.innerText.length; pa = pa.parentElement) {
       ref = pa;
     }
     for (let nx = ref.nextElementSibling; nx && nx.hasAttribute('data-tag'); nx = nx.nextElementSibling) {

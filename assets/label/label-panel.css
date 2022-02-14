@@ -85,7 +85,7 @@ textarea {outline: none;}
   color: #999;
   cursor: pointer;
 }
-.label-panel .linked > [title]:first-child,
+.label-panel .linked > span:first-child,
 .label-panel .linked:not(.wrap) > .content {
   text-decoration: line-through;
 }

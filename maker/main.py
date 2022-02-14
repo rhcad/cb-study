@@ -608,7 +608,7 @@ class PageNoteHandler(CbBaseHandler):
         split_count = [0, 0]
         new_item = dict(tag=tag, name=name, desc=desc, col=col, notes=notes)
 
-        if reset[0] == '0':
+        if reset.startswith('0'):
             new_id = 0
             page['old_notes'] = page.get('old_notes', {}) or json.loads(json.dumps(page['notes']))
         else:

@@ -194,7 +194,7 @@
 
       <p style="margin-top: 10px">在“获取原文”前可提前导入注解，将在第4步中使用。</p>
       <div class="input-group note-tag-group">
-        <input type="text" class="form-control" placeholder="按“栏序号 标记字 注解的经号_卷号 可选的注解名称”格式输入">
+        <input type="text" class="form-control" placeholder="按“栏序号|标记字|注解的经号_卷号|可选的注解名称”格式输入">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default fetch-note">导入注解</button>
         </div>
@@ -441,19 +441,20 @@
     if (btn) {
       const tag = btn.getAttribute('data-tag'),
               col = parseInt(btn.getAttribute('data-col')),
-              cols = getVisibleColumns()
+              visCols = getVisibleColumns(),
+              colCount = parseInt($('body').attr('data-col-count')) || 0
 
       cbOptions.curNoteTag = tag
-      if (cols.length > 1 || cols[0] >= 0 && cols[0] !== col) {
+      if (visCols.length > 1 || visCols[0] >= 0 && visCols[0] !== col) {
         if (!first) {
           $('.cell').hide()
           $(`.cell-${col}`).show();
         }
         cbOptions.colHide = cbOptions.colHide || {};
-        cols.forEach(ci => {
+        for (let ci = 0; ci < colCount; ci++) {
           cbOptions.colHide['' + ci] = true
           $(`.cell-${ci}`).toggleClass('no-select', ci !== col)
-        })
+        }
         cbOptions.colHide['' + col] = false
         updateColumnStatus()
       }
