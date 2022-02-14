@@ -486,7 +486,7 @@
     html = (html || '').trim()
     const hasCol = html.indexOf('"cell cell-') >= 0
     const space = s => new Array(/<p/.test(s) ? (hasCol ? 3 : 2) : /"cell/.test(s) ? 2 : 1).join('\t')
-    return html.replace(/ data-line-no="[^"<>]*"|\s?(context-menu-active|note-expanded)/g, '')
+    return html.replace(/ data-line-no="[^"<>]*"|\s?(context-menu-active|note-expanded|no-select)/g, '')
             .replace(/ style="(display: block;|padding-left: 0px;|display: none;)*"| class=""|<note [^<>]+><\/note>/g, '')
             .replace(/(<\/(p|div)>){2,9}/g, s => s.replace(/></g, '>\n<'))
             .replace(/[>\n]<(p|div( id=[^ >]+)? class="(cell|row|lg)|div id=|div ke-pan=)/g, s => s[0].trim() + '\n' + space(s) + s.substr(1))
