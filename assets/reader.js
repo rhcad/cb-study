@@ -790,8 +790,11 @@ function insertNotes($side, notes, desc) {
       $exist.length = 0;
     }
     if (!$exist.length) {
-      $(`<p class="note-p" data-nid="${id}">${rows.join('')}</p>`)
-          .insertAfter($judg.closest('.lg').length ? $judg.closest('.lg') : $judg);
+      let ref = $judg.closest('.lg').length ? $judg.closest('.lg')[0] : $judg[0];
+      for (let nx = ref.nextElementSibling; nx && /note-p/.test(nx.className); nx = nx.nextElementSibling) {
+        ref = nx;
+      }
+      $(`<p class="note-p" data-nid="${id}">${rows.join('')}</p>`).insertAfter(ref);
     }
   });
 }
@@ -925,7 +928,7 @@ $(document).on('click', '.note-tag', function (e) {
     console.warn(id + ' note-p not exist');
   }
   if (show) {
-    $p.insertAfter($this.closest('.lg').length ? $this.closest('.lg') : $this.closest('[ke-pan],p'));
+    // $p.insertAfter($this.closest('.lg').length ? $this.closest('.lg') : $this.closest('[ke-pan],p'));
   }
   $p.toggle(100, null, show);
   $(`.note-tag[data-nid=${id}]`).toggleClass('note-expanded', show);

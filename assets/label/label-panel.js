@@ -52,9 +52,9 @@ function initNotes(notes, tag, cellClass, desc) {
           content_ = content.join('').replace(/\d{4}\w*$/, '');
       return `<p data-note-id="${note[0]}" data-line-no="${lines[0] || ''}" ` +
           `class="${linked ? 'linked' : ''}" data-title="${titles[0]}">${note[0]}: ` +
-          `<span title="${titleS}">${makeText(note[1])}</span><br/><span class="content">${content_}</span></p>`;
+          `<span title="${titleS}" abbr="${makeText(note[1])}"></span><br/><span class="content">${content_}</span></p>`;
     }
-  }).join('\n').replace(/ data-line-no=""/g, ''));
+  }).join('\n').replace(/ (data-line-no|title)=""/g, ''));
 
   $('.tip-3-pair').toggle(!_label.rawMode);
   $('.tip-3-raw').toggle(_label.rawMode);
@@ -271,44 +271,69 @@ function _inCell(node) {
   }
 }
 
-function _addNote(id) {
+function _addNote(nid) {
   const selection = window.getSelection(),
       range = selection.rangeCount === 1 && selection.getRangeAt(0),
-      note = _labelMap[id];
+      note = _labelMap[nid];
 
   if (range && _inCell(selection.anchorNode) && _inCell(selection.focusNode)) {
     const testDiv = document.createElement('div'),
-        el = document.createElement('note'),
         title = [], rows = [];
+    let el = document.createElement('note');
+
+    getNoteContent(note, title, rows, _label.rawMode, _label.desc);
 
     testDiv.appendChild(range.cloneContents());
     if (/<(p|div|td)[ >]/i.test(testDiv.innerHTML)) { // 跨段落选择
-      return showError('获取选择', '不能跨段落选择。');
-    }
-    getNoteContent(note, title, rows, _label.rawMode, _label.desc);
+      $('.no-select', testDiv).remove();
+      $('p,.lg-cell', testDiv).each((i, p) => {
+        const id = p.getAttribute('id'),
+            outerEl = document.getElementById(id),
+            html = p.innerHTML,
+            pos = outerEl && (i ? outerEl.innerHTML.indexOf(html) : outerEl.innerHTML.lastIndexOf(html));
 
-    // 将选中文本移入 note 节点
-    el.appendChild(range.extractContents());
-    el.setAttribute('data-nid', id);
-    el.toggleAttribute('cur-tag', true);
-    range.insertNode(el);
+        if (outerEl && pos >= 0) {
+          const span = `<note tmp data-nid='${nid}' cur-tag='true'>${html}</note>`;
+          outerEl.innerHTML = outerEl.innerHTML.substring(0, pos) + span + outerEl.innerHTML.substring(pos + html.length);
+          el = outerEl.querySelector('note[tmp]');
+          if (el) {
+            el.removeAttribute('tmp');
+          }
+        }
+      });
+    } else {
+      // 将选中文本移入 note 节点
+      el.appendChild(range.extractContents());
+      el.setAttribute('data-nid', nid);
+      el.toggleAttribute('cur-tag', true);
+      range.insertNode(el);
+    }
 
     // 在 note 节点后插入注解锚点标记，允许一个注解有多个注解锚点标记
     const tagEl = document.createElement('sup');
     tagEl.classList.add('note-tag');
     tagEl.setAttribute('data-tag', '[' + _label.tag + ']');
-    tagEl.setAttribute('data-nid', id);
+    tagEl.setAttribute('data-nid', nid);
     tagEl.setAttribute('title', title[0]);
-    $(tagEl).insertAfter(el);
+
+    // 在 note 节点后插入注解锚点标记，跳过已有的标记
+    let ref = el;
+    for (let pa = !el.nextElementSibling && el.parentElement; pa && pa.tagName === 'NOTE'; pa = pa.parentElement) {
+      ref = pa;
+    }
+    for (let nx = ref.nextElementSibling; nx && nx.hasAttribute('data-tag'); nx = nx.nextElementSibling) {
+      ref = nx;
+    }
+    $(tagEl).insertAfter(ref);
 
     // 在 note 节点所在段落后插入注解段落，自动移到靠下的位置
-    const $exist = $(`.note-p[data-nid="${id}"]`);
+    const $exist = $(`.note-p[data-nid="${nid}"]`);
     if ($exist.length && $exist.offset().top < $(el).offset().top) {
       $exist.remove();
       $exist.length = 0;
     }
     if (!$exist.length) {
-      $(`<p class="note-p" data-nid="${id}">${rows.join('<br>')}</p>`)
+      $(`<p class="note-p" data-nid="${nid}">${rows.join('<br>')}</p>`)
           .insertAfter(el.closest('p,.lg'));
     }
 
@@ -348,7 +373,6 @@ function addNote(autoSwitch) {
       }
       _updateSelCount();
     };
-    $('#sel-p-count').text('正保存...').show();
     $.post('/cb/page/note/' + pageId, {
       tag: _label.tag, nid: id,
       remove: removeIds.join(',')

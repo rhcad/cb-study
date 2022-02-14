@@ -236,7 +236,7 @@
   <div class="task-step" data-step="3">
     <p class="step-title"><span>第4步</span>：合并注解到论文</p>
     <div class="step-content">
-      <p class="tip-3-pair">在正文中选择标注面板的第一条注解对应的文本（双击第一条也会自动选中文本），按回车键插入注解。</p>
+      <p class="tip-3-pair">在正文中选择标注面板的第一条注解对应的文本（双击第一条也会自动选中文本，可选择连续的多个段落），按回车键插入注解。</p>
       <p class="tip-3-raw">先在标注面板点击注解行，然后在正文中对应的文本，按回车键插入注解。</p>
       <p>如果按下了Shift或Ctrl键，则按回车键时不自动切换到下一条，可以将多个连续段落与此注解关联。</p>
 
@@ -452,6 +452,7 @@
         cbOptions.colHide = cbOptions.colHide || {};
         cols.forEach(ci => {
           cbOptions.colHide['' + ci] = true
+          $(`.cell-${ci}`).toggleClass('no-select', ci !== col)
         })
         cbOptions.colHide['' + col] = false
         updateColumnStatus()

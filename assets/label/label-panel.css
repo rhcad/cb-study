@@ -70,6 +70,10 @@ textarea {outline: none;}
 }
 .label-panel > .notes > p:not(.raw-note).wrap {
   white-space: normal;
+  border: 1px solid #ddd;
+  border-right: none;
+  border-radius: 4px;
+  padding: 0 2px 4px 6px;
 }
 .label-panel > .notes > p > span:not(.p):first-child {
   font-weight: 700;
@@ -84,6 +88,14 @@ textarea {outline: none;}
 .label-panel .linked > [title]:first-child,
 .label-panel .linked:not(.wrap) > .content {
   text-decoration: line-through;
+}
+
+.label-panel > .notes > p:not(.wrap) > [abbr]::after,
+.label-panel > .notes > p > [abbr]:not([title])::after {
+  content: attr(abbr);
+}
+.label-panel > .notes > p.wrap > [title]:first-child::after {
+  content: attr(title);
 }
 
 .label-panel p.raw-note {
