@@ -316,11 +316,11 @@ function _addNote(nid) {
     testDiv.appendChild(range.cloneContents());
     if (/<(p|div|td)[ >]/i.test(testDiv.innerHTML)) { // 跨段落选择
       el = null;
-      $('.no-select', testDiv).remove();
-      $('p,.lg-cell', testDiv).each((i, p) => {
+      $('.no-select,.note-p', testDiv).remove();
+      $('p[id^=p],.lg-cell', testDiv).each((i, p) => {
         const id = p.getAttribute('id'),
             outerEl = document.getElementById(id),
-            html = p.innerHTML,
+            html = p.innerHTML.replace(/^(<note [^>]+>)+|(<\/note>)+$/g, ''),
             pos = outerEl && (i ? outerEl.innerHTML.indexOf(html) : outerEl.innerHTML.lastIndexOf(html));
 
         if (outerEl && pos >= 0) {

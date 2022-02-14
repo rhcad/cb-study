@@ -120,7 +120,7 @@ textarea {outline: none;}
   font-size: 12px;
 }
 
-.label-panel button {
+.label-panel button, .ke-line {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
