@@ -271,12 +271,13 @@ class PageHandler(CbBaseHandler):
             html = to_basestring(self.get_argument('html', '')).strip()
             step = int(self.get_argument('step', page['info']['step']))
             field = 'html_end' if step > 1 and page.get('html_end') else 'html'
+            changed = re.search('<p id', html) and html != '\n'.join(page[field])
 
-            if re.search('<p id', html) and html != '\n'.join(page[field]):
+            if changed:
                 logging.info('save html')
                 page[field] = html.split('\n')
                 self.save_page(page, field == 'html_end')
-                self.write({})
+            self.write(dict(changed=bool(changed)))
         except Exception as e:
             self.on_error(e)
 
@@ -792,7 +793,7 @@ class PageNoteHandler(CbBaseHandler):
         assert [r for r in item['notes'] if r[0] == nid], 'invalid result'
 
         self.save_page(page)
-        self.write({})
+        self.write(dict(nid=nid))
 
     def ignore_note(self, page, tag):
         ids = [int(r) for r in self.get_argument('ignore').split(',') if r]

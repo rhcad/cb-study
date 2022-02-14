@@ -131,7 +131,8 @@ function _selectForCurrent(expand) {
 
   window.getSelection().removeAllRanges();
   if (title) {
-    _label.$cells.find('p,.lg-row>div').each((i, p) => {
+    const found = [];
+    _label.$cells.find('p[id^=p],.lg-row>div').each((i, p) => {
       const text = p.innerText, index = text.replace(sign, '').indexOf(title);
       if (index >= 0) {
         try {
@@ -139,15 +140,41 @@ function _selectForCurrent(expand) {
           check(text, title, pos);
         } catch (pos) {
           if (pos.length) {
-            selectInParagraph(p, pos[0], pos[pos.length - 1] + 1);
+            const rect = selectInParagraph(p, pos[0], pos[pos.length - 1] + 1);
+            if (rect) {
+              found.push({p: p, start: pos[0], end: pos[pos.length - 1] + 1, rect: rect})
+            }
           }
         }
       }
     });
+
+    if (found.length > 1) {
+      const rect = _label.lastTag && _label.lastTag.getBoundingClientRect();
+      if (rect && rect.height) {
+        let minDist = 1e5, best;
+        found.forEach(r => {
+          const dist = Math.abs(rect.top - r.rect.top);
+          if (minDist > dist) {
+            minDist = dist;
+            best = r;
+          }
+        });
+        if (best) {
+          selectInParagraph(best.p, best.start, best.end);
+        }
+      }
+    }
   }
 }
 
-// 在正文选中指定范围的文本
+/**
+ * 在正文选中指定范围的文本
+ * @param {HTMLElement} el 段落元素
+ * @param {number} startOffset 起始字符偏移量
+ * @param {number} endOffset 终止字符偏移量
+ * @return {DOMRect|undefined} 选择范围的视窗坐标，相对于视口的位置
+ */
 function selectInParagraph(el, startOffset, endOffset) {
   const selection = window.getSelection(),
       range = document.createRange(),
@@ -159,6 +186,7 @@ function selectInParagraph(el, startOffset, endOffset) {
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset);
     selection.addRange(range);
+    return range.getBoundingClientRect();
   }
 }
 
@@ -206,7 +234,8 @@ $('#skip-top').click(function() {
   function remove(first) {
     const $p = $(_panelCls + ' p:first-child');
     if (first || $p.hasClass('linked')) {
-      scrollToVisible(_label.$cells.find(`.note-tag[data-nid=${$p.attr('data-note-id')}]`)[0]);
+      _label.lastTag = _label.$cells.find(`.note-tag[data-nid=${$p.attr('data-note-id')}]`)[0];
+      scrollToVisible(_label.lastTag);
       $p.fadeOut(Math.max(ms -= 5, 5), function() {
         $p.remove();
         remove();
@@ -227,7 +256,8 @@ $(document).on('click', _panelCls + ' p.linked', function (e) {
       expanded = !$note.hasClass('note-expanded');
 
   if ($tag.length) {
-    scrollToVisible($tag[0]);
+    _label.lastTag = $tag[0];
+    scrollToVisible(_label.lastTag);
     $('note').removeClass('note-expanded');
     $note.toggleClass('note-expanded', expanded);
 
@@ -315,6 +345,7 @@ function _addNote(nid) {
     tagEl.setAttribute('data-tag', '[' + _label.tag + ']');
     tagEl.setAttribute('data-nid', nid);
     tagEl.setAttribute('title', title[0]);
+    _label.lastTag = tagEl;
 
     // 在 note 节点后插入注解锚点标记，跳过已有的标记
     let ref = el;
@@ -376,7 +407,7 @@ function addNote(autoSwitch) {
     $.post('/cb/page/note/' + pageId, {
       tag: _label.tag, nid: id,
       remove: removeIds.join(',')
-    }, () => saveHtml(ended)).error(ajaxError('保存注解失败'));
+    }, r => r.nid && saveHtml(ended)).error(ajaxError('保存注解失败'));
   }
   else if (window.getSelection().rangeCount) {
     showError('未插入注解', '要将一个注解插入到多个段落，请按Shift或Ctrl键然后回车。');

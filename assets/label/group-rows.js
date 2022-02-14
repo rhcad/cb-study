@@ -303,16 +303,16 @@ function _extractRow($p, test) {
   const id = $p.attr('id'), // 段落号
       $row = $p.closest('.row'), // 行块，有多列，每列有多行的单元格
       $curCol = $p.closest('.cell'), // 当前单元格
-      rows = $curCol.find('p,.lg-row').get(), // 所在单元格的所有段落
+      rows = $curCol.find('p[id^=p],.lg-row').get(), // 所在单元格的所有段落
       lineNo = rows.indexOf($p[0]), // 在所在单元格中的行号
-      cols = $row.children('.cell').map((i, c) => [$(c).find('p,.lg-row').get().slice(0, lineNo + 1)]).get(),
+      cols = $row.children('.cell').map((i, c) => [$(c).find('p[id^=p],.lg-row').get().slice(0, lineNo + 1)]).get(),
       colIds = cols.map(c => c.map(p => p.getAttribute('id')).join(' ') || '-'),
       colIndex = parseInt(/cell-(\d+)/.exec($curCol[0].className)[1]); // 列序号
 
   // 当前单元格下面还有单元格、新行块的有段落的单元格超过一个
   if (lineNo >= 0 && lineNo < rows.length - 1 && colIds.filter(c => c.length > 1).length > 1) {
     const newRow = colIds.join('|'), // 新行块，列间用|分隔，相邻段落号用空格隔开，没有段落的列用减号表示
-        rest = $row.children('.cell').map((i, c) => [$(c).find('p,.lg-row').get().slice(lineNo + 1)]).get()
+        rest = $row.children('.cell').map((i, c) => [$(c).find('p[id^=p],.lg-row').get().slice(lineNo + 1)]).get()
             .map(c => c.map(p => p.getAttribute('id')).join(' ') || '-').join('|'),
         newRowSpan = colIds.map((s, i) => i === colIndex ? '<b>' + s + '</b>' : s).join(' | ');
 
