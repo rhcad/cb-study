@@ -8,8 +8,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="assets/img/favicon.ico"/>
   <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
-  <link href="assets/cb.css?v=210" rel="stylesheet"/>
-  <link href="assets/note.css?v=210" rel="stylesheet"/>
+  <link href="assets/cb.css?v=214" rel="stylesheet"/>
+  <link href="assets/note.css?v=214" rel="stylesheet"/>
   <style>
     @media screen {
       body {
@@ -50,8 +50,9 @@
              aria-expanded="false">显示 <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
-            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
             <li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
             <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
@@ -171,15 +172,15 @@
 </script>
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-<script src="assets/reader.js?v=210"></script>
+<script src="assets/reader.js?v=214"></script>
 <script src="data/T0945_5-X0275.json.js"></script>
 <script src="data/T0945_5-X0285.json.js"></script>
 
 <script>
   toggleXu();
 
-  insertNotes(null, X0275Notes, 'X0275 楞嚴經正脉疏，交光大师');
-  insertNotes(null, X0285Notes, 'X0285 楞嚴經文句，藕益大师');
+  insertNotes(null, X0275Notes, 'X0275 楞嚴經正脉疏，交光大师', '脉');
+  insertNotes(null, X0285Notes, 'X0285 楞嚴經文句，藕益大师', '文');
 
   $(document).on('mouseenter', '[data-nid]', function (e) {
     const id = e.target.closest('[data-nid]').getAttribute('data-nid'),

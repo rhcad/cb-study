@@ -513,12 +513,12 @@ _initKePanTm = setTimeout(_initKePanTree, 50);
 function _findKePanLineId(el) {
   let kid = el.getAttribute('ke-pan');
   if (!kid) {
-    const arr = $('.ke-line:visible,p[id^=p]').map((i, p) => {
+    const arr = $('.ke-line:visible,p[id^=p],.lg-row').map((i, p) => {
       const r = p.getBoundingClientRect();
       return {p: p, y: r ? r.top : 1e6};
     }).get();
     arr.sort((a, b) => a.y - b.y);
-    let rows = arr.map(a => a.p), index = rows.indexOf(el.closest('p'));
+    let rows = arr.map(a => a.p), index = rows.indexOf(el.closest('p,.lg-row'));
     for (; index >= 0 && !kid; --index) {
       kid = rows[index].getAttribute('ke-pan');
     }
@@ -767,8 +767,9 @@ function getNoteContent(note, title, rows, rawNote, desc) {
  * @param {jQuery} $side 占一栏的正文，如果只有一栏就可为 null
  * @param {Array[]} notes 每个注解元素为一个数组，其元素个数为三的整数倍，依次为注解ID、原文、注解内容
  * @param {string} [desc] 注解来源
+ * @param {string} [tag] 注解标记字
  */
-function insertNotes($side, notes, desc) {
+function insertNotes($side, notes, desc, tag) {
   $side = $side || $('#content');
   $side.find('.note-tag').each(function() {
     let $tag = $(this),
@@ -797,6 +798,18 @@ function insertNotes($side, notes, desc) {
       $(`<p class="note-p" data-nid="${id}">${rows.join('')}</p>`).insertAfter(ref);
     }
   });
+
+  if (tag && desc) {
+    const tag2 = '[' + tag.replace(/\[|\]/g, '') + ']';
+    const desc2 = tag2 + desc.replace(/^[A-Z]\w+\s|[，（].+$/g, '');
+    $(`<li class="show-notes" title="切换是否显示注解 “${desc}”"><a href="javascript:">${desc2}</a></li>`)
+        .insertBefore($('.dropdown #show-notes').closest('li'))
+        .click(function () {
+          const $tag = $(`.note-tag[data-tag="${tag2}"]`), expanded = !$tag.hasClass('note-expanded');
+          $tag.each((_, t) => $(t).hasClass('note-expanded') !== expanded && $(t).click());
+          $(this).toggleClass('active');
+        });
+  }
 }
 
 // 在正文有科判标记的span上鼠标掠过
@@ -844,7 +857,7 @@ $(document).on('mouseleave', '[ke-pan]', function (e) {
 });
 
 // 在正文有科判标记的span、科判条目上点击
-$(document).on('click', '[ke-pan],.ke-line,p[id^=p]', function (e) {
+$(document).on('click', '[ke-pan],.ke-line,p[id^=p],.lg-row', function (e) {
   highlightKePan(getKePanId(e.target), 'click');
 });
 
@@ -927,9 +940,6 @@ $(document).on('click', '.note-tag', function (e) {
   if (!$p.length) {
     console.warn(id + ' note-p not exist');
   }
-  if (show) {
-    // $p.insertAfter($this.closest('.lg').length ? $this.closest('.lg') : $this.closest('[ke-pan],p'));
-  }
   $p.toggle(100, null, show);
   $(`.note-tag[data-nid=${id}]`).toggleClass('note-expanded', show);
   $(`note[data-nid=${id}]`).toggleClass('note-expanded', show);
@@ -965,6 +975,7 @@ $('#show-notes').click(function() {
     $tag.toggleClass('note-expanded', !expanded);
     $('.note-expanded').toggleClass('note-expanded', !expanded);
     $(this).closest('li').toggleClass('active', !expanded);
+    $('li.show-notes').toggleClass('active', !expanded);
   }
 });
 

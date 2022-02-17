@@ -9,8 +9,8 @@
   <link rel="icon" href="assets/img/favicon.ico"/>
   <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
   {% if has_ke_pan %}<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>{% end %}
-  <link href="assets/cb.css?v=210" rel="stylesheet"/>
-  <link href="assets/note.css?v=210" rel="stylesheet"/>
+  <link href="assets/cb.css?v=214" rel="stylesheet"/>
+  <link href="assets/note.css?v=214" rel="stylesheet"/>
   <style>
     {% if note_names or has_ke_pan %}@media screen {body {padding-bottom: 50px;}} {% end %}
     .phone-bar {
@@ -146,14 +146,14 @@
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 {% if has_ke_pan %}<script src="assets/jstree/jstree.min.js"></script>{% end %}
-<script src="assets/reader.js?v=210"></script>
+<script src="assets/reader.js?v=214"></script>
 {% for fn in json_files %}
 <script src="data/{{fn}}"></script>
 {% end %}
 
 <script>
   {% for a in note_names %}
-  insertNotes({% if info.get('cols', 1) > 1 %} $('.cell-{{a[1]}}') {% else %} null {% end %}, {{a[0]}}, '{{a[2]}}');
+  insertNotes({% if info.get('cols', 1) > 1 %} $('.cell-{{a[1]}}') {% else %} null {% end %}, {{a[0]}}, '{{a[2]}}', '{{a[3]}}');
   {% end %}
 
   {% if note_names %}

@@ -31,10 +31,10 @@ body[data-step="1"] .label-panel {
 }
 
 body[data-step="3"] #content {
-  margin-right: 420px;
+  margin-right: 35%;
 }
 body[data-step="3"] .label-panel {
-  width: 420px;
+  width: 35%;
 }
 body[data-step="3"][data-no-note="true"] #content,
 body.hide-label-panel #content,
@@ -191,6 +191,9 @@ textarea {outline: none;}
 
 .gray-linked note[cur-tag]:not(.note-expanded) {
   color: gray;
+}
+.gray-linked note.note-expanded note[cur-tag]:not(.note-expanded) {
+  color: #229;
 }
 
 body[data-step="1"] #content:not(.show-line-no) p {

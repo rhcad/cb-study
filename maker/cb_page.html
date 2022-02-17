@@ -98,8 +98,9 @@
           <ul class="dropdown-menu">
             <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
             <li><a href="javascript:" class="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
-            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
             <li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
             <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
@@ -474,7 +475,7 @@
     const $src = $('#content > .row0')
     const $content = $($src[0] || '#content').clone().appendTo($('body'))
 
-    $content.find('.div-xu,.cell:hidden').show()
+    $content.find('.div-xu,.cell:hidden,.hide-txt').show()
     $content.find(':hidden,.note-p').remove()
     $content.find('.note-tag').removeAttr('title')
     $content.find('[cur-tag]').removeAttr('cur-tag')
@@ -516,7 +517,7 @@
 
   {% for tag, v in (step > 1 and notes or []) %}
   $.get('/cb/page/note/{{id}}', {tag: '{{tag}}'}, r => {
-    insertNotes($(`.cell-${r.col},#body${r.col}`), r.notes, r.desc)
+    insertNotes($(`.cell-${r.col},#body${r.col}`), r.notes, r.desc, r.tag)
   })
   {% end %}
 

@@ -23,7 +23,7 @@ function initNotes(notes, tag, cellClass, desc) {
   _label.$cells.find('note').removeAttr('cur-tag');
 
   // 设置标注面板的内容
-  const makeText = t => t.length < 25 ? t : t.substr(0, 14) + '…' + t.substr(t.length - 10);
+  const makeText = t => t.length < 25 ? t : t.substr(0, 12) + '…' + t.substr(t.length - 15);
   _labelPanel.html(notes.map(note => {
     const $tag = _label.$cells.find(`[data-nid=${note[0]}]`),
         linked = $tag.length || note[2][0] === '-',
@@ -301,17 +301,13 @@ function _inCell(node) {
   }
 }
 
-function _addNote(nid) {
+function _addNote(nid, useNote) {
   const selection = window.getSelection(),
-      range = selection.rangeCount === 1 && selection.getRangeAt(0),
-      note = _labelMap[nid];
+      range = selection.rangeCount === 1 && selection.getRangeAt(0);
 
   if (range && _inCell(selection.anchorNode) && _inCell(selection.focusNode)) {
-    const testDiv = document.createElement('div'),
-        title = [], rows = [];
+    const testDiv = document.createElement('div');
     let el = document.createElement('note');
-
-    getNoteContent(note, title, rows, _label.rawMode, _label.desc);
 
     testDiv.appendChild(range.cloneContents());
     if (/<(p|div|td)[ >]/i.test(testDiv.innerHTML)) { // 跨段落选择
@@ -342,6 +338,9 @@ function _addNote(nid) {
       el.toggleAttribute('cur-tag', true);
       range.insertNode(el);
     }
+
+    const note = useNote(), title = [], rows = [];
+    getNoteContent(note, title, rows, _label.rawMode, _label.desc);
 
     // 在 note 节点后插入注解锚点标记，允许一个注解有多个注解锚点标记
     const tagEl = document.createElement('sup');
@@ -384,18 +383,21 @@ function addNote(autoSwitch) {
       id = $p.attr('data-note-id'),
       note = (!$p.hasClass('linked') || !autoSwitch) && _labelMap[id],
       removeIds = [];
-
-  if (note && $p.length > 1) {
-    for (let i = 1; i < $p.length; i++) {
-      const $n = $($p[i]), nid = parseInt($n.attr('data-note-id')), note2 = _labelMap['' + nid];
-      $p[0].innerHTML = $p[0].innerHTML + `<span class="p">${$n.html()}</span>`;
-      $n.remove();
-      removeIds.push(nid);
-      note.push.apply(note, note2);
-      _label.notes = _label.notes.filter(t => t[0] !== nid);
+  const useNote = () => {
+    if (note && $p.length > 1) { // 选择了多个普通内容的注解段落，就合并到第一个注解段落中
+      for (let i = 1; i < $p.length; i++) {
+        const $n = $($p[i]), nid = parseInt($n.attr('data-note-id')), note2 = _labelMap['' + nid];
+        $p[0].innerHTML = $p[0].innerHTML + `<span class="p">${$n.html()}</span>`;
+        $n.remove();
+        removeIds.push(nid);
+        note.push.apply(note, note2);
+        _label.notes = _label.notes.filter(t => t[0] !== nid);
+      }
     }
-  }
-  if (note && _addNote(id)) {
+    return note;
+  };
+
+  if (note && _addNote(id, useNote)) {
     const ended = () => {
       window.getSelection().removeAllRanges();
       $p.addClass('linked').removeClass('wrap');
@@ -428,6 +430,7 @@ $(document).on('keyup', function (e) {
   }
 });
 
+// 标注面板的注解上鼠标移入时，在状态栏显示原文
 $(document).on('mouseenter', _panelCls + ' p', function (e) {
   const p = $(e.target), title = p.attr('data-title');
   $('footer > p').text(title);
@@ -502,17 +505,38 @@ function _splitNote($p) {
   });
 }
 
+// 注解锚点标记的右键菜单
 $.contextMenu({
   selector: '.note-tag',
   items: {
     remove: {
-      name: '删除注解',
+      name: '移除注解',
       callback: function () {
         const id = this.attr('data-nid');
         $(`note[data-nid="${id}"]`).each((i, p) => $(p).replaceWith(p.innerHTML));
         $(`.note-tag[data-nid="${id}"],.note-p[data-nid="${id}"]`).remove();
         saveHtml();
       },
+    },
+    moveRight: {
+      name: '右移标记',
+      callback: function () {
+        this.insertAfter(this.next());
+        saveHtml();
+      },
+      disabled: function () { return !this.next().hasClass('note-tag'); },
+    },
+    moveRightMost: {
+      name: '移到最右',
+      callback: function () {
+        let $n = this;
+        while ($n.next().hasClass('note-tag')) {
+          $n = $n.next();
+        }
+        this.insertAfter($n);
+        saveHtml();
+      },
+      disabled: function () { return !this.next().hasClass('note-tag'); },
     },
   },
 });

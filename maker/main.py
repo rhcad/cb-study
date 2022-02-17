@@ -199,7 +199,7 @@ class PageNewHandler(CbBaseHandler):
             caption = to_basestring(self.get_argument('caption', '')).strip()
             if not re.match(r'^[A-Za-z0-9_]{2,8}$', page_id):
                 return self.send_error(501, reason='invalid id')
-            if not caption or len(caption) > 10:
+            if not caption or len(caption) > 20:
                 return self.send_error(502, reason='invalid caption')
 
             filename = path.join(DATA_DIR, page_id + '.json')
@@ -248,7 +248,7 @@ class PageHandler(CbBaseHandler):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
                               for tag, v in (page.get('notes') or {}).items()]
                 note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])),
-                               v.get('col', 0), v.get('desc', v['name'])]
+                               v.get('col', 0), v.get('desc', v['name']), tag]
                               for tag, v in (page.get('notes') or {}).items()]
                 html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
                                           json_files=json_files, note_names=note_names,
