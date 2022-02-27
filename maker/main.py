@@ -749,7 +749,7 @@ class PageNoteHandler(CbBaseHandler):
         assert len(upd) == 1, 'raw {0} not exists: {1}'.format(nid, json.dumps(upd, ensure_ascii=False))
         index, upd = upd[0]
         assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
-        if not split[0] or upd[2] != ''.join(split):
+        if not split[0] or pat_note_inv.sub('', upd[2]) != pat_note_inv.sub('', ''.join(split)):
             logging.warning('{0} text mismatch: {1} != {2}'.format(nid, upd[2], ''.join(split)))
             assert 0, '{0} text mismatch'.format(nid)
 
@@ -772,7 +772,8 @@ class PageNoteHandler(CbBaseHandler):
         if res:
             res.update(dict(log=log, new_ids=new_ids))
         elif self:
-            page['log'].append(log)
+            if item.get('log', 1):
+                page['log'].append(log)
             self.save_page(page)
             self.write(dict(ids=','.join(new_ids), raw=raw))
 

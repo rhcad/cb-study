@@ -368,7 +368,7 @@ function _addNote(nid, useNote) {
       $exist.length = 0;
     }
     if (!$exist.length) {
-      $(`<p class="note-p" data-nid="${nid}">${rows.join('<br>')}</p>`)
+      $(`<p class="note-p" data-nid="${nid}">${rows.join('')}</p>`)
           .insertAfter(el.closest('p,.lg'));
     }
 

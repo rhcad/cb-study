@@ -169,7 +169,7 @@ function _splitParagraph($p) {
       return showError('拆分段落', '只能插入@，不能改动内容。');
     }
     if (result.indexOf('@') > 0) {
-      let $last = $p, id, id0 = $p.attr('id').replace(/[a-z]$/, '');
+      let $last = $p, id, id0 = $p.attr('id').replace(/[a-z]\d*$/, '');
       result.split('@').forEach((text, i) => {
         if (i === 0) {
           saveData.text = text;
@@ -177,17 +177,13 @@ function _splitParagraph($p) {
           saveData.result.push({text: text.trim()});
         } else if (text.trim()) {
           let x, j = 26;
-          for (x = 0; x <= 9 && j === 26; x++) {
+          for (x = 0; j === 26; x++) {
             for (j = 0; j < 26; j++) {
-              id = id0 + String.fromCharCode('a'.charCodeAt(0) + j) +
-                  (x ? String.fromCharCode('0'.charCodeAt(0) + x) : '');
+              id = id0 + String.fromCharCode('a'.charCodeAt(0) + j) + (x ? '' + x : '');
               if ($('#' + id).length < 1) {
                 break;
               }
             }
-          }
-          if (x > 9) {
-            return showError('拆分段落失败', '超过了最大分段数量。', () => location.reload());
           }
           const $new = $(`<p id="${id}" data-line-no="[${id}]">${text.trim()}</p>`);
           $new.insertAfter($last);
@@ -221,7 +217,7 @@ function _mergeUp($p, test) {
       colIndex = parseInt(cell_m ? cell_m[1] : 0), // 列序号
       cols = rowIndex < 0 ? [] : rowPairs[rowIndex].split('|'), // 当前行块的每列的段落号
       ids = (cols[colIndex] || '').trim().split(/\s+/g), // 当前单元格的每个段落号
-      pid = (ids[lineNo] || '').replace(/[a-z]\d?[*-]?$/, ''); // 未拆分段落时的原始段落号
+      pid = (ids[lineNo] || '').replace(/[a-z]\d*[*-]?$/, ''); // 未拆分段落时的原始段落号
 
   if (!/^p\d/.test(id) || lineNo < 1) {
   }

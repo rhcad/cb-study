@@ -15,6 +15,7 @@ function fetchNote(pageId, val, cols, reset, success) {
     let lastLine = line0
 
     $h.find('.div-orig,.div-commentary').each((i, div) => {
+      $('.doube-line-note', div).each((_, note) => (note.innerText = `(${note.innerText})`))
       const text = div.innerText.split('\n').map(s => s.trim())
           .filter(s => s && !/^△/.test(s)).join('\n'),
           line = $('span.lineInfo', div.closest('p') || div).attr('line') || lastLine

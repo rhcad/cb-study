@@ -749,7 +749,7 @@ function getNoteContent(note, title, rows, rawNote, desc) {
         orgText = !rawNote && note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
             `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : note[i + 1];
 
-    title.push(note[i + 1]);
+    title.push(note[i + 1].replace(/\d{4}\w*/, ''));
     rows.push(`<span data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
         `<span class="org-text">${orgText}</span><span class="note-text">${text}</span> ` +
         (!desc || i + 5 < note.length ? '' :

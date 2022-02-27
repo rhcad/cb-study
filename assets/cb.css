@@ -78,7 +78,7 @@ html { overflow-x: hidden; }
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing:grayscale;
-  font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', 'Microsoft YaHei', arial, sans-serif;
+  font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', '微軟正黑體', 'Microsoft YaHei', arial, sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
 }
 
 .no-print, nav, footer, .note-tag, .task-step,

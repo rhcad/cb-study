@@ -100,6 +100,7 @@ textarea {outline: none;}
 
 .label-panel p.raw-note {
   text-indent: 0;
+  font-size: 16px;
 }
 .label-panel p.raw-note[data-note-id]::before {
   content: attr(data-note-id);
