@@ -3,7 +3,7 @@
 /**
  * matchAll, scrollToVisible
  * saveCbOptions
- * toggleLineNo, toggleXu, toggleParaBox
+ * toggleLineNo, toggleXu, toggleParaBox, toggleNoteTag
  * showLeftColumn, showRightColumn, showTwoColumns
  * getVisibleColumns
  * updateColumnStatus
@@ -806,7 +806,11 @@ function insertNotes($side, notes, desc, tag) {
         .insertBefore($('.dropdown #show-notes').closest('li'))
         .click(function () {
           const $tag = $(`.note-tag[data-tag="${tag2}"]`), expanded = !$tag.hasClass('note-expanded');
-          $tag.each((_, t) => $(t).hasClass('note-expanded') !== expanded && $(t).click());
+          $tag.each((_, t) => {
+            if ($(t).hasClass('note-expanded') !== expanded) {
+              toggleNoteTag($(t));
+            }
+          });
           $(this).toggleClass('active');
         });
   }
@@ -930,30 +934,31 @@ $('.show-inline-ke-pan-btn').click(function () {
   saveCbOptions();
 });
 
-// 单击注解锚点标记则展开注解段落
-$(document).on('click', '.note-tag', function (e) {
-  const $this = $(e.target),
-      id = $this.attr('data-nid'),
-      $p = $(`.note-p[data-nid=${id}]`),
-      show = !$this.hasClass('note-expanded');
+// 切换展开注解段落
+function toggleNoteTag($tag) {
+  const id = $tag.attr('data-nid'),
+      $p = $(`.note-p[data-nid="${id}"]`),
+      show = !$tag.hasClass('note-expanded');
 
   if (!$p.length) {
     console.warn(id + ' note-p not exist');
   }
   $p.toggle(100, null, show);
-  $(`.note-tag[data-nid=${id}]`).toggleClass('note-expanded', show);
-  $(`note[data-nid=${id}]`).toggleClass('note-expanded', show);
-  e.stopPropagation();
-});
+  $(`.note-tag[data-nid="${id}"]`).toggleClass('note-expanded', show);
+  $(`note[data-nid="${id}"]`).toggleClass('note-expanded', show);
+}
+
+// 单击注解锚点标记则展开注解段落
+$(document).on('click', '.note-tag', e => toggleNoteTag($(e.target)) || false);
 
 function _toggleNoteP(e) {
   const $p = $(e.target).closest('.note-p'),
       id = $p.attr('data-nid'),
-      $tag = $(`.note-tag[data-nid=${id}]`);
+      $tag = $(`.note-tag[data-nid="${id}"]`);
 
   $p.toggle(100);
   $tag.toggleClass('note-expanded');
-  $(`note[data-nid=${id}]`).toggleClass('note-expanded', $tag.hasClass('note-expanded'));
+  $(`note[data-nid="${id}"]`).toggleClass('note-expanded', $tag.hasClass('note-expanded'));
   e.stopPropagation();
 }
 
