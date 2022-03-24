@@ -419,12 +419,13 @@ function movePairs(idsText) {
  */
 function _switchKePanType(type, save) {
   const $judgments = $('#judgments'), item = kePanTypes.filter(t => t[0] === type)[0];
+  const $keLines = $('.ke-line');
 
   $('body').toggleClass('cur-ke-pan-type', !!item)
   if (type === 'all') {
-    $('.ke-line').show();
+    $keLines.show();
   } else if (item) {
-    $('.ke-line').hide();
+    $keLines.hide();
     $(`.ke-line[data-ke-type="${type}"]`).show();
     $judgments.text(item && item[1] || '');
   }
@@ -439,7 +440,7 @@ function _switchKePanType(type, save) {
       data = [], levels = [],
       judgments = {core: {data: data, animation: 0}};
 
-  const tree = $.jstree && $.jstree.reference('#judgments');
+  let tree = $.jstree && $.jstree.reference('#judgments');
   if (tree && $ke.length) {
     tree.destroy();
   }
@@ -447,7 +448,11 @@ function _switchKePanType(type, save) {
   if ($ke.length && $.jstree) {
     $ke.each((_, ke) => {
       const indent = parseInt(ke.getAttribute('data-indent') || 0),
-          node = {id: ke.getAttribute('ke-pan'), text: ke.innerText, indent: indent};
+          node = {
+            id: ke.getAttribute('ke-pan'),
+            text: ke.innerText.replace(/^.+»/, '').trim(),
+            indent: indent
+          };
       let i;
 
       for (i = levels.length - 1; i >= 0 && (!levels[i] || i >= indent); i--) {
@@ -462,11 +467,36 @@ function _switchKePanType(type, save) {
       levels[indent] = node;
     });
     $judgments.jstree(judgments);
+    $judgments.on('loaded.jstree', _initKePanLinePath);
 
     $('#judgments').on('changed.jstree', function (e, data) {
       highlightKePan(data.node.id, 'nav');
     });
   }
+}
+
+function _initKePanLinePath() {
+  const tree = $.jstree.reference('#judgments');
+  $('.ke-line').each((i, r) => {
+    const $r = $(r), next = r.nextElementSibling;
+    const node = tree && tree.get_node($r.attr('ke-pan'));
+
+    if (!node) return;
+    $r.find('span').remove();
+    if (next && next.getAttribute('data-ke-type') === $r.attr('data-ke-type')) {
+      $r.hide();
+    } else {
+      let text = '';
+      node.parents.forEach((p, i) => {
+        const t = tree.get_node(p).text + ' » ';
+        if (p !== '#' && i < 5 && $r.text().length + text.length < 40) {
+          $r.prepend(`<span ke-pan="${p}">${t}</span>`);
+          text = t + text;
+        }
+      });
+      $r.attr('data-path', text || null);
+    }
+  });
 }
 
 function _initKePanTree() {
@@ -745,11 +775,13 @@ function getNoteContent(note, title, rows, rawNote, desc) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     const m = /\d{4}\w*$/.exec(note[i + 2]),
         line = m && m[0] || rawNote && note[i + 1] || '',
+        autoMore = /^!/.test(note[i + 1]),
+        title_ = note[i + 1].replace(/^[!-]/, ''),
         text = note[i + 2].replace(/\d{4}\w*$/, ''),
-        orgText = !rawNote && note[i + 1].length > 4 ? note[i + 1].substring(0, 3) +
-            `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : note[i + 1];
+        orgText = !rawNote && note[i + 1].length > 4 && !autoMore? note[i + 1].substring(0, 3) +
+            `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : title_;
 
-    title.push(note[i + 1].replace(/\d{4}\w*/, ''));
+    title.push(title_.replace(/\d{4}\w*|^[!-]/, ''));
     rows.push(`<span data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
         `<span class="org-text">${orgText}</span><span class="note-text">${text}</span> ` +
         (!desc || i + 5 < note.length ? '' :
@@ -1032,3 +1064,10 @@ $('#to-table').click(() => {
 });
 
 _initCbLiStatus();
+
+// 在注解标签上划过时让正文高亮
+$(document).on('mouseenter', '.note-tag', e => {
+  $('note').removeClass('tag-highlight');
+  $(`note[data-nid="${e.target.getAttribute('data-nid')}"]`).addClass('tag-highlight');
+});
+$(document).on('mouseleave', '.note-tag', () => $('note').removeClass('tag-highlight'));

@@ -54,7 +54,7 @@
 .note-tag {
   color: #aaa;
   cursor: pointer;
-  font-size: .7em;
+  font-size: .6em;
 }
 .note-tag[data-tag]::after {
   content: attr(data-tag);
@@ -71,3 +71,4 @@
 note.note-expanded, .note-expanded note {
   color: #229;
 }
+.tag-highlight { color: #0000a0; }

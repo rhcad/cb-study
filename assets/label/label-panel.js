@@ -37,7 +37,7 @@ function initNotes(notes, tag, cellClass, desc) {
       if (line) {
         lines.push(line);
       }
-      titles.push(note[i + 1]);
+      titles.push(note[i + 1].replace(/^[!-]/, ''));
       content.push(i > 0 ? `<span class="p" data-line-no="${line}">${text}</span>` : note[i + 2]);
     }
 
@@ -70,7 +70,7 @@ function initNotes(notes, tag, cellClass, desc) {
       return;
     }
     for (let i = 0; i + 2 < note.length; i += 3) {
-      title.push(note[i + 1]);
+      title.push(note[i + 1].replace(/^[!-]/, ''));
     }
     $tag.attr('title', title.join('\n'));
   });
@@ -506,7 +506,8 @@ function _splitNote($p) {
 }
 
 // 注解锚点标记的右键菜单
-$.contextMenu({
+const _undoData = {};
+const _noteTagMenu = {
   selector: '.note-tag',
   items: {
     remove: {
@@ -518,13 +519,34 @@ $.contextMenu({
         saveHtml();
       },
     },
+    sep1: {name: '----'},
+    moveLeft: {
+      name: '左移标记',
+      callback: function () {
+        _undoData.beforeMove = getHtml();
+        this.insertBefore(this.prev());
+        saveHtml();
+      },
+      disabled: function () { return !this.prev().hasClass('note-tag'); },
+    },
     moveRight: {
       name: '右移标记',
       callback: function () {
-        this.insertAfter(this.next());
+        _undoData.beforeMove = getHtml();
+        let target = this;
+        while (!target.next()[0]) {
+          if (target[0].nextSibling) {
+            break
+          }
+          target = target.parent();
+        }
+        if (target.next()[0]) {
+          this.insertAfter(target.next());
+        } else {
+          target.parent().append(this);
+        }
         saveHtml();
       },
-      disabled: function () { return !this.next().hasClass('note-tag'); },
     },
     moveRightMost: {
       name: '移到最右',
@@ -533,10 +555,20 @@ $.contextMenu({
         while ($n.next().hasClass('note-tag')) {
           $n = $n.next();
         }
+        _undoData.beforeMove = getHtml();
         this.insertAfter($n);
         saveHtml();
       },
       disabled: function () { return !this.next().hasClass('note-tag'); },
     },
+    sep2: {name: '----'},
+    undoMove: {
+      name: '撤销移动',
+      callback: function () {
+        saveHtml(reload, _undoData.beforeMove);
+      },
+      disabled: function () { return !_undoData.beforeMove; },
+    },
   },
-});
+};
+$.contextMenu(_noteTagMenu);

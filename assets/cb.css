@@ -336,11 +336,12 @@ span[ke-pan] > .ke-pan-text {
   font-weight: 500;
   border-left: 1px solid #ddd;
   cursor: pointer;
+  font-size: .95em;
 }
 .ke-line:not(.has-next-ke) {
   border-bottom: 1px solid #999;
 }
-.ke-line.first-ke {
+.ke-line.first-ke, .ke-line[data-path] {
   border-top: 1px solid #999;
   margin-top: -1px;
 }
@@ -366,6 +367,14 @@ span[ke-pan] > .ke-pan-text {
 .ke-line[data-indent="7"] {text-indent: 7em;}
 .ke-line[data-indent="8"] {text-indent: 8em;}
 .ke-line[data-indent="9"] {text-indent: 9em;}
+
+.ke-line > span {
+  color: #888;
+  font-weight: normal;
+  margin: 0;
+  font-size: .8em;
+}
+.ke-line[data-path] {text-indent: 0;}
 
 #ke-pan-select {
   width: 100%;
