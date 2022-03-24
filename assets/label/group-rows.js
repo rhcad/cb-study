@@ -493,7 +493,8 @@ $.contextMenu({
 function _setKePanText($p, $row, after) {
   const hasGroupPanel = $('.label-panel .current-row').length,
       indent = $p.attr('data-indent'),
-      textKe = indent && (new Array(1 + parseInt(indent)).join('-') + $p.text()),
+      textRaw = $p.text().replace(/^.+»/, ''),
+      textKe = indent && (new Array(1 + parseInt(indent)).join('-') + textRaw),
       text = !$row && textKe || '';
   swal({
     title: $row ? '增加科判条目' : '设置科判文本',
