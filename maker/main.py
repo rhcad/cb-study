@@ -293,16 +293,16 @@ class HtmlDownloadHandler(CbBaseHandler):
             cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
             force = self.get_argument('reset', 0)
 
-            urls = cb_ids.split('|') if cb_ids else []
+            urls = cb_ids.split('|') if cb_ids else []  # 多栏
             if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
-                page['info']['step'] = 1
+                page['info']['step'] = 1  # 不重新导入
             else:
                 content = []
                 for col in urls:
-                    html = None
-                    name_desc = re.split(r'\s+', col.strip())
+                    html = ''
+                    name_desc = re.split(r'\s+', col.strip())  # 经文简要描述用空格与前隔开
                     col, desc = name_desc[0].split('_'), len(name_desc) > 1 and ' ' + name_desc[-1] or ''
-                    jin = col[0]
+                    jin = col[0]  # 经卷号中的经号，例如 T1667_001_002 中的 T1667
                     for juan in (col[1:] or ['']):
                         name = jin + ('_' + juan if juan else '')
                         r = yield self.fetch_cb(name)

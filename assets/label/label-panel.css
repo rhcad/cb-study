@@ -21,6 +21,7 @@
   font-weight: normal;
 }
 
+body[data-step="1"] .task-steps,
 body[data-step="1"] #content,
 body[data-step="1"] #merged {
   margin-right: 254px;
@@ -30,13 +31,21 @@ body[data-step="1"] .label-panel {
   width: 250px;
 }
 
+body[data-step="3"] .task-steps,
 body[data-step="3"] #content {
   margin-right: 35%;
 }
 body[data-step="3"] .label-panel {
   width: 35%;
 }
+
+body[data-step="1"] .task-steps,
+body[data-step="3"] .task-steps {
+  width: auto;
+}
+
 body[data-step="3"][data-no-note="true"] #content,
+body.hide-label-panel .task-steps,
 body.hide-label-panel #content,
 body.hide-label-panel #merged {
   margin-right: 0;

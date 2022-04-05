@@ -777,16 +777,18 @@ function getNoteContent(note, title, rows, rawNote, desc) {
         line = m && m[0] || rawNote && note[i + 1] || '',
         autoMore = /^!/.test(note[i + 1]),
         title_ = note[i + 1].replace(/^[!-]/, ''),
-        text = note[i + 2].replace(/\d{4}\w*$/, ''),
+        text = note[i + 2].replace(/\d{4}\w*$/, '').split('|'),
         orgText = !rawNote && note[i + 1].length > 4 && !autoMore? note[i + 1].substring(0, 3) +
             `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : title_;
+    let noteText = `<span class="note-text">${text[0]}</span>`,
+      nextText = text.slice(1).map(t => `<p class="note-text note-text2">${t}</p>`).join('');
 
     title.push(title_.replace(/\d{4}\w*|^[!-]/, ''));
-    rows.push(`<span data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
-        `<span class="org-text">${orgText}</span><span class="note-text">${text}</span> ` +
+    rows.push((`<div data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
+        `<span class="org-text">${orgText}</span>${noteText}${nextText} ` +
         (!desc || i + 5 < note.length ? '' :
             `<span class="note-from" title="单击此处隐藏，双击注解块也可隐藏">${desc} <span class="p-close">×</span></span>`)
-        + '</span>'.replace(/ data-line-no=""/g, ''));
+        + '</div>').replace(/ data-line-no=""/g, ''));
   }
   if (rawNote) {
     title[0] += ' ' + note[2] + '\n' + desc;
@@ -827,7 +829,7 @@ function insertNotes($side, notes, desc, tag) {
       for (let nx = ref.nextElementSibling; nx && /note-p/.test(nx.className); nx = nx.nextElementSibling) {
         ref = nx;
       }
-      $(`<p class="note-p" data-nid="${id}">${rows.join('')}</p>`).insertAfter(ref);
+      $(`<div class="note-p" data-nid="${id}">${rows.join('')}</div>`).insertAfter(ref);
     }
   });
 
@@ -1071,3 +1073,7 @@ $(document).on('mouseenter', '.note-tag', e => {
   $(`note[data-nid="${e.target.getAttribute('data-nid')}"]`).addClass('tag-highlight');
 });
 $(document).on('mouseleave', '.note-tag', () => $('note').removeClass('tag-highlight'));
+
+$(document).on('click', 'sup[title]:not([class])', e => {
+  e.target.innerText = e.target.innerText.length > 1 ? '*' : e.target.getAttribute('title');
+});

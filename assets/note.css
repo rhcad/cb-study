@@ -36,6 +36,11 @@
   color: #333;
   font-family: STKaiti,"Kaiti SC","楷体","楷体_GB2312",KaiTi,KaiTi_GB2312,DFKai-SB;
 }
+.note-text2 {
+  display: block;
+  text-indent: 2em;
+}
+.note-text a {font-size: .6em; text-indent: 0;}
 .note-from {
   font-size: .7em;
   color: #99a;
@@ -71,4 +76,5 @@
 note.note-expanded, .note-expanded note {
   color: #229;
 }
-.tag-highlight { color: #0000a0; }
+.tag-highlight { color: #00a; }
+sup[title]:not([class]) { cursor: pointer; color: #777; }

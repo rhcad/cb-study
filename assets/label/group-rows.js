@@ -169,7 +169,7 @@ function _splitParagraph($p) {
       return showError('拆分段落', '只能插入@，不能改动内容。');
     }
     if (result.indexOf('@') > 0) {
-      let $last = $p, id, id0 = $p.attr('id').replace(/[a-z]\d*$/, '');
+      let $last = $p, id, id0 = $p.attr('id').replace(/\d[a-z]\d*$/, s => s[0]);
       result.split('@').forEach((text, i) => {
         if (i === 0) {
           saveData.text = text;

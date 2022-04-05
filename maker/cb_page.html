@@ -16,10 +16,6 @@
       }
     }
 
-    #content {
-      border-top: 1px solid #ddd;
-    }
-
     .task-step.active .step-title {
       font-weight: bold;
     }
@@ -57,16 +53,23 @@
     .current-row .end-move-rows, .current-row .hide-label-panel { float: right; }
 
     .step-content .input-group { margin-left: 2em; }
-    body:not(.hide-label-panel)[data-step="3"] .input-group.note-tag-group { width: calc(100% - 380px); }
+    hr { border-top: 1px solid #ddd; margin: 10px 0; }
+    .nav>li.tag>a {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
 
     .list-note { margin-left: 2em; }
-    .list-note > span {
-      display: inline-block;
-      border: 1px solid rgba(27, 31, 35, 0.2);
-      padding: 2px 4px;
-      border-radius: 3px;
-      min-width: 20px;
-      text-indent: 0;
+    code {
+        border-radius: 3px;
+        border: 1px solid #e1e1e8;
+        background-color: #fbfbff;
+        color: rgba(0,0,0,0.8);
+        padding: 2px 4px;
+        margin: 2px;
+        font-size: .9em;
+        font-weight: normal;
+        white-space: nowrap;
     }
   </style>
 </head>
@@ -169,7 +172,7 @@
 
       <ul class="nav navbar-nav navbar-right">
         {% for tag, v in (step==3 and notes or []) %}
-        <li><a href="javascript:" data-tag="{{tag}}" data-col="{{v['col']}}"
+        <li class="tag"><a href="javascript:" data-tag="{{tag}}" data-col="{{v['col']}}"
                title="{{v.get('desc') or v['name']}}"
                class="init-notes-btn init-notes-{{v['col']}}">[{{tag}}]</a></li>
         {% end %}
@@ -179,13 +182,13 @@
   </div>
 </nav>
 
-<div class="container task-steps">
+<div class="container-fluid task-steps">
   <div class="task-step" data-step="0">
     <p class="step-title"><span>第1步</span>：获取CBeta网页原文</p>
     <div class="step-content">
-      <p>请输入要获取原文的<i>经号_卷号</i>，用“|”分隔需要左右对照的经文（最多12篇），可加经文简要描述并用空格分隔。</p>
-      <p>可用“_”分隔需要合并的多卷，卷号为三位数，例如“T1666 梁譯|T1667_001_002 唐譯”。</p>
-      <p>“获取原文”后，将重置原始网页内容，不改变段落分组设置、嵌入的注解。</p>
+      <p>请输入原文的<i>经号_卷号</i>，用<code>|</code>分隔需要对照的经文（最多12篇），可加经文简要描述并用空格分隔。</p>
+      <p>可用<code>_</code>分隔需要合并的多卷，卷号为三位数，例如<code>T1666 梁譯|T1667_001_002 唐譯</code>。</p>
+      <p>获取原文后，将重置原始网页内容，不改变段落分组设置、嵌入的注解。</p>
       <div class="input-group">
         <input type="text" class="form-control" id="cb_ids" value="{{cb_ids}}">
         <div class="input-group-btn">
@@ -193,17 +196,17 @@
         </div>
       </div>
 
-      <p style="margin-top: 10px">在“获取原文”前可提前导入注解，将在第4步中使用。</p>
+      <p style="margin-top: 20px">在获取原文前可提前导入注解，将在第4步中使用。</p>
       <div class="input-group note-tag-group">
         <input type="text" class="form-control" placeholder="按“栏序号|标记字|注解的经号_卷号|可选的注解名称”格式输入">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default fetch-note">导入注解</button>
         </div>
       </div>
-      <p>按“栏序号|标记字|注解的经号_卷号|可选的注解名称”格式输入，多个卷号用_分隔。例如“0|義|T1846|義記，釋法藏撰”、
-        “1|流|T1511_001_002|T1511 金剛般若波羅蜜經論”。</p>
+      <p>按<code>栏序号|标记字|注解的经号_卷号|可选的注解名称</code>格式输入，多个卷号用_分隔。例如<code>0|義|T1846|義記，釋法藏撰</code>、
+        <code>1|流|T1511_001_002|T1511 金剛般若波羅蜜經論</code>。</p>
       {% for row in info.get('notes', []) %}
-      <p class="list-note">{% for s in row.split('|') %}<span>{{s}}</span> {% end %}</p>
+      <p class="list-note">{{row}}</p>
       {% end %}
     </div>
   </div>
@@ -212,7 +215,7 @@
     <p class="step-title"><span>第2步</span>：段落分组，让每栏对照内容匹配，设置科判</p>
     <div class="step-content">
       {% if info.get('cols', 1) > 1 %}
-      <p>在红线下各栏中依次点击要同组的段落，然后点击“分组”按钮或按回车。如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。</p>
+      <p>在红线下各栏中依次点击要同组的段落，然后点击<code>分组</code>按钮或按回车。如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。</p>
       {% else %}
       <p>如需 拆分段落 或 插入科判条目 可在段落上点鼠标右键菜单。完成可进入 <a class="end-move-rows"><b>下一步</b></a>。</p>
       {% end %}
@@ -224,7 +227,7 @@
     <p class="step-title"><span>第3步</span>：完成制作</p>
     <div class="step-content">
       <ul>
-        <li>如果要将多列内容复制到Word文档，可点击“显示|转为表格”。</li>
+        <li>如果要将多列内容复制到Word文档，可点击<code>显示|转为表格</code>。</li>
         <li>可 <a onclick="location.href = location.pathname + '?step=4'">嵌入注解</a>，
           以便在正文中随时阅读相关经典释文。</li>
         <li>可 <a href="javascript:" id="download-html">下载当前HTML</a>
@@ -247,11 +250,12 @@
           <button type="button" class="btn btn-default fetch-note">导入注解</button>
         </div>
       </div>
-      <p>按“标记字|注解的经号_卷号|可选的注解名称”格式输入，多个卷号用_分隔。例如“義|T1846|義記，釋法藏撰”、
-        “流|T1511_001_002|T1511 金剛般若波羅蜜經論”。</p>
+      <p>按<code>标记字|注解的经号_卷号|可选的注解名称</code>格式输入，多个卷号用_分隔。例如<code>義|T1846|義記，釋法藏撰</code>、
+        <code>流|T1511_001_002|T1511 金剛般若波羅蜜經論</code>。</p>
     </div>
   </div>
   {% end %}
+  <hr/>
 </div>
 
 {% if has_ke_pan %}
@@ -278,7 +282,7 @@
   </div>
   <div class="row-pairs-div">
     <textarea rows="10" id="row-pairs-area"></textarea>
-    <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击），有点号“.”为序言。<br/>以“:ke ”开头的行是科判条目，其后的文本可加多个减号表示科判层级。</div>
+    <div>说明：末尾有减号为隐藏文本，有星号为移动原文（按Shift点击），有点号<code>.</code>为序言。<br/>以<code>:ke </code>开头的行是科判条目，其后的文本可加多个减号表示科判层级。</div>
   </div>
   <div>
     <button class="btn btn-default btn-sm" id="to-original" title="滚动到合并区下方的红线处，即未合并内容的上方">到分隔线</button>
@@ -431,7 +435,7 @@
   window.paraIds = '{{paragraph_ids}}'.split(',')
 
   // 增加一个注释来源，自动获取并解析原文
-  $('.fetch-note').click(() => fetchNote(pageId, $('.note-tag-group>input').val().split('|'), getVisibleColumns()))
+  $('.fetch-note').click(() => fetchNote(pageId, $('.note-tag-group:visible>input').val().split('|'), getVisibleColumns()))
 
   // 第4步导航栏右侧的注解标签，切换注解标引
   function _initNotesBtnClick(btn, first) {
