@@ -1,6 +1,10 @@
 const _panelCls = '.label-panel > .notes', _labelPanel = $(_panelCls),
+    _spanForCmpCls = '.txt-cmp-mode > .notes p>span',
+    _cmpTxtCls = '.txt-cmp-mode > .txt-rows > p',
     _label = {}, _labelMap = {},
     options = window.options || {};
+const reHans = /[\u2E80-\u2FD5\u3190-\u319f\u3400-\u4DBF\u4E00-\u9Fef\uF900-\uFAAD]/,
+    rePu = /[，、；：。！？‘’“”·…《》（）「」『』—()〔〕]/;
 
 /**
  * 开始合并注解到原文
@@ -74,6 +78,10 @@ function initNotes(notes, tag, cellClass, desc) {
     }
     $tag.attr('title', title.join('\n'));
   });
+
+  if (/^[A-Z]\d+[a-z]? /.test(_label.desc)) {
+    $.get('/cb/page/txt/' + _label.desc.split(' ')[0], r => r.rows.length && _pageTxtLoaded(r.rows));
+  }
 
   _selectForCurrent();
 }
@@ -232,11 +240,19 @@ function findNodeOffset(element, offset) {
 $('#skip-top').click(function() {
   let ms = 100;
   function remove(first) {
-    const $p = $(_panelCls + ' p:first-child');
-    if (first || $p.hasClass('linked')) {
+    const $p = $(_panelCls + ' p:first-child'),
+      cmpMode = $p.closest('.txt-cmp-mode').length;
+
+    if (first || (cmpMode ? $p.find('.merged').length && $p.next().find('.merged').length : $p.hasClass('linked'))) {
       _label.lastTag = _label.$cells.find(`.note-tag[data-nid=${$p.attr('data-note-id')}]`)[0];
       scrollToVisible(_label.lastTag);
       $p.fadeOut(Math.max(ms -= 5, 5), function() {
+        if (cmpMode) {
+          $p.find('span').each((_, span) => {
+            const text = _getSpanTextForCmp($(span)), row = _findBestTxtRow(text, 0.2);
+            $(row).remove();
+          });
+        }
         $p.remove();
         remove();
       });
@@ -572,3 +588,213 @@ const _noteTagMenu = {
   },
 };
 $.contextMenu(_noteTagMenu);
+
+// 从TXT文件合并注解行的标点
+function _pageTxtLoaded(rows) {
+  const $rows = $('<div/>').addClass('txt-rows')
+      .html(rows.map(r => `<p contentEditable="false">${r}</p>`).join(''));
+
+  $('.label-panel').addClass('txt-cmp-mode').append($rows);
+  _label.txtRows = _getTxtRows();
+
+  $(_spanForCmpCls).each((i, span) => {
+    const $span = $(span), text = _getSpanTextForCmp($span);
+
+    if (/[，、：；！？“]|　　/.test(text)) {
+      $span.addClass('merged');
+      $(_findBestTxtRow(text, 0.5)).addClass('merged');
+    }
+  });
+}
+
+// 得到注解span的文本
+function _getSpanTextForCmp($span) {
+  return $span.attr('title') || $span.attr('abbr') || $span.text() || '';
+}
+
+// 为了查找最佳匹配标点段落，提取标点段落的数据
+function _getTxtRows() {
+  return $(_cmpTxtCls).map((i, p) => {
+    const chars = p.innerText.split('').filter(c => reHans.test(c)).map(c => s2t(c));
+    if (chars.length === p.innerText.length ||
+        chars.length === p.innerText.length - 1 && rePu.test(p.innerText[p.innerText.length - 1])) {
+      p.classList.add('merged');
+    }
+    return {chars, i, p};
+  }).get();
+}
+
+// 查找最佳匹配标点段落
+function _findBestTxtRow(text, notFitRatio) {
+  let maxCount = 0, notFitCount, found;
+
+  _label.txtRows.forEach(r => {
+    const fit = {}, notFit = {};
+    r.chars.forEach(c => ( (text.indexOf(c) < 0 ? notFit : fit)[c] = 1));
+
+    const count = Object.keys(fit).length;
+    if (maxCount < count || maxCount === count && notFitCount > Object.keys(notFit).length) {
+      maxCount = count;
+      found = r.p;
+      notFitCount = Object.keys(notFit).length;
+    }
+  });
+
+  if (found && maxCount > 5 && notFitCount > maxCount * (notFitRatio || 0.5)) {
+    found = null;
+  }
+
+  return found;
+}
+
+// 单击注解段落，切换激活状态
+$(document).on('click', _cmpTxtCls, e => {
+  $(_cmpTxtCls).removeClass('active');
+  e.target.closest('p').classList.add('active');
+});
+
+// 在合并标点对话框中，单击差异文本，切换如何取舍差异
+$(document).on('click', '.cmp-modal span:not(.same)', e => {
+  const base = e.target.getAttribute('data-base'), alt0 = '。，、：；！？（）〔〕「」';
+
+  if (e.target.classList.contains('add-pu') || e.target.classList.contains('change-pu')) {
+    if (e.altKey) {
+      e.target.classList.toggle('reject');
+      if (e.target.classList.contains('change-pu')) {
+        e.target.innerText = e.target.classList.contains('reject') ? base
+          : e.target.getAttribute('title').split(' ')[1];
+      }
+    } else {
+      if (e.target.classList.contains('reject')) {
+        e.target.classList.remove('reject');
+        e.target.innerText = base;
+      } else {
+        const alt = base + alt0.replace(base, '');
+        e.target.innerText = alt[alt.indexOf(e.target.innerText) + 1] || '';
+        if (!e.target.innerText) {
+          e.target.innerText = base;
+          e.target.classList.add('reject');
+        }
+      }
+    }
+  } else if (e.target.classList.contains('change-txt')) {
+    e.target.innerText = e.target.innerText === base
+        ? e.target.getAttribute('title').split(' ')[1] : base;
+  } else {
+    e.target.classList.toggle('reject');
+  }
+});
+
+// 单击注解span，高亮最佳匹配标点段落，按下Alt则不切换当前高亮
+$(document).on('click', _spanForCmpCls, e => {
+  const $span = $(e.target), text = _getSpanTextForCmp($span);
+
+  if (!e.altKey) {
+    $(_cmpTxtCls).removeClass('active');
+    $(_findBestTxtRow(text, 0.5)).click();
+  }
+});
+
+// 双击注解span，根据最佳匹配标点段落，显示合并标点对话框
+$(document).on('dblclick', _spanForCmpCls, e => {
+  const $span = $(e.target.closest('span')), $p = $(e.target.closest('p')),
+      text0 = _getSpanTextForCmp($span),
+      text = text0.split(''),
+      refText = $(_cmpTxtCls + '.active').text().split(''),
+      getType = c => !c ? 0 : rePu.test(c) ? 'p' : reHans.test(c) ? 'h' : 'e';
+
+  console.log(text0);
+  if (refText.length && $p.attr('data-note-id') &&
+      ($span.attr('title') || $span.attr('abbr') || $span.hasClass('content'))) {
+    if (refText.filter(c => reHans.test(c) && !rePu.test(c) && text.indexOf(c) >= 0).length < 1) {
+      return showError('合并标点', '没有匹配的汉字。')
+    }
+
+    const segments = [];
+    let j = 0, curType, base = '', cmp = '';
+    const add = (c, type, title, cmp_) => {
+      if (curType !== type || /-pu/.test(type)) {
+        if (base) {
+          segments.push(`<span class='${curType}'${cmp ? " title='" + cmp + "'" : ''} data-base='${base}'>${base}</span>`);
+        }
+        base = '';
+        cmp = title ? title + ' ' : '';
+        curType = type;
+      }
+      base += c;
+      cmp += cmp_ || '';
+    };
+
+    for (let i = 0; i < text.length; i++, j++) {
+      const rc = s2t(refText[j]), c = text[i], rt = getType(rc), t = getType(c);
+
+      if (rc === c || !rc) {
+        add(c, 'same');
+      } else if (t === 'h') {
+        if (rt === 'p') {
+          add(rc, 'add-pu', '加标点'); // 参考文有标点，则在原字前加标点
+          i--;
+        } else if (rt === 'h') {
+          const rc2 = s2t(refText[j + 1]), c2 = text[i + 1];
+          if (rc2 === c) {
+            add(c, 'add-txt', '添加原字'); // 参考文的下一字与当前字相同，即参考文缺字，则添加原字
+            j++;
+          } else if (rc === c2) {
+            add(c, 'add-txt2', '原文多字'); // 参考文与下一字相同，即原文多字，则添加原字
+            j--;
+          } else {
+            add(c, 'change-txt', '改字', rc); // 改字
+          }
+        } else {
+          add(c, 'same');
+        }
+      } else if (t === 'p') {
+        if (rt === 'h') {
+          add(c, 'add-pu reject', '删除标点'); // 参考文缺标点，则标记原文待删除标点
+          j--;
+        } else if (rt === 'p') {
+          add(rc, 'change-pu', '改标点', c); // 改标点
+        } else {
+          add(c, 'same');
+        }
+      } else if (!/[ 　-]/.test(c)) {
+        console.assert(false, `${i} ${c} in ${text.join('')}`);
+      }
+    }
+    add(0, 0);
+
+    swal({
+      title: `合并标点 #${$p.attr('data-note-id')}`,
+      text: '点击差异切换文本，按下Alt点击蓝色文本切换取舍。',
+      className: 'cmp-modal',
+      content: {
+        element: 'div',
+        attributes: {
+          innerHTML: segments.join(''),
+        }
+      },
+      buttons: ['取消', '确定'],
+    }).then(result => {
+      const div = result && document.querySelector('.swal-content__div');
+      if (div) {
+        $('.reject', div).remove();
+        $.post('/cb/page/note/' + pageId, {
+          tag: _label.tag,
+          nid: $p.attr('data-note-id'),
+          merge: div.innerText,
+          oldText: text0,
+          isContent: $span.hasClass('content') && '1'
+        }, r => {
+          if ($span.attr('title')) {
+            $span.attr('title', div.innerText);
+          } else if ($span.attr('abbr')) {
+            $span.attr('abbr', div.innerText);
+          } else {
+            $span.text(div.innerText);
+          }
+          $span.addClass('merged');
+        }).error(ajaxError('合并失败'));
+      }
+    });
+  }
+});

@@ -14,6 +14,7 @@ function initGroupRows(pairs) {
   showRowPairs(pairs);
 
   const warn = rowPairs.map(movePairs);
+  initKePanTree();
   setTimeout(() => verifyParaOrders(warn.join('')), 100);
   if (!$('#content').text().trim()) {
     $('.current-row > .row,#move-row').hide();
@@ -63,6 +64,7 @@ $('#move-row').click(function () {
   if (ids.join('').length) {
     movePairs(ids.join('|'));
     rowPairs.push(ids.join('|'));
+    initKePanTree();
     showRowPairs();
     saveRowPairs();
     verifyParaOrders();

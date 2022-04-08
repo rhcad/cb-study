@@ -21,6 +21,7 @@ THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
 pat_note_inv = re.compile(r'^-|[　\s\n]|\d{4}\w*$')
+pat_puncture = re.compile(r'[，、；：。！？‘’“”·…《》（）「」『』—()〔〕]')
 
 define('port', default=8003, help='run port', type=int)
 define('debug', default=True, help='the debug mode', type=bool)
@@ -573,6 +574,12 @@ class PageNoteHandler(CbBaseHandler):
             if nid and self.get_argument('split', 0):
                 return self.split_note(self, page, tag, nid, to_basestring(self.get_argument('split')))
 
+            if nid and self.get_argument('merge', 0):
+                return self.merge_text(page, tag, nid,
+                                       new_text=to_basestring(self.get_argument('merge')),
+                                       old_text=to_basestring(self.get_argument('oldText')),
+                                       is_content=self.get_argument('isContent', 0) == '1')
+
             if self.get_argument('ignore', 0):
                 return self.ignore_note(page, tag)
 
@@ -739,6 +746,22 @@ class PageNoteHandler(CbBaseHandler):
                 v['notes'] = new_notes
         page.pop('old_notes')
 
+    def merge_text(self, page, tag, nid, new_text, old_text, is_content):
+        item = page['notes'].get(tag)
+        assert item, 'tag not exists'
+
+        changes = 0
+        for ti, notes in enumerate([item.get('raw', []), item['notes']]):
+            for r in notes:
+                for j in range(int(len(r) / 3)):
+                    if nid == r[j * 3] and (is_content or ti):
+                        idx = j * 3 + (2 if is_content else 1)
+                        assert pat_puncture.sub('', old_text) in pat_puncture.sub('', r[idx]), 'old text mismatch'
+                        r[idx] = r[idx].replace(old_text, new_text)
+                        changes += 1
+        self.save_page(page)
+        self.write(dict(changes=changes))
+
     @staticmethod
     def split_note(self, page, tag, nid, split, res=None):
         split = split.split('@')
@@ -809,7 +832,23 @@ class PageNoteHandler(CbBaseHandler):
         self.write(dict(count=len(raw)))
 
 
-handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
+class PageTxtHandler(CbBaseHandler):
+    URL = r'/cb/page/txt/([A-Z]\d+[a-z]?)'
+
+    def get(self, name):
+        """读取有标点的文本文件"""
+        try:
+            filename = path.join(DATA_DIR, name + '.txt')
+            rows = []
+            if path.exists(filename):
+                with open(filename) as f:
+                    rows = re.split(r'[\s\n]*\n+[\s\n]*', f.read().strip())
+            self.write({'rows': [re.sub(r'\s+', '', r) for r in rows]})
+        except Exception as e:
+            self.on_error(e)
+
+
+handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler, PageTxtHandler,
             ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
 
 

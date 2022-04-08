@@ -90,12 +90,17 @@ textarea {outline: none;}
 .label-panel > .notes > p:first-child > span:not(.p):first-child {
   color: #00f;
 }
-.label-panel .linked {
-  color: #999;
-  cursor: pointer;
+
+.label-panel .linked {cursor: pointer;}
+.label-panel:not(.txt-cmp-mode) .linked {color: #999;}
+
+.label-panel:not(.txt-cmp-mode) .linked > span:first-child,
+.label-panel:not(.txt-cmp-mode) .linked:not(.wrap) > .content {
+  text-decoration: line-through;
 }
-.label-panel .linked > span:first-child,
-.label-panel .linked:not(.wrap) > .content {
+
+.label-panel.txt-cmp-mode .merged {
+  color: #999;
   text-decoration: line-through;
 }
 
@@ -223,3 +228,32 @@ body:not([data-step="1"]) #content:not(.single-article) .row > div {
 body:not([data-step="1"]) #content:not(.single-article) .row > div::-webkit-scrollbar {
   width: 0;
 }
+
+.label-panel.txt-cmp-mode > .notes {
+  max-height: calc(80% - 45px);
+}
+.txt-cmp-mode > .txt-rows {
+  max-height: 20%;
+  overflow-y: auto;
+  border-top: 1px solid #f00;
+}
+.txt-cmp-mode > .txt-rows > p.active {font-weight: bold;}
+
+.cmp-modal .same {color: #888;}
+.cmp-modal .add-pu,
+.cmp-modal .change-pu {
+  color: blue;
+  font-weight: bold;
+  display: inline-block;
+  min-width: 1em;
+}
+.cmp-modal .add-txt {color: green;}
+.cmp-modal .add-txt2 {color: red;}
+.cmp-modal .change-txt {color: red;}
+.cmp-modal span.reject {
+  text-decoration: line-through;
+  color: gray;
+  opacity: .3;
+}
+.cmp-modal span:not(.same) {cursor: pointer;}
+.cmp-modal {width: calc(100% - 40px);}

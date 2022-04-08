@@ -9,7 +9,7 @@
  * updateColumnStatus
  * enlargeFont, reduceFont, enlargeKePanFont, reduceKePanFont
  * setKePanWidth
- * movePairs
+ * movePairs, initKePanTree
  * convertToSpanWithTag
  * showInlineKePan, showInlineWithoutKePan
  * highlightKePan, showKePanPath
@@ -322,7 +322,7 @@ function _toPairSelectors(idsText) {
  * @type {string[][]}
  */
 let kePanTypes = window.kePanTypes || [];
-let _newKePan = 0, _initKePanTm, _hasKeLine;
+let _newKePan = 0, _hasKeLine;
 
 /**
  * 将一行编号（格式为“ id id... | id...”）的段落元素从 .original 移到 #merged 的左右对照元素内
@@ -345,9 +345,7 @@ function movePairs(idsText) {
       const $last = $merged.find(`.ke-line[data-ke-type="${type}"]:last-child`).addClass('has-next-ke');
       $(`<div ke-pan="${++_newKePan}" data-ke-type="${type}" class="ke-line first-ke" data-indent="${indent}">${text}</div>`)
           .appendTo($merged).toggleClass('first-ke', !$last.length);
-
-      clearTimeout(_initKePanTm);
-      _initKePanTm = setTimeout(_initKePanTree, 10);
+      _hasKeLine = true;
     }
     return '';
   }
@@ -499,7 +497,10 @@ function _initKePanLinePath() {
   });
 }
 
-function _initKePanTree() {
+/**
+ * 在调用 movePairs 后初始化科判树
+ */
+function initKePanTree() {
   const defaultType = cbOptions.kePanType || kePanTypes.length && kePanTypes[0][0];
 
   if (kePanTypes.length > 1) {
@@ -538,7 +539,7 @@ function _initKePanTree() {
   _hasKeLine = $('.ke-line').length > 0;
 }
 
-_initKePanTm = setTimeout(_initKePanTree, 50);
+setTimeout(() => _hasKeLine === undefined && initKePanTree(), 50)
 
 function _findKePanLineId(el) {
   let kid = el.getAttribute('ke-pan');
@@ -777,7 +778,7 @@ function getNoteContent(note, title, rows, rawNote, desc) {
         line = m && m[0] || rawNote && note[i + 1] || '',
         autoMore = /^!/.test(note[i + 1]),
         title_ = note[i + 1].replace(/^[!-]/, ''),
-        text = note[i + 2].replace(/\d{4}\w*$/, '').split('|'),
+        text = note[i + 2].replace(/\d{4}\w*$/, '').split(/\n/g),
         orgText = !rawNote && note[i + 1].length > 4 && !autoMore? note[i + 1].substring(0, 3) +
             `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : title_;
     let noteText = `<span class="note-text">${text[0]}</span>`,
