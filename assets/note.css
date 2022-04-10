@@ -59,13 +59,14 @@
 .note-tag {
   color: #aaa;
   cursor: pointer;
-  font-size: .6em;
+  font-size: .7em;
 }
 .note-tag[data-tag]::after {
   content: attr(data-tag);
 }
 .note-tag.note-expanded {
   color: #f00;
+  font-weight: bold;
 }
 .note-tag:hover {
   color: #00f;

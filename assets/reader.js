@@ -21,7 +21,7 @@ try {
   window.cbOptions = JSON.parse(localStorage.getItem('cbOptions' + window.pageName))
 } catch (e) {}
 if (!window.cbOptions || typeof window.cbOptions !== 'object') {
-  window.cbOptions = {};
+  window.cbOptions = {theme: 'warm'};
 }
 
 /**
@@ -172,6 +172,11 @@ function updateColumnStatus() {
 
     $('#show-notes').closest('li').toggleClass('disabled', $('.note-tag').length < 1);
     $('#show-hide-txt').closest('li').toggleClass('disabled', $('.hide-txt').length < 1);
+
+    $('[id^="theme-"]').each(function () {
+      const theme = this.getAttribute('id').replace('theme-', '');
+      $(this).closest('li').toggleClass('active', cbOptions.theme === theme);
+    });
   }, 20);
 }
 let _updateColumnStatusTm;
@@ -487,7 +492,7 @@ function _initKePanLinePath() {
       let text = '';
       node.parents.forEach((p, i) => {
         const t = tree.get_node(p).text + ' » ';
-        if (p !== '#' && i < 5 && $r.text().length + text.length < 40) {
+        if (p !== '#' && i < 7 && $r.text().length + text.length < 80) {
           $r.prepend(`<span ke-pan="${p}">${t}</span>`);
           text = t + text;
         }
@@ -788,7 +793,7 @@ function getNoteContent(note, title, rows, rawNote, desc) {
     rows.push((`<div data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
         `<span class="org-text">${orgText}</span>${noteText}${nextText} ` +
         (!desc || i + 5 < note.length ? '' :
-            `<span class="note-from" title="单击此处隐藏，双击注解块也可隐藏">${desc} <span class="p-close">×</span></span>`)
+            `<span class="note-from" title="单击此处隐藏">${desc} <span class="p-close">×</span></span>`)
         + '</div>').replace(/ data-line-no=""/g, ''));
   }
   if (rawNote) {
@@ -986,6 +991,7 @@ function toggleNoteTag($tag) {
 // 单击注解锚点标记则展开注解段落
 $(document).on('click', '.note-tag', e => toggleNoteTag($(e.target)) || false);
 
+// 切换文中指定编号的注解段落是否显示
 function _toggleNoteP(e) {
   const $p = $(e.target).closest('.note-p'),
       id = $p.attr('data-nid'),
@@ -997,8 +1003,7 @@ function _toggleNoteP(e) {
   e.stopPropagation();
 }
 
-// 双击注解段落则收起隐藏
-$(document).on('dblclick', '.note-p', _toggleNoteP);
+// 收起隐藏注解段落
 $(document).on('click', '.note-p .note-from', _toggleNoteP);
 
 // 单击 … 展开文字
@@ -1078,3 +1083,19 @@ $(document).on('mouseleave', '.note-tag', () => $('note').removeClass('tag-highl
 $(document).on('click', 'sup[title]:not([class])', e => {
   e.target.innerText = e.target.innerText.length > 1 ? '*' : e.target.getAttribute('title');
 });
+
+$('#hide-tag').click(() => {
+  $('.note-tag').toggle();
+});
+$('[id^="theme-"]').click(e => {
+  const value = e.target.getAttribute('id').replace('theme-', ''),
+    theme = $('body').attr('data-theme') === value ? '' : value;
+  $('body').attr('data-theme', theme);
+  cbOptions.theme = theme;
+  saveCbOptions();
+  updateColumnStatus();
+});
+if (cbOptions.theme) {
+  $('body').attr('data-theme', cbOptions.theme);
+  $('#theme-' + cbOptions.theme).closest('li').toggleClass('active');
+}

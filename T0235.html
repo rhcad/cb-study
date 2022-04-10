@@ -8,9 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/img/favicon.ico"/>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
-	<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
+	  <link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
     <link href="assets/cb.css?v=324" rel="stylesheet"/>
     <link href="assets/note.css?v=324" rel="stylesheet"/>
+	  <link href="assets/theme.css" rel="stylesheet"/>
     <style>
         @media screen {
             body {
@@ -44,28 +45,33 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="javascript:">金剛經</a></li>
+                <li><a href="javascript:"><b>金剛經</b></a></li>
                 <li class="dropdown">
                     <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">显示 <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
-                        <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
 						<li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
                         <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="javascript:" id="show-left" title="只显示左文、第1栏">左文</a></li>
-                        <li><a href="javascript:" id="show-right" title="只显示右文、第2栏">右文</a></li>
-                        <li><a href="javascript:" id="show-both" title="左右对照显示">对照</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="javascript:" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
+												<li><a href="javascript:" id="theme-warm" title="切换为浅色外观、护眼色">护眼色</a></li>
+												<li><a href="javascript:" id="theme-dark" title="切换为深色外观">深色外观</a></li>
+												<li role="separator" class="divider"></li>
                         <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
-                        <li><a href="javascript:" id="show-box" title="显隐段落和span框，用于调试科判分布">段框</a></li>
                         <li><a href="javascript:" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
                     </ul>
                 </li>
+							<li class="dropdown">
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">注解 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
+						<li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="hide-tag" title="切换是否隐藏注解标记">隐藏标记</a></li>
+          </ul>
+        </li>
 				<li class="dropdown">
 				  <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
 					 aria-expanded="false">科判 <span class="caret"></span></a>
@@ -88,7 +94,7 @@
             </ul>
 
             <div class="btn-group toggle-column" role="group">
-                <button type="button" class="btn btn-default btn-sm navbar-btn show-xu">序</button>
+                <button type="button" class="btn btn-default btn-sm navbar-btn show-xu" title="切换是否显示序言">序</button>
                 <button type="button" class="btn btn-default btn-sm navbar-btn">1</button>
                 <button type="button" class="btn btn-default btn-sm navbar-btn">2</button>
                 <button type="button" class="btn btn-default btn-sm navbar-btn">3</button>
@@ -106,7 +112,7 @@
 </nav>
 <div class="phone-bar no-print">
     <div class="btn-group toggle-column" role="group">
-        <button type="button" class="btn btn-default btn-sm show-xu">序</button>
+        <button type="button" class="btn btn-default btn-sm show-xu" title="切换是否显示序言">序</button>
         <button type="button" class="btn btn-default btn-sm">1</button>
         <button type="button" class="btn btn-default btn-sm">2</button>
         <button type="button" class="btn btn-default btn-sm">3</button>

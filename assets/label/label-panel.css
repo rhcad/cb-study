@@ -141,7 +141,7 @@ textarea {outline: none;}
   user-select: none;
 }
 
-#merged {
+body:not(.no-content) #merged {
   font-size: 14px;
   border-bottom: 2px solid red;
 }
@@ -207,6 +207,8 @@ textarea {outline: none;}
 .gray-linked note[cur-tag]:not(.note-expanded) {
   color: gray;
 }
+.gray-linked .tag-highlight note[cur-tag]:not(.note-expanded) { color: #00a; }
+
 .gray-linked note.note-expanded note[cur-tag]:not(.note-expanded) {
   color: #229;
 }

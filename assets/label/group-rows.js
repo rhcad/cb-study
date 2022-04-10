@@ -18,6 +18,7 @@ function initGroupRows(pairs) {
   setTimeout(() => verifyParaOrders(warn.join('')), 100);
   if (!$('#content').text().trim()) {
     $('.current-row > .row,#move-row').hide();
+    $('body').addClass('no-content');
   }
 }
 

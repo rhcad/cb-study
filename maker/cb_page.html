@@ -9,6 +9,7 @@
   {% if has_ke_pan %}<link rel="stylesheet" href="{{static_url('jstree/jstree.min.css')}}"/>{% end %}
   <link href="{{static_url('cb.css')}}" rel="stylesheet"/>
   <link href="{{static_url('note.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('theme.css')}}" rel="stylesheet"/>
   <style>
     @media screen {
       body {
@@ -92,7 +93,7 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="javascript:">{{info['caption']}}</a></li>
+        <li><a href="javascript:"><b>{{info['caption']}}</b></a></li>
 
         {% if page.get('html') %}
         <li class="dropdown">
@@ -103,14 +104,11 @@
             <li><a href="javascript:" class="hide-label-panel" title="切换是否显示右边标注面板">标注面板</a></li>
             <li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
-            <li role="separator" class="divider"></li>
             <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
             <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="javascript:" id="show-left" title="只显示左文、第1栏">左文</a></li>
-            <li><a href="javascript:" id="show-right" title="只显示右文、第2栏">右文</a></li>
-            <li><a href="javascript:" id="show-both" title="左右对照显示">对照</a></li>
+            <li><a href="javascript:" id="theme-warm" title="切换为浅色外观、护眼色">护眼色</a></li>
+            <li><a href="javascript:" id="theme-dark" title="切换为深色外观">深色外观</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="javascript:" id="show-hide-txt" title="切换是否显示默认隐藏的文本">隐藏字</a></li>
             <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
@@ -122,6 +120,16 @@
           </ul>
         </li>
         {% end %}
+
+        <li class="dropdown">
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">注解 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="hide-tag" title="切换是否隐藏注解标记">隐藏标记</a></li>
+          </ul>
+        </li>
 
         {% if has_ke_pan %}
         <li class="dropdown">
@@ -480,7 +488,7 @@
     const $src = $(selector || '#content > .row0')
     const $content = $($src[0] || '#content').clone().appendTo($('body'))
 
-    $content.find('.div-xu,.cell:hidden,.hide-txt,.ke-line').show()
+    $content.find('.div-xu,.cell:hidden,.hide-txt,.ke-line,.note-tag').show()
     $content.find(':hidden,.note-p').remove()
     $content.find('.note-tag').removeAttr('title')
     $content.find('[cur-tag]').removeAttr('cur-tag')
