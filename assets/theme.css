@@ -9,6 +9,11 @@
         color: #3F51B5;
     }
 
+    [data-theme="warm"] footer,
+    [data-theme="warm"] nav {
+        background-color: #eef6f0;
+    }
+
     [data-theme="dark"] {
         background-color: #111;
         color: #d1d1d1;
@@ -127,11 +132,17 @@
     [data-theme="dark"] #content:not(.single-article) .row {border-color: transparent;}
 
     [data-theme="dark"] .tag-highlight,
-    [data-theme="dark"] note.note-expanded,
-    [data-theme="dark"] .note-expanded note {
+    [data-theme="dark"]:not(.hide-note-tag)  note.note-expanded,
+    [data-theme="dark"]:not(.hide-note-tag)  .note-expanded note {
         color: #0be369;
+    }
+    [data-theme="dark"] .note-p {
+        border-color: #555;
+        -moz-box-shadow: none;
+        box-shadow: none;
     }
     [data-theme="dark"] .note-tag:hover {color: #0f0; font-weight: bold;}
     [data-theme="dark"] .note-text {color: #999;}
     [data-theme="dark"] .org-text {color: #99d;}
+    [data-theme="dark"] .note-from:hover {color: #0f0;}
 }

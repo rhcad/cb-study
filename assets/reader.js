@@ -1085,7 +1085,7 @@ $(document).on('click', 'sup[title]:not([class])', e => {
 });
 
 $('#hide-tag').click(() => {
-  $('.note-tag').toggle();
+  $('body').toggleClass('hide-note-tag');
 });
 $('[id^="theme-"]').click(e => {
   const value = e.target.getAttribute('id').replace('theme-', ''),

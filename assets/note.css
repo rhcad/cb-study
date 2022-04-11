@@ -4,6 +4,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: .5em;
+  margin-bottom: 6px;
   text-indent: 0;
   font-size: .9em;
   -moz-box-shadow: 1px 1px 1px #aaa;
@@ -51,6 +52,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.note-from:hover {
+  color: #55f;
+}
 .note-raw .note-from {
   display: block;
   text-align: right;
@@ -74,8 +78,12 @@
 .more {
   cursor: pointer;
 }
-note.note-expanded, .note-expanded note {
+body:not(.hide-note-tag) note.note-expanded,
+body:not(.hide-note-tag) .note-expanded note {
   color: #229;
 }
 .tag-highlight { color: #00a; }
 sup[title]:not([class]) { cursor: pointer; color: #777; }
+
+.hide-note-tag .note-tag:not(.note-expanded) {display: none;}
+.hide-note-tag .note-tag.note-expanded {font-weight: normal;}

@@ -348,6 +348,9 @@ span[ke-pan] > .ke-pan-text {
   border-top: 1px solid #aaa;
   margin-top: -1px;
 }
+@media print {
+  .ke-line {border-color: #ccc;}
+}
 .hide-inline-ke-pan .ke-line {
   height: 0;
   overflow: hidden;
