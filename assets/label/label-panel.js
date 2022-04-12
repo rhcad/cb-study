@@ -12,8 +12,9 @@ const reHans = /[\u2E80-\u2FD5\u3190-\u319f\u3400-\u4DBF\u4E00-\u9Fef\uF900-\uFA
  * @param {string} tag 单字的标签
  * @param {string} cellClass 正文栏的选择器
  * @param {string} [desc] 注解来源
+ * @param {string} [cmpTxt] 注解来源
  */
-function initNotes(notes, tag, cellClass, desc) {
+function initNotes(notes, tag, cellClass, desc, cmpTxt) {
   _label.tag = tag;
   _label.cellClass = cellClass;
   _label.$cells = $(cellClass);
@@ -23,8 +24,9 @@ function initNotes(notes, tag, cellClass, desc) {
 
   // 切换导航条的标记高亮状态
   $('.init-notes-btn').parent().removeClass('active');
-  $(`.init-notes-btn[data-tag="${tag.replace(/[\[\]]/g, '')}"]`).parent().addClass('active');
+  $(`.init-notes-btn[data-tag='${tag.replace(/[\[\]]/g, '')}']`).parent().addClass('active');
   _label.$cells.find('note').removeAttr('cur-tag');
+  _labelPanel.toggleClass('txt-cmp-mode', !!(/^[A-Z]\d+[a-z]? /.test(_label.desc) && cmpTxt));
 
   // 设置标注面板的内容
   const makeText = t => t.length < 25 ? t : t.substr(0, 12) + '…' + t.substr(t.length - 15);
@@ -42,23 +44,33 @@ function initNotes(notes, tag, cellClass, desc) {
         lines.push(line);
       }
       titles.push(note[i + 1].replace(/^[!-]/, ''));
-      content.push(i > 0 ? `<span class="p" data-line-no="${line}">${text}</span>` : note[i + 2]);
+      content.push(i > 0 && !_labelPanel.hasClass('txt-cmp-mode') ?
+          `<span class='p' data-line-no='${line}'>${text}</span>` : note[i + 2]);
     }
 
-    _label.$cells.find(`note[data-nid="${note[0]}"]`).attr('cur-tag', true);
+    _label.$cells.find(`note[data-nid='${note[0]}']`).attr('cur-tag', true);
     _labelMap['' + note[0]] = note;
     if (_label.rawMode) {
-      return `<p data-note-id="${note[0]}" class="raw-note${linked ? ' linked' : ''}" ` +
-          `data-line-no="${note[1]}">${content.join('')}</p>`;
+      return `<p data-note-id='${note[0]}' class='raw-note${linked ? " linked" : ""}' ` +
+          `data-line-no='${note[1]}'>${content.join('')}</p>`;
     } else {
       const title = titles.join('\n'),
           titleS = title.indexOf('\n') > 0 || title.length > 20 ? title : '',
-          content_ = content.join('').replace(/\d{4}\w*$/, '');
-      return `<p data-note-id="${note[0]}" data-line-no="${lines[0] || ''}" ` +
-          `class="${linked ? 'linked' : ''}" data-title="${titles[0]}">${note[0]}: ` +
-          `<span title="${titleS}" abbr="${makeText(note[1])}"></span><br/><span class="content">${content_}</span></p>`;
+          spans = [];
+
+      if (_labelPanel.hasClass('txt-cmp-mode')) {
+        content.forEach(c => c.replace(/\d{4}\w*$/, '').split('\n').forEach(s => {
+          spans.push(`<br/><span class='content'>${s}</span>`);
+        }));
+      } else {
+        spans.push(`<br/><span class='content'>${content.map(c => c.replace(/\d{4}\w*$/, '')).join('')}</span>`);
+      }
+
+      return `<p data-note-id='${note[0]}' data-line-no='${lines[0] || ''}' ` +
+          `class='${linked ? "linked" : ""}' data-title='${titles[0]}'>${note[0]}: ` +
+          `<span title='${titleS}' abbr='${makeText(note[1])}'></span>${spans.join('')}</p>`;
     }
-  }).join('\n').replace(/ (data-line-no|title)=""/g, ''));
+  }).join('\n').replace(/ (data-line-no|title)=''/g, ''));
 
   $('.tip-3-pair').toggle(!_label.rawMode);
   $('.tip-3-raw').toggle(_label.rawMode);
@@ -79,8 +91,8 @@ function initNotes(notes, tag, cellClass, desc) {
     $tag.attr('title', title.join('\n'));
   });
 
-  if (/^[A-Z]\d+[a-z]? /.test(_label.desc)) {
-    $.get('/cb/page/txt/' + _label.desc.split(' ')[0], r => r.rows.length && _pageTxtLoaded(r.rows));
+  if (_labelPanel.hasClass('txt-cmp-mode')) {
+    _pageTxtLoaded(cmpTxt.split('\n'));
   }
 
   _selectForCurrent();
@@ -625,18 +637,22 @@ function _getTxtRows() {
 }
 
 // 查找最佳匹配标点段落
-function _findBestTxtRow(text, notFitRatio) {
+function _findBestTxtRow(text, notFitRatio, excludeMerged) {
   let maxCount = 0, notFitCount, found;
 
   _label.txtRows.forEach(r => {
     const fit = {}, notFit = {};
     r.chars.forEach(c => ( (text.indexOf(c) < 0 ? notFit : fit)[c] = 1));
 
-    const count = Object.keys(fit).length;
-    if (maxCount < count || maxCount === count && notFitCount > Object.keys(notFit).length) {
+    const count = Object.keys(fit).length,
+        count_ = count - Object.keys(notFit).length / 3;
+
+    if ((!maxCount || (maxCount - notFitCount / 3) < count_) &&
+        (!excludeMerged || !r.p.classList.contains('merged'))) {
       maxCount = count;
       found = r.p;
       notFitCount = Object.keys(notFit).length;
+      // console.log(maxCount, notFitCount, r.p.innerText);
     }
   });
 
@@ -689,23 +705,36 @@ $(document).on('click', '.cmp-modal span:not(.same)', e => {
 $(document).on('click', _spanForCmpCls, e => {
   const $span = $(e.target), text = _getSpanTextForCmp($span);
 
-  if (!e.altKey) {
+  $(_spanForCmpCls).removeClass('active');
+  $span.addClass('active');
+  if (!e.altKey && !$span.hasClass('merged')) {
     $(_cmpTxtCls).removeClass('active');
-    $(_findBestTxtRow(text, 0.5)).click();
+    $(_findBestTxtRow(text, 0.5, true)).click();
   }
 });
 
 // 双击注解span，根据最佳匹配标点段落，显示合并标点对话框
 $(document).on('dblclick', _spanForCmpCls, e => {
   const $span = $(e.target.closest('span')), $p = $(e.target.closest('p')),
-      text0 = _getSpanTextForCmp($span),
-      text = text0.split(''),
-      refText = $(_cmpTxtCls + '.active').text().split(''),
-      getType = c => !c ? 0 : rePu.test(c) ? 'p' : reHans.test(c) ? 'h' : 'e';
+      text0 = _getSpanTextForCmp($span), text = (text0 + ' ').split(''),
+      $ref = $(_cmpTxtCls + '.active'), refText_ = $ref.text(), refText = refText_.split(''),
+      getType = c => !c ? 0 : rePu.test(c) ? 'p' : reHans.test(c) ? 'h' : 'e',
+      endChar = s => (/([^，。！；])[，。！；]?$/.exec(s) || '--')[1];
+  let title = `合并标点 #${$p.attr('data-note-id')}`;
 
   console.log(text0);
-  if (refText.length && $p.attr('data-note-id') &&
-      ($span.attr('title') || $span.attr('abbr') || $span.hasClass('content'))) {
+  if (!refText.length) {
+    return showError('合并标点', '没有匹配段落。');
+  }
+  if (!($span.attr('title') || $span.attr('abbr') || $span.hasClass('content'))) {
+    return showError('合并标点', '不是要合并的注解片段。');
+  }
+  if (refText_[0] !== text0[0] || endChar(refText_) !== endChar(text0)) {
+    console.warn(refText_.substr(0, 10), refText_.substr(refText_.length - 10));
+    title += ' *';
+  }
+
+  if ($p.attr('data-note-id')) {
     if (refText.filter(c => reHans.test(c) && !rePu.test(c) && text.indexOf(c) >= 0).length < 1) {
       return showError('合并标点', '没有匹配的汉字。')
     }
@@ -728,8 +757,12 @@ $(document).on('dblclick', _spanForCmpCls, e => {
     for (let i = 0; i < text.length; i++, j++) {
       const rc = s2t(refText[j]), c = text[i], rt = getType(rc), t = getType(c);
 
-      if (rc === c || !rc) {
-        add(c, 'same');
+      if (c === ' ' && rt === 'p') {
+        add(rc, 'add-pu', '加标点');
+      } else if (rc === c || !rc) {
+        if (c !== ' ') {
+          add(c, 'same');
+        }
       } else if (t === 'h') {
         if (rt === 'p') {
           add(rc, 'add-pu', '加标点'); // 参考文有标点，则在原字前加标点
@@ -764,7 +797,7 @@ $(document).on('dblclick', _spanForCmpCls, e => {
     add(0, 0);
 
     swal({
-      title: `合并标点 #${$p.attr('data-note-id')}`,
+      title,
       text: '点击差异切换文本，按下Alt点击蓝色文本切换取舍。',
       className: 'cmp-modal',
       content: {
@@ -793,6 +826,7 @@ $(document).on('dblclick', _spanForCmpCls, e => {
             $span.text(div.innerText);
           }
           $span.addClass('merged');
+          $ref.remove();
         }).error(ajaxError('合并失败'));
       }
     });

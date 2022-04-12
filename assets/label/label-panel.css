@@ -11,7 +11,6 @@
   padding: 10px;
   margin: 45px 0 10px;
   border: 1px solid #ddd;
-  background: #fff;
   z-index: 10;
 }
 .hide-navbar .label-panel {
@@ -89,6 +88,9 @@ textarea {outline: none;}
 }
 .label-panel > .notes > p:first-child > span:not(.p):first-child {
   color: #00f;
+}
+.label-panel > .notes > p > span.active {
+  font-weight: bold;
 }
 
 .label-panel .linked {cursor: pointer;}

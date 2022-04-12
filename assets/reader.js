@@ -699,7 +699,10 @@ function scrollToVisible(element) {
       let r = element.getBoundingClientRect();
       for (let i = 0; i < 10 && !(r && r.height); i++) {
         element = element.nextElementSibling;
-        r = element && element.getBoundingClientRect();
+        if (!element) {
+          break;
+        }
+        r = element.getBoundingClientRect();
       }
       if (r && r.height) {
         if (r.top < 60) {
@@ -780,12 +783,13 @@ function getKePanId(el) {
 function getNoteContent(note, title, rows, rawNote, desc) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     const m = /\d{4}\w*$/.exec(note[i + 2]),
-        line = m && m[0] || rawNote && note[i + 1] || '',
+        note1 = note[i + 1].replace(/\d{4}\w*$/, ''),
+        line = m && m[0] || rawNote && note1 || '',
         autoMore = /^!/.test(note[i + 1]),
-        title_ = note[i + 1].replace(/^[!-]/, ''),
+        title_ = note1.replace(/^[!-]/, ''),
         text = note[i + 2].replace(/\d{4}\w*$/, '').split(/\n/g),
-        orgText = !rawNote && note[i + 1].length > 4 && !autoMore? note[i + 1].substring(0, 3) +
-            `<span class="more" data-more="${note[i + 1].substring(3)}">…</span>` : title_;
+        orgText = !rawNote && note1.length > 4 && !autoMore? note1.substring(0, 3) +
+            `<span class="more" data-more="${note1.substring(3)}">…</span>` : title_;
     let noteText = `<span class="note-text">${text[0]}</span>`,
       nextText = text.slice(1).map(t => `<p class="note-text note-text2">${t}</p>`).join('');
 

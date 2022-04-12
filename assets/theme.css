@@ -124,7 +124,9 @@
     [data-theme="dark"] #content:not(.single-article) .row > div,
     [data-theme="dark"] hr,
     [data-theme="dark"] footer,
-    [data-theme="dark"] .left-nav {
+    [data-theme="dark"] .left-nav,
+    [data-theme="dark"] .label-panel,
+    [data-theme="dark"] .label-panel > .notes {
         border-color: rgba(250, 250, 250, 0.15);
     }
     [data-theme="dark"] .ke-line[data-path] {background-color: rgba(0, 100, 0, .2);}

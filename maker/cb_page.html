@@ -476,7 +476,7 @@
         saveCbOptions()
       }
       $.get('/cb/page/note/{{id}}', {tag: tag}, r => {
-        initNotes(r.raw || r.notes, tag, `.cell-${col},#body${col}`, r.desc)
+        initNotes(r.raw || r.notes, tag, `.cell-${col},#body${col}`, r.desc, `{{cmp_txt}}`)
       }).error(ajaxError('加载注解失败'))
     }
   }

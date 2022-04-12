@@ -21,7 +21,10 @@ THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
 pat_note_inv = re.compile(r'^-|[　\s\n]|\d{4}\w*$')
-pat_puncture = re.compile(r'[，、；：。！？‘’“”·…《》（）「」『』—()〔〕]')
+ignore_nums = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⓪ⓞ⓵⓶⓷⓸⓹⓺⓻⓼⓽⓾' \
+              '⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽⑾⑿⒀⒁⒂⒃⒄⒅⒆⒇➊➋➌➍➎➏➐➑➒➓⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴' \
+              '⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛㊀㊁㊂㊃㊄㊅㊆㊇㊈㊉㈠㈡㈢㈣㈤㈥㈦㈧㈨㈩'
+pat_puncture = re.compile('[，、；：。！？‘’“”·…《》（）「」『』—()〔〕' + ignore_nums + ']')
 
 define('port', default=8003, help='run port', type=int)
 define('debug', default=True, help='the debug mode', type=bool)
@@ -244,6 +247,7 @@ class PageHandler(CbBaseHandler):
             ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
                                      if re.match(r'^:ke-type \d [^\s]+', r)] or []  # 'num name desc'
             note_tags = [s.split('|')[1] for s in info.get('notes', [])]
+            cmp_txt = step == 3 and '\n'.join(self.get_cmp_txt()) or ''
 
             if self.get_argument('export', 0):
                 json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
@@ -261,7 +265,7 @@ class PageHandler(CbBaseHandler):
                         rowPairs='||'.join(page.get('rowPairs', [])),
                         paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
                         notes=[(tag, page['notes'][tag]) for tag in note_tags if tag in page.get('notes', {})],
-                        cb_ids=cb_ids)
+                        cb_ids=cb_ids, cmp_txt=cmp_txt)
         except Exception as e:
             self.on_error(e)
 
@@ -281,6 +285,17 @@ class PageHandler(CbBaseHandler):
             self.write(dict(changed=bool(changed)))
         except Exception as e:
             self.on_error(e)
+
+    @staticmethod
+    def get_cmp_txt():
+        """读取有标点的文本文件"""
+        filename = path.join(DATA_DIR, 'notes.txt')
+        rows = []
+        if path.exists(filename):
+            with open(filename) as f:
+                text = re.sub('[' + ignore_nums + ']', '', f.read().strip())
+                rows = re.split(r'[\s\n]*\n+[\s\n]*', text)
+        return [re.sub(r'\s+', '', r) for r in rows]
 
 
 class HtmlDownloadHandler(CbBaseHandler):
@@ -753,12 +768,17 @@ class PageNoteHandler(CbBaseHandler):
         changes = 0
         for ti, notes in enumerate([item.get('raw', []), item['notes']]):
             for r in notes:
+                id_match = 0
                 for j in range(int(len(r) / 3)):
-                    if nid == r[j * 3] and (is_content or ti):
+                    id_match = id_match or nid == r[j * 3] and 1
+                    if id_match and (is_content or ti):
                         idx = j * 3 + (2 if is_content else 1)
-                        assert pat_puncture.sub('', old_text) in pat_puncture.sub('', r[idx]), 'old text mismatch'
-                        r[idx] = r[idx].replace(old_text, new_text)
-                        changes += 1
+                        if pat_puncture.sub('', old_text) in pat_puncture.sub('', r[idx]):
+                            r[idx] = r[idx].replace(old_text, new_text)
+                            id_match = 2
+                            changes += 1
+                            break
+                assert id_match != 1, 'text mismatch'
         self.save_page(page)
         self.write(dict(changes=changes))
 
@@ -832,23 +852,7 @@ class PageNoteHandler(CbBaseHandler):
         self.write(dict(count=len(raw)))
 
 
-class PageTxtHandler(CbBaseHandler):
-    URL = r'/cb/page/txt/([A-Z]\d+[a-z]?)'
-
-    def get(self, name):
-        """读取有标点的文本文件"""
-        try:
-            filename = path.join(DATA_DIR, name + '.txt')
-            rows = []
-            if path.exists(filename):
-                with open(filename) as f:
-                    rows = re.split(r'[\s\n]*\n+[\s\n]*', f.read().strip())
-            self.write({'rows': [re.sub(r'\s+', '', r) for r in rows]})
-        except Exception as e:
-            self.on_error(e)
-
-
-handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler, PageTxtHandler,
+handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
             ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
 
 

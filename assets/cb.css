@@ -55,6 +55,7 @@ div.lg-cell {
 [data-col-count] div.lg-cell {
   word-break: break-all;
 }
+div.lg-cell span, div.lg-cell note[nowrap] {display: inline-block;}
 div.lg-row { display: table-row; }
 div.lg + p { margin-top: .5em; }
 p { text-indent: 2em; }
