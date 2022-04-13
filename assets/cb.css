@@ -21,14 +21,15 @@
   overflow: hidden;
   max-width: 100%;
   font-size: .8em;
+  cursor: pointer;
 }
 .head {
-  font-size: larger;
+  font-size: 1.2em;
   text-align: center;
   text-indent: 0;
 }
 .juan {
-  font-size: larger;
+  font-size: 1.2em;
   text-align: center;
   text-indent: 0;
 }
@@ -84,9 +85,9 @@ body {
   font-family: Helvetica,STSong,NSimSun,SimSun,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
 }
 .ke-line, .note-p, .note-tag, .lg {
-  font-family: STKaiti,BiauKai,KaiTi,"楷体","楷体_GB2312",sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
+  font-family: STKaiti,BiauKai,KaiTi,"楷体","楷体_GB2312",cursive,Helvetica,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
 }
-@media screen {
+@media screen and (min-width: 800px) {
   #content, #merged {font-weight: bold;}
 }
 .ke-line, .note-p, .note-tag, .xu-more, .div-xu {
@@ -271,7 +272,7 @@ span[ke-pan] > .ke-pan-text {
 }
 
 @media screen {
-  [ke-pan].active, [ke-pan]:hover, [ke-pan].hover, .highlight {
+  [ke-pan].active, [ke-pan]:hover, .highlight {
     color: green;
   }
 
@@ -394,4 +395,20 @@ span[ke-pan] > .ke-pan-text {
   background-color: transparent;
   border-bottom: 1px solid #ddd;
   padding: 4px;
+}
+
+@media (min-width: 768px) {
+  .phone-bar {display: none;}
+}
+@media screen and (max-width: 767px) {
+  body:not([data-col-count]) .phone-bar,
+  [data-col-count="2"] .phone-bar,
+  [data-col-count="3"] .phone-bar {
+    position: fixed;
+    top: 10px;
+    left: 90px;
+    width: calc(100% - 180px);
+    z-index: 1100;
+    overflow: hidden;
+  }
 }

@@ -1,124 +1,122 @@
 <!DOCTYPE html>
 <html lang=zh-CN>
 <head>
-    <meta charset="UTF-8">
-    <title>心經(七合一)</title>
-    <meta name="keywords" content="心經,T0251"/>
-    <meta name="description" content="心经(七种对照)"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="assets/img/favicon.ico"/>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
-	  <link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
-    <link href="assets/cb.css?v=410" rel="stylesheet"/>
-    <link href="assets/note.css?v=410" rel="stylesheet"/>
-	  <link href="assets/theme.css?v=410" rel="stylesheet"/>
-    <style>
-        @media screen {
-            body {
+	<meta charset="UTF-8">
+	<title>心經(七合一)</title>
+	<meta name="keywords" content="心經,T0251"/>
+	<meta name="description" content="心经(七种对照)"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="assets/img/favicon.ico"/>
+	<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
+	<link href="assets/cb.css?v=410" rel="stylesheet"/>
+	<link href="assets/note.css?v=410" rel="stylesheet"/>
+	<link href="assets/theme.css?v=410" rel="stylesheet"/>
+	<style>
+		@media screen {
+			body {
 				padding-bottom: 50px;
-            }
-        }
-        .phone-bar {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        @media (min-width: 768px) {
-            .phone-bar {display: none;}
-        }
-    </style>
+			}
+		}
+
+		.phone-bar {
+			text-align: center;
+			margin-bottom: 10px;
+		}
+	</style>
 </head>
 <body>
 <nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="index.html">原典</a>
-        </div>
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li><a href="javascript:"><b>心經</b></a></li>
-                <li class="dropdown">
-                    <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">显示 <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
-						<li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
-                        <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
-                        <li role="separator" class="divider"></li>
-												<li><a href="javascript:" id="theme-warm" title="切换为浅色外观、护眼色">护眼色</a></li>
-												<li><a href="javascript:" id="theme-dark" title="切换为深色外观">深色外观</a></li>
-												<li role="separator" class="divider"></li>
-                        <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
-                        <li><a href="javascript:" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
-                    </ul>
-                </li>
+	<div class="container">
+		<!-- Brand and toggle get grouped for better mobile display -->
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+					data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="index.html">原典</a>
+		</div>
+		<!-- Collect the nav links, forms, and other content for toggling -->
+		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			<ul class="nav navbar-nav">
+				<li><a href="javascript:"><b>心經</b></a></li>
 				<li class="dropdown">
-				  <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-					 aria-expanded="false">科判 <span class="caret"></span></a>
-				  <ul class="dropdown-menu">
-					<li class="ke-pan-ratio"><a>隐藏</a></li>
-					<li class="ke-pan-ratio"><a>10%</a></li>
-					<li class="ke-pan-ratio"><a>15%</a></li>
-					<li class="ke-pan-ratio"><a>20%</a></li>
-					<li class="ke-pan-ratio"><a>25%</a></li>
-					<li class="ke-pan-ratio"><a>33%</a></li>
-					<li class="ke-pan-ratio"><a>50%</a></li>
-					<li class="ke-pan-ratio"><a>100%</a></li>
-					<li role="separator" class="divider"></li>
-					<li><a href="javascript:" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
-					<li role="separator" class="divider"></li>
-					<li><a href="javascript:" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
-					<li><a href="javascript:" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
-				  </ul>
+					<a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button"
+					   aria-haspopup="true" aria-expanded="false">显示 <span class="caret"></span></a>
+					<ul class="dropdown-menu">
+						<li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+						<li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
+						<li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="javascript:" id="theme-warm" title="切换为浅色外观、护眼色">护眼色</a></li>
+						<li><a href="javascript:" id="theme-dark" title="切换为深色外观">深色外观</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
+						<li><a href="javascript:" id="to-table" title="转为多列表格以便复制到Word文档">转为表格</a></li>
+					</ul>
 				</li>
-            </ul>
+				<li class="dropdown">
+					<a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button"
+					   aria-haspopup="true" aria-expanded="false">科判 <span class="caret"></span></a>
+					<ul class="dropdown-menu">
+						<li class="ke-pan-ratio"><a>隐藏</a></li>
+						<li class="ke-pan-ratio"><a>10%</a></li>
+						<li class="ke-pan-ratio"><a>15%</a></li>
+						<li class="ke-pan-ratio"><a>20%</a></li>
+						<li class="ke-pan-ratio"><a>25%</a></li>
+						<li class="ke-pan-ratio"><a>33%</a></li>
+						<li class="ke-pan-ratio"><a>50%</a></li>
+						<li class="ke-pan-ratio"><a>100%</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="javascript:" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="javascript:" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+						<li><a href="javascript:" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+					</ul>
+				</li>
+			</ul>
 
-            <div class="btn-group toggle-column" role="group">
-                <button type="button" class="btn btn-default btn-sm navbar-btn show-xu" title="切换是否显示序言">序</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">1</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">2</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">3</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">4</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">5</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">6</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn">7</button>
-            </div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default btn-sm navbar-btn" title="增加正文字号" onclick="enlargeFont()">+</button>
-                <button type="button" class="btn btn-default btn-sm navbar-btn" title="减少正文字号" onclick="reduceFont()">-</button>
-            </div>
-        </div>
-    </div>
+			<div class="btn-group toggle-column" role="group">
+				<button type="button" class="btn btn-default btn-sm navbar-btn show-xu" title="切换是否显示序言">序</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">1</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">2</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">3</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">4</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">5</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">6</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn">7</button>
+			</div>
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-default btn-sm navbar-btn" title="增加正文字号" onclick="enlargeFont()">+</button>
+				<button type="button" class="btn btn-default btn-sm navbar-btn" title="减少正文字号" onclick="reduceFont()">-</button>
+			</div>
+		</div>
+	</div>
 </nav>
 <div class="phone-bar no-print">
-    <div class="btn-group toggle-column" role="group">
-        <button type="button" class="btn btn-default btn-sm show-xu" title="切换是否显示序言">序</button>
-        <button type="button" class="btn btn-default btn-sm">1</button>
-        <button type="button" class="btn btn-default btn-sm">2</button>
-        <button type="button" class="btn btn-default btn-sm">3</button>
-        <button type="button" class="btn btn-default btn-sm">4</button>
-        <button type="button" class="btn btn-default btn-sm">5</button>
-        <button type="button" class="btn btn-default btn-sm">6</button>
-        <button type="button" class="btn btn-default btn-sm">7</button>
-    </div>
-    <div class="btn-group" role="group">
-        <button type="button" class="btn btn-default btn-sm" title="增加正文字号" onclick="enlargeFont()">+</button>
-        <button type="button" class="btn btn-default btn-sm" title="减少正文字号" onclick="reduceFont()">-</button>
-    </div>
+	<div class="btn-group toggle-column" role="group">
+		<button type="button" class="btn btn-default btn-sm show-xu" title="切换是否显示序言">序</button>
+		<button type="button" class="btn btn-default btn-sm">1</button>
+		<button type="button" class="btn btn-default btn-sm">2</button>
+		<button type="button" class="btn btn-default btn-sm">3</button>
+		<button type="button" class="btn btn-default btn-sm">4</button>
+		<button type="button" class="btn btn-default btn-sm">5</button>
+		<button type="button" class="btn btn-default btn-sm">6</button>
+		<button type="button" class="btn btn-default btn-sm">7</button>
+	</div>
+	<div class="btn-group" role="group">
+		<button type="button" class="btn btn-default btn-sm" title="增加正文字号" onclick="enlargeFont()">+</button>
+		<button type="button" class="btn btn-default btn-sm" title="减少正文字号" onclick="reduceFont()">-</button>
+	</div>
 </div>
 
 <div class="left-nav no-print">
-  <div id="judgments"></div>
+	<div id="judgments"></div>
 </div>
 
 <div id="content" class="container-fluid ">

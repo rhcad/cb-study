@@ -52,9 +52,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.note-from:hover {
-  color: #55f;
-}
+.note-from:hover {color: #55f;}
+.note-from:hover .p-close {font-weight: bold;}
 .note-raw .note-from {
   display: block;
   text-align: right;
@@ -85,5 +84,4 @@ body:not(.hide-note-tag) .note-expanded note {
 .tag-highlight { color: #00a; }
 sup[title]:not([class]) { cursor: pointer; color: #777; }
 
-.hide-note-tag .note-tag:not(.note-expanded) {display: none;}
 .hide-note-tag .note-tag.note-expanded {font-weight: normal;}

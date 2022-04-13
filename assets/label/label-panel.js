@@ -368,7 +368,7 @@ function _addNote(nid, useNote) {
     }
 
     const note = useNote(), title = [], rows = [];
-    getNoteContent(note, title, rows, _label.rawMode, _label.desc);
+    getNoteContent(note, title, rows, _label.rawMode, _label.desc, _label.tag);
 
     // 在 note 节点后插入注解锚点标记，允许一个注解有多个注解锚点标记
     const tagEl = document.createElement('sup');

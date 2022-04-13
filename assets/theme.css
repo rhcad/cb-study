@@ -1,5 +1,6 @@
 @media screen {
-    [data-theme="warm"] {
+    [data-theme="warm"],
+    [data-theme="warm"] .form-control {
         background-color: #ddf0e4;
         color: #464646;
     }
@@ -9,19 +10,26 @@
         color: #3F51B5;
     }
 
+    [data-theme="warm"] .btn {
+        background-color: transparent;
+    }
+
     [data-theme="warm"] footer,
     [data-theme="warm"] nav {
         background-color: #eef6f0;
     }
 
-    [data-theme="dark"] {
+    [data-theme="dark"],
+    [data-theme="dark"] .form-control {
         background-color: #111;
         color: #d1d1d1;
     }
 
-    [data-theme="dark"] footer,
-    [data-theme="dark"] a {
+    [data-theme="dark"] footer {
         background-color: #3b3b3d;
+        color: #aaa;
+    }
+    [data-theme="dark"] a {
         color: #aaa;
     }
 
@@ -97,6 +105,10 @@
         border: 1px solid transparent;
     }
 
+    [data-theme="dark"] .btn-default {
+        border-color: rgba(250, 250, 250, 0.15);
+    }
+
     [data-theme="dark"] .btn-primary {
         color: #e1e1e1;
         background-color: #375a7f;
@@ -126,12 +138,17 @@
     [data-theme="dark"] footer,
     [data-theme="dark"] .left-nav,
     [data-theme="dark"] .label-panel,
-    [data-theme="dark"] .label-panel > .notes {
+    [data-theme="dark"] .label-panel > .notes,
+    [data-theme="dark"] .form-control {
         border-color: rgba(250, 250, 250, 0.15);
     }
     [data-theme="dark"] .ke-line[data-path] {background-color: rgba(0, 100, 0, .2);}
     [data-theme="dark"] .ke-line > span {color: #999;}
     [data-theme="dark"] #content:not(.single-article) .row {border-color: transparent;}
+
+    [data-theme="dark"] [ke-pan].active,
+    [data-theme="dark"] [ke-pan]:hover,
+    [data-theme="dark"] .highlight {color: #ddd;}
 
     [data-theme="dark"] .tag-highlight,
     [data-theme="dark"]:not(.hide-note-tag)  note.note-expanded,
@@ -147,4 +164,8 @@
     [data-theme="dark"] .note-text {color: #999;}
     [data-theme="dark"] .org-text {color: #99d;}
     [data-theme="dark"] .note-from:hover {color: #0f0;}
+
+    [data-theme="dark"] .jstree-default .jstree-clicked,
+    [data-theme="dark"] .jstree-default .jstree-hovered {background: #0b3040;}
+    [data-theme="dark"] .jstree-icon {opacity: .4;}
 }

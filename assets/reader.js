@@ -18,11 +18,29 @@
  */
 
 try {
+  window.cbOptions0 = JSON.parse(localStorage.getItem('cbPageOptions'))
+} catch (e) {}
+if (!window.cbOptions0 || typeof window.cbOptions0 !== 'object') {
+  window.cbOptions0 = {theme: 'warm'};
+}
+try {
   window.cbOptions = JSON.parse(localStorage.getItem('cbOptions' + window.pageName))
 } catch (e) {}
 if (!window.cbOptions || typeof window.cbOptions !== 'object') {
-  window.cbOptions = {theme: 'warm'};
+  window.cbOptions = {};
 }
+
+function getQueryString(name) {
+  const reg = new RegExp('(^|[&?])' + name + '=([^&]*)(&|$)', 'i');
+  const r = window.location.search.match(reg);
+  return r ? unescape(r[2]) : '';
+}
+'theme,hideXu,hideInlineKePan,kePanWidth,kePanType,kePanId,tags,cols'.split(',').forEach(name => {
+  const value = getQueryString(name);
+  if (value) {
+    window[/theme/.test(name) ? 'cbOptions0' : 'cbOptions'][name] = value;
+  }
+});
 
 /**
  * 保存UI配置，需要在页面定义 window.pageName
@@ -31,6 +49,7 @@ function saveCbOptions() {
   if (typeof window.pageName === 'string') {
     localStorage.setItem('cbOptions' + window.pageName, JSON.stringify(cbOptions));
   }
+  localStorage.setItem('cbPageOptions', JSON.stringify(cbOptions0));
 }
 
 /**
@@ -175,7 +194,7 @@ function updateColumnStatus() {
 
     $('[id^="theme-"]').each(function () {
       const theme = this.getAttribute('id').replace('theme-', '');
-      $(this).closest('li').toggleClass('active', cbOptions.theme === theme);
+      $(this).closest('li').toggleClass('active', cbOptions0.theme === theme);
     });
   }, 20);
 }
@@ -195,13 +214,23 @@ function _initCbLiStatus() {
       showLeftColumn();
     }
   }
-  if (!cbOptions.colHide && Array.isArray(window.colHideDefault)) {
+  if (cbOptions.cols) {
+    cbOptions.colHide = {};
+    cbOptions.cols = cbOptions.cols.split(',');
+    $('.toggle-column > button').each(function () {
+      const idx = `${parseInt(this.innerText) - 1}`;
+      if (cbOptions.cols.indexOf(idx) < 0) {
+        cbOptions.colHide[idx] = true;
+      }
+    });
+    delete cbOptions.cols;
+  } else if (!cbOptions.colHide && Array.isArray(window.colHideDefault)) {
     cbOptions.colHide = {};
     window.colHideDefault.forEach(c => (cbOptions.colHide['' + c] = true));
   }
   setTimeout(() => {
     Object.keys(cbOptions.colHide || {}).forEach(k => cbOptions.colHide[k] && _toggleColumn(parseInt(k), false));
-    if (cbOptions.hideXu) {
+    if (/true|1/.test(cbOptions.hideXu + '')) {
       toggleXu(false);
     }
   }, 10);
@@ -473,7 +502,9 @@ function _switchKePanType(type, save) {
     $judgments.on('loaded.jstree', _initKePanLinePath);
 
     $('#judgments').on('changed.jstree', function (e, data) {
-      highlightKePan(data.node.id, 'nav');
+      if (data.node) {
+        highlightKePan(data.node.id, 'nav');
+      }
     });
   }
 }
@@ -500,6 +531,19 @@ function _initKePanLinePath() {
       $r.attr('data-path', text || null);
     }
   });
+
+  setTimeout(() => {
+    if (cbOptions.kePanId && $(`[ke-pan='${cbOptions.kePanId}']:visible`).length) {
+      highlightKePan(parseInt(cbOptions.kePanId), true);
+      delete cbOptions.kePanId;
+    }
+    if (cbOptions.tags && /^[\w,]+$/.test(cbOptions.tags)) {
+      cbOptions.tags.split(',').forEach(tag => {
+        _clickShowNotes($(`.show-notes[data-jin="${tag}"]`), true);
+      });
+      delete cbOptions.tags;
+    }
+  }, 50);
 }
 
 /**
@@ -779,8 +823,9 @@ function getKePanId(el) {
  * @param {string[]} rows 注解块的构建HTML
  * @param {boolean} rawNote 原注解是否为普通网页，即在CBeta平台中页面内容未标注为原文与注解
  * @param {string} desc 注解来源的简要说明
+ * @param {string} tag 注解标记字
  */
-function getNoteContent(note, title, rows, rawNote, desc) {
+function getNoteContent(note, title, rows, rawNote, desc, tag) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     const m = /\d{4}\w*$/.exec(note[i + 2]),
         note1 = note[i + 1].replace(/\d{4}\w*$/, ''),
@@ -794,10 +839,10 @@ function getNoteContent(note, title, rows, rawNote, desc) {
       nextText = text.slice(1).map(t => `<p class="note-text note-text2">${t}</p>`).join('');
 
     title.push(title_.replace(/\d{4}\w*|^[!-]/, ''));
-    rows.push((`<div data-id="${note[i]}" data-line-no="${line}" class="note-item${rawNote ? ' note-raw' : ''}">` +
+    rows.push((`<div data-id="${note[i]}" data-line-no="${line}" data-tag="${tag}" class="note-item${rawNote ? ' note-raw' : ''}">` +
         `<span class="org-text">${orgText}</span>${noteText}${nextText} ` +
         (!desc || i + 5 < note.length ? '' :
-            `<span class="note-from" title="单击此处隐藏">${desc} <span class="p-close">×</span></span>`)
+            `<span class="note-from" title="单击此处隐藏"><span>${desc}</span> <span class="p-close">×</span></span>`)
         + '</div>').replace(/ data-line-no=""/g, ''));
   }
   if (rawNote) {
@@ -826,7 +871,7 @@ function insertNotes($side, notes, desc, tag) {
     if (!note) {
       return;
     }
-    getNoteContent(note, title, rows, rawNote, desc);
+    getNoteContent(note, title, rows, rawNote, desc, tag);
     $tag.attr('title', title.join('\n'));
 
     const $exist = $(`.note-p[data-nid="${id}"]`);
@@ -843,21 +888,48 @@ function insertNotes($side, notes, desc, tag) {
     }
   });
 
-  if (tag && desc) {
+  if (tag && desc && /[A-Z]\w+/.test(desc)) {
     const tag2 = '[' + tag.replace(/\[|\]/g, '') + ']';
     const desc2 = tag2 + desc.replace(/^[A-Z]\w+\s|[，（].+$/g, '');
-    $(`<li class="show-notes" title="切换是否显示注解 “${desc}”"><a href="javascript:">${desc2}</a></li>`)
+    const jin = /([A-Z]\w+)/.exec(desc)[1];
+
+    $(`<li class="show-notes" title="切换是否显示注解 “${desc}”" data-tag="${tag2}" data-jin="${jin}"><a href="javascript:">${desc2}</a></li>`)
         .insertBefore($('.dropdown #show-notes').closest('li'))
-        .click(function () {
-          const $tag = $(`.note-tag[data-tag="${tag2}"]`), expanded = !$tag.hasClass('note-expanded');
-          $tag.each((_, t) => {
-            if ($(t).hasClass('note-expanded') !== expanded) {
-              toggleNoteTag($(t));
-            }
-          });
-          $(this).toggleClass('active');
-        });
+        .click(e => _clickShowNotes($(e.target)));
   }
+}
+
+function _clickShowNotes($li, excludeText) {
+  const $tag = $(`.note-tag[data-tag="${$li.closest('li').attr('data-tag')}"]`),
+      expanded = !$tag.hasClass('note-expanded');
+  let count = 0;
+
+  $tag.each((_, t) => {
+    const $t = $(t);
+    $t.show();
+    if (expanded && $('body').hasClass('hide-div-xu') && $t.closest('.cell').find('.xu-more,.div-xu').length) {
+      return;
+    }
+    if ($t.hasClass('note-expanded') !== expanded) {
+      if (expanded) {
+        const $note = $(`.note-p[data-nid="${ $t.attr('data-nid') }"] > [data-tag]`),
+            $s = $note.find('.note-from>span:first-child');
+        if (++count === 1) {
+          if ($s.attr('title')) {
+            $s.text($s.attr('title').split('\n')[0]);
+            $s.removeAttr('title');
+          }
+        } else {
+          if (!$s.attr('title')) {
+            $s.attr('title', $s.text() + '\n单击此处隐藏');
+            $s.text('[' + $note.attr('data-tag') + ']');
+          }
+        }
+      }
+      toggleNoteTag($t, excludeText);
+    }
+  });
+  $li.toggleClass('active');
 }
 
 // 在正文有科判标记的span上鼠标掠过
@@ -979,7 +1051,7 @@ $('.show-inline-ke-pan-btn').click(function () {
 });
 
 // 切换展开注解段落
-function toggleNoteTag($tag) {
+function toggleNoteTag($tag, excludeText) {
   const id = $tag.attr('data-nid'),
       $p = $(`.note-p[data-nid="${id}"]`),
       show = !$tag.hasClass('note-expanded');
@@ -989,7 +1061,7 @@ function toggleNoteTag($tag) {
   }
   $p.toggle(100, null, show);
   $(`.note-tag[data-nid="${id}"]`).toggleClass('note-expanded', show);
-  $(`note[data-nid="${id}"]`).toggleClass('note-expanded', show);
+  $(`note[data-nid="${id}"]`).toggleClass('note-expanded', show && !excludeText);
 }
 
 // 单击注解锚点标记则展开注解段落
@@ -1088,18 +1160,22 @@ $(document).on('click', 'sup[title]:not([class])', e => {
   e.target.innerText = e.target.innerText.length > 1 ? '*' : e.target.getAttribute('title');
 });
 
+$(document).on('click', '.hide-div-xu .xu-more', () => toggleXu(true));
+
 $('#hide-tag').click(() => {
-  $('body').toggleClass('hide-note-tag');
+  const hide = !$('body').hasClass('hide-note-tag');
+  $('body').toggleClass('hide-note-tag', hide);
+  $('.note-tag:not(.note-expanded)').toggle(!hide);
 });
 $('[id^="theme-"]').click(e => {
   const value = e.target.getAttribute('id').replace('theme-', ''),
     theme = $('body').attr('data-theme') === value ? '' : value;
   $('body').attr('data-theme', theme);
-  cbOptions.theme = theme;
+  cbOptions0.theme = theme;
   saveCbOptions();
   updateColumnStatus();
 });
-if (cbOptions.theme) {
-  $('body').attr('data-theme', cbOptions.theme);
-  $('#theme-' + cbOptions.theme).closest('li').toggleClass('active');
+if (cbOptions0.theme) {
+  $('body').attr('data-theme', cbOptions0.theme);
+  $('#theme-' + cbOptions0.theme).closest('li').toggleClass('active');
 }
