@@ -10,14 +10,11 @@
         color: #3F51B5;
     }
 
-    [data-theme="warm"] .btn {
-        background-color: transparent;
-    }
+    [data-theme="warm"] .btn {background-color: transparent;}
 
     [data-theme="warm"] footer,
-    [data-theme="warm"] nav {
-        background-color: #eef6f0;
-    }
+    [data-theme="warm"] nav {background-color: #eef6f0;}
+    [data-theme="warm"] #content:not(.single-article) .row {border: transparent;}
 
     [data-theme="dark"],
     [data-theme="dark"] .form-control {
