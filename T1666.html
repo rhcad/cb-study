@@ -3024,13 +3024,37 @@
 
 <script>
   const $cell0 = $('.cell-0'), $cell1 = $('.cell-1');
-  insertNotes($cell0, T1843Notes, 'T1843 大乘起信論義疏（净影疏），隋 慧遠撰', '净');
-  insertNotes($cell0, T1845Notes, 'T1845 大乘起信論別記，新羅 元曉撰', '別');
-  insertNotes($cell0, X0765Notes, 'X0765 大乘起信論疏略，明 憨山德清纂略', '德');
-  insertNotes($cell0, Y0007Notes, 'Y0007 大乘起信論講記，釋印顺', '印');
+  insertNotes($cell0, T1843Notes, 'T1843 義疏（净影疏），隋 慧遠撰', '净');
+  insertNotes($cell0, T1845Notes, 'T1845 起信論別記，新羅 元曉撰', '別');
+  insertNotes($cell0, X0765Notes, 'X0765 起信論疏略，明 憨山德清纂略', '德');
+  insertNotes($cell0, Y0007Notes, 'Y0007 起信論講記，釋印顺', '印');
   insertNotes($cell0, X0766Notes, 'X0766 起信論直解，明 憨山德清述', '直');
   insertNotes($cell0, T1846Notes, 'T1846 義記（贤首疏），唐 法藏撰', '義');
-  insertNotes($cell1, T1850Notes, 'T1850 裂網疏，明 智旭述', '裂');
+  insertNotes($cell1, T1850Notes, 'T1850 裂網疏，明 蕅益智旭述', '裂');
+
+  function moveColumnRight() {
+	  const tags = '義净';
+
+	  $cell1.remove()
+	  $('.note-p').remove()
+	  $cell0.each((i, cell) => {
+		  const $row = $(cell).closest('.row'), html = cell.innerHTML,
+				  $1 = $('<div class="cell cell-1"/>').appendTo($row).html(html);
+		  [$(cell), $1].forEach(($cell, idx) => {
+			  $cell.find('.note-tag').each((_, sup) => {
+				  const nid = sup.getAttribute('data-nid');
+				  if (sup.getAttribute('data-tag')[1] !== tags[idx]) {
+					  $cell.find(`note[data-nid="${nid}"]`).removeAttr('data-nid');
+					  sup.remove();
+				  }
+			  })
+		  });
+	  })
+
+	  _initCbLiStatus();
+	  insertNotes($('.cell-0'), T1846Notes, 'T1846 義記（贤首疏），唐 法藏撰', '義');
+	  insertNotes($('.cell-1'), T1843Notes, 'T1843 義疏（净影疏），隋 慧遠撰', '净');
+  }
 
   $(document).on('mouseenter', '[data-nid]', function (e) {
     const id = e.target.closest('[data-nid]').getAttribute('data-nid'),

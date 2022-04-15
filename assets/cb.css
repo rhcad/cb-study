@@ -83,6 +83,7 @@ body {
 }
 #content, #merged {
   font-family: Helvetica,STSong,NSimSun,SimSun,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
+  padding-right: 0;
 }
 .ke-line, .note-p, .note-tag, .lg {
   font-family: STKaiti,BiauKai,KaiTi,"楷体","楷体_GB2312",cursive,Helvetica,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";

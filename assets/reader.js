@@ -5,7 +5,7 @@
  * saveCbOptions
  * toggleLineNo, toggleXu, toggleParaBox, toggleNoteTag
  * showLeftColumn, showRightColumn, showTwoColumns
- * getVisibleColumns
+ * getVisibleColumns, getColIndexByElement
  * updateColumnStatus
  * enlargeFont, reduceFont, enlargeKePanFont, reduceKePanFont
  * setKePanWidth
@@ -828,19 +828,19 @@ function getKePanId(el) {
 function getNoteContent(note, title, rows, rawNote, desc, tag) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     const m = /\d{4}\w*$/.exec(note[i + 2]),
-        note1 = note[i + 1].replace(/\d{4}\w*$/, ''),
+        note1 = note[i + 1].replace(/\d{4}\w*$/, '').replace(/[。！？；：]+$/, ''),
         line = m && m[0] || rawNote && note1 || '',
         autoMore = /^!/.test(note[i + 1]),
         title_ = note1.replace(/^[!-]/, ''),
         text = note[i + 2].replace(/\d{4}\w*$/, '').split(/\n/g),
-        orgText = !rawNote && note1.length > 4 && !autoMore? note1.substring(0, 3) +
-            `<span class="more" data-more="${note1.substring(3)}">…</span>` : title_;
+        orgText = !rawNote && note1.length > 5 && !autoMore? note1.substring(0, 3) +
+            `<span class="more" data-more="${note1.substring(3, note1.length - 1)}">…</span>` + note1[note1.length - 1] : title_;
     let noteText = `<span class="note-text">${text[0]}</span>`,
       nextText = text.slice(1).map(t => `<p class="note-text note-text2">${t}</p>`).join('');
 
     title.push(title_.replace(/\d{4}\w*|^[!-]/, ''));
     rows.push((`<div data-id="${note[i]}" data-line-no="${line}" data-tag="${tag}" class="note-item${rawNote ? ' note-raw' : ''}">` +
-        `<span class="org-text">${orgText}</span>${noteText}${nextText} ` +
+        `<span class="org-text${autoMore ? ' bold' : ''}">${orgText}</span>${noteText}${nextText} ` +
         (!desc || i + 5 < note.length ? '' :
             `<span class="note-from" title="单击此处隐藏"><span>${desc}</span> <span class="p-close">×</span></span>`)
         + '</div>').replace(/ data-line-no=""/g, ''));
@@ -962,11 +962,17 @@ $(document).on('mouseover', '[ke-pan]', function (e) {
 
 // 在正文有科判标记的span上鼠标滑入
 $(document).on('mouseenter', '[ke-pan],p[id^=p]', function (e) {
-  const cell = e.target.closest('.cell'),
-      m = cell && /cell-(\d+)/.exec(cell.className),
-      colTitle = m && $(`.cell-${m[1]} [title]`).attr('title');
+  const col = getColIndexByElement(e.target),
+      colTitle = col && $(`.cell-${col} [title]`).attr('title');
   showKePanPath(getKePanId(e.target), colTitle);
 });
+
+// 得到一个元素所在栏的栏序，数字串
+function getColIndexByElement(element) {
+  const cell = element && element.closest('.cell'),
+      m = cell && /cell-(\d+)/.exec(cell.className);
+  return m && m[1] || '';
+}
 
 // 在正文有科判标记的span上鼠标滑出
 $(document).on('mouseleave', '[ke-pan]', function (e) {
@@ -1169,13 +1175,28 @@ $('#hide-tag').click(() => {
 });
 $('[id^="theme-"]').click(e => {
   const value = e.target.getAttribute('id').replace('theme-', ''),
-    theme = $('body').attr('data-theme') === value ? '' : value;
-  $('body').attr('data-theme', theme);
+    theme = $('html').attr('data-theme') === value ? '' : value;
+  $('html').attr('data-theme', theme);
   cbOptions0.theme = theme;
   saveCbOptions();
   updateColumnStatus();
 });
 if (cbOptions0.theme) {
-  $('body').attr('data-theme', cbOptions0.theme);
+  $('html').attr('data-theme', cbOptions0.theme);
   $('#theme-' + cbOptions0.theme).closest('li').toggleClass('active');
+}
+
+function moveNoteDescToCbNo() {
+  $('.cb-no').each((_, el) => {
+    const col = getColIndexByElement(el), $span = $(`.cell-${col}`).find('.note-from > span:first-child');
+    el.innerText = $span.first().text();
+  });
+  $('.note-from').remove();
+
+  const $row = $('.xu-more').closest('.row');
+  if ($row.next().hasClass('ke-line')) {
+    $row.next().remove();
+  }
+  $row.remove();
+  $('.cell').css('border-color', 'transparent');
 }
