@@ -54,11 +54,12 @@
 
   <div class="input-group">
     <input type="text" class="form-control" id="page-id"
-           placeholder="按“经号_卷号:经典名称”格式输入，卷号可省略，例如“T0945_1:楞嚴經【卷1】”">
+           placeholder="经号_卷号:经典名称”">
     <div class="input-group-btn">
       <button type="button" class="btn btn-default" id="new-page">创建页面</button>
     </div>
   </div>
+  <p>按“经号_卷号:经典名称”格式输入，卷号可省略，例如“T0945_1:楞嚴經【卷1】</p>
 </div>
 
 <script src="{{static_url('js/jquery.min.js')}}"></script>
@@ -75,7 +76,6 @@
     return false
   })
 
-  // <a href="javascript:" onclick="resetPage(`{{p['id']}}`, `{{'@'.join(info.get('notes', []))}}`.split('@'))">重置</a>
   function resetPage(pageId, notes) {
     let i = -1
     function loop() {

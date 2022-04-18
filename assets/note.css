@@ -55,9 +55,9 @@
 .note-from:hover {color: #55f;}
 .note-from:hover .p-close {font-weight: bold;}
 .note-raw .note-from {
-  display: block;
   text-align: right;
   font-weight: 300;
+  text-indent: 0;
 }
 .note-tag {
   color: #aaa;

@@ -17,7 +17,14 @@
     [data-theme="warm"] #content:not(.single-article) .row {border: transparent;}
 
     [data-theme="dark"] body,
-    [data-theme="dark"] .form-control {
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] textarea,
+    [data-theme="dark"] .swal-modal,
+    [data-theme="dark"] .swal-title,
+    [data-theme="dark"] .swal-content__textarea,
+    [data-theme="dark"] .swal-content__input,
+    [data-theme="dark"] .context-menu-item,
+    [data-theme="dark"] .context-menu-list {
         background-color: #111;
         color: #d1d1d1;
     }
@@ -72,6 +79,9 @@
     [data-theme="dark"] .dropdown-menu .divider {
         background-color: rgba(250, 250, 250, 0.15);
     }
+    [data-theme="dark"] .context-menu-separator {
+        border-color: rgba(200, 200, 200, 0.2);
+    }
 
     [data-theme="dark"] .navbar-default .navbar-nav > li > a {
         color: #5f7b99;
@@ -102,17 +112,27 @@
     [data-theme="dark"] .btn {
         color: #5f7b99;
         background-color: transparent;
-        border: 1px solid transparent;
+        border: 1px solid #333;
     }
 
     [data-theme="dark"] .btn-default {
         border-color: rgba(250, 250, 250, 0.15);
     }
 
-    [data-theme="dark"] .btn-primary {
+    [data-theme="dark"] .btn-primary,
+    [data-theme="dark"] .swal-button {
         color: #e1e1e1;
         background-color: #375a7f;
-        border-color: #375a7f;
+        border-color: transparent;
+    }
+
+    [data-theme="dark"] .swal-button--cancel {
+        color: #5f7b99;
+        background-color: transparent;
+        border: 1px solid #333;
+    }
+    [data-theme="dark"] .swal-button:active {
+        background-color: #375a7f;
     }
 
     [data-theme="dark"] .btn-group .btn-default:not(.active) {
@@ -131,20 +151,48 @@
         border-color: #5e98d7;
     }
 
+    [data-theme="dark"] .form-control[disabled],
+    [data-theme="dark"] .form-control[readonly],
+    [data-theme="dark"] fieldset[disabled] .form-control,
+    [data-theme="dark"] .context-menu-item.context-menu-disabled {
+        background-color: #111;
+        color: #555;
+    }
+
     [data-theme="dark"] .ke-line.first-ke,
     [data-theme="dark"] .ke-line[data-path],
     [data-theme="dark"] #content:not(.single-article) .row > div,
+    [data-theme="dark"] .original + .original,
+    [data-theme="dark"] .row > div + div,
+    [data-theme="dark"] .show-box .row,
     [data-theme="dark"] hr,
     [data-theme="dark"] footer,
     [data-theme="dark"] .left-nav,
     [data-theme="dark"] .label-panel,
     [data-theme="dark"] .label-panel > .notes,
+    [data-theme="dark"] #ke-pan-select,
     [data-theme="dark"] .form-control {
         border-color: rgba(250, 250, 250, 0.15);
     }
     [data-theme="dark"] .ke-line[data-path] {background-color: rgba(0, 100, 0, .2);}
     [data-theme="dark"] .ke-line > span {color: #999;}
-    [data-theme="dark"] #content:not(.single-article) .row {border-color: transparent;}
+    [data-theme="dark"] #content:not(.single-article) .row {border-color: rgba(100, 100, 100, .15);}
+
+    [data-theme="dark"] .show-box .row p {border-color: #555;}
+    [data-theme="dark"] .in-cur-row,
+    [data-theme="dark"] .context-menu-active {
+        background-color: #444;
+    }
+    [data-theme="dark"] .context-menu-list {
+        border-color: #777;
+    }
+
+    [data-theme="dark"] .swal-modal,
+    [data-theme="dark"] .swal-content__textarea:not(:focus),
+    [data-theme="dark"] .swal-content__input:not(:focus),
+    [data-theme="dark"] textarea:not(:focus) {
+        border: 1px solid #444;
+    }
 
     [data-theme="dark"] [ke-pan].active,
     [data-theme="dark"] [ke-pan]:hover,
@@ -180,7 +228,7 @@
     ::-webkit-scrollbar-thumb {
         background: rgba(100, 100, 100, .15);
         border-radius: 5px;
-        height: 200px;
+        min-height: 100px;
         background-clip: content-box
     }
 
@@ -194,7 +242,7 @@
     ::-webkit-scrollbar-thumb:hover {
         background: #ccc;
         border-radius: 5px;
-        height: 200px;
+        min-height: 100px;
         background-clip: content-box;
     }
     [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {

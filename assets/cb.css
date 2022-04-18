@@ -88,12 +88,6 @@ body {
 .ke-line, .note-p, .note-tag, .lg {
   font-family: STKaiti,BiauKai,KaiTi,"楷体","楷体_GB2312",cursive,Helvetica,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
 }
-@media screen and (min-width: 800px) {
-  #content, #merged {font-weight: bold;}
-}
-.ke-line, .note-p, .note-tag, .xu-more, .div-xu {
-  font-weight: normal;
-}
 
 .no-print, nav, footer, .note-tag, .task-step,
 .note-raw .org-text, .note-p .p-close, .no-select {

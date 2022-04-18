@@ -828,7 +828,7 @@ function getKePanId(el) {
 function getNoteContent(note, title, rows, rawNote, desc, tag) {
   for (let i = 0; i + 2 < note.length; i += 3) {
     const m = /\d{4}\w*$/.exec(note[i + 2]),
-        note1 = note[i + 1].replace(/\d{4}\w*$/, '').replace(/[。！？；：]+$/, ''),
+        note1 = note[i + 1].replace(/\d{4}\w*$/, '').replace(/[。！？；：]+$/, '').replace(/\([a-z]+:\w+\)/, ''),
         line = m && m[0] || rawNote && note1 || '',
         autoMore = /^!/.test(note[i + 1]),
         title_ = note1.replace(/^[!-]/, ''),

@@ -20,7 +20,7 @@ from tornado.httpclient import HTTPError
 THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
-pat_note_inv = re.compile(r'^-|[　\s\n]|\d{4}\w*$')
+pat_note_inv = re.compile(r'^[!-]+|[　\s\n]|\d{4}\w*$|\([a-z]+:\w+\)')
 ignore_nums = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⓪ⓞ⓵⓶⓷⓸⓹⓺⓻⓼⓽⓾' \
               '⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽⑾⑿⒀⒁⒂⒃⒄⒅⒆⒇➊➋➌➍➎➏➐➑➒➓⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴' \
               '⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛㊀㊁㊂㊃㊄㊅㊆㊇㊈㊉㈠㈡㈢㈣㈤㈥㈦㈧㈨㈩'
@@ -296,6 +296,57 @@ class PageHandler(CbBaseHandler):
                 text = re.sub('[' + ignore_nums + ']', '', f.read().strip())
                 rows = re.split(r'[\s\n]*\n+[\s\n]*', text)
         return [re.sub(r'\s+', '', r) for r in rows]
+
+
+class PageDiffHandler(CbBaseHandler):
+    URL = r'/cb/page/([\w_]+)/diff/(\w+)'
+
+    def get(self, page_id, aid):
+        page = self.load_page(page_id)
+        ret = {'id': aid, 'org_files': [], 'is_note': not re.match(r'^\d+$', aid)}
+
+        if ret['is_note']:
+            note = [r for r in page['notes'].values() if r['name'].startswith(aid)][0]
+            parts = note['name'].split('_')
+            ret['notes'] = []
+            pat_note = re.compile(r'^[!-]+|\d{4}\w*$')
+            moves = []
+            id_notes = {}
+
+            for t in note['notes']:
+                for j in range(int(len(t) / 3)):
+                    orig = pat_note.sub('', t[j * 3 + 1])
+                    text = pat_note.sub('', t[j * 3 + 2]).replace("'", '"').replace('\n', '<br/>')
+                    r = dict(id=t[j * 3], orig=re.sub(r'\([a-z]+:\w+\)', '', orig), text=text)
+                    m = re.search(r'\(([a-z]+):(\w+)\)', orig)
+                    if m:
+                        cmd, num = m.group(1), int(m.group(2))
+                        moves.append(dict(cmd=cmd, num=num, r=r))
+                    else:
+                        id_notes[r['id']] = r
+                        ret['notes'].append(r)
+
+            for m in moves:
+                r = id_notes[m['num']]
+                idx = ret['notes'].index(r)
+                if m['cmd'] == 'before':
+                    ret['notes'].insert(idx, m['r'])
+                elif m['cmd'] == 'after':
+                    ret['notes'].insert(idx + 1, m['r'])
+
+            ret['title'] = re.sub(r'[，（].+$', '', note['desc'])
+        else:
+            ret['html'] = '\n'.join(page.get('html_end') or page['html'])
+            cb_ids = page['info']['cb_ids']
+            ids = cb_ids.split('|')[int(aid)]
+            ret['title'] = ids[ids.index(' ') + 1:] if '|' in cb_ids else page['info']['caption']
+            parts = ids.split(' ')[0].split('_')
+
+        for juan in (parts[1:] or ['']):
+            cache_file = path.join(DATA_DIR, 'cache', parts[0] + ('_' + juan if juan else '') + '.html')
+            ret['org_files'].append(open(cache_file).read())
+
+        self.render('cb_diff.html', **ret)
 
 
 class HtmlDownloadHandler(CbBaseHandler):
@@ -852,7 +903,7 @@ class PageNoteHandler(CbBaseHandler):
         self.write(dict(count=len(raw)))
 
 
-handlers = [CbHomeHandler, PageNewHandler, PageHandler, HtmlDownloadHandler, RowPairsHandler,
+handlers = [CbHomeHandler, PageNewHandler, PageHandler, PageDiffHandler, HtmlDownloadHandler, RowPairsHandler,
             ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
 
 

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang=zh-CN>
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}对比</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="{{static_url('img/favicon.ico')}}"/>
+  <link rel="stylesheet" href="{{static_url('bootstrap/css/bootstrap.min.css')}}"/>
+  <link href="{{static_url('cb.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('note.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('theme.css')}}" rel="stylesheet"/>
+  <style>
+    .div-orig {margin-right: 1em;}
+    .diff-content > span:not(.equal):hover {text-decoration: underline;}
+    .equal {color: gray; opacity: .5;}
+    .replace {color: red;}
+    .replace_pu {color: green;}
+    .insert:not(.long) {color: blue;}
+    .insert_br {opacity: .5;}
+    .delete,del {color: red; opacity: .7; text-decoration: line-through;}
+
+    #content > div {border-bottom: 2px solid red;}
+    #content > div.fold { max-height: 10em; overflow-y: auto; margin: 0 1em 0 2em; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/cb">经典页面制作</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="javascript:"><b>{{title}}对比</b></a></li>
+
+        <li class="dropdown">
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">显示 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
+            <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="theme-warm" title="切换为浅色外观、护眼色">护眼色</a></li>
+            <li><a href="javascript:" id="theme-dark" title="切换为深色外观">深色外观</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default btn-sm navbar-btn" title="增加正文字号" onclick="enlargeFont()">+</button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn" title="减少正文字号" onclick="reduceFont()">-</button>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<div id="content" class="container-fluid">
+  <div class="diff-content"></div>
+  <div class="content">{% if is_note %}
+    {% for t in notes %}<p data-nid="{{t['id']}}">
+      {% if t['orig'] %}<span class="div-orig">{% raw t['orig'] %}</span>{% end %}
+      <span class="div-commentary">{% raw t['text'] %}</span>
+    </p>{% end %}
+    {% else %}{% raw html %}{% end %}
+  </div>
+  <div id="origin">{% for s in org_files %}{% raw s %}{% end %}</div>
+</div>
+
+<script src="{{static_url('js/jquery.min.js')}}"></script>
+<script src="{{static_url('js/sweetalert.min.js')}}"></script>
+<script src="{{static_url('js/difflib.js')}}"></script>
+<script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+<script src="{{static_url('reader.js')}}"></script>
+<script>
+  function gatherContent(content, parentNode) {
+    const treeWalker = document.createTreeWalker(parentNode, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
+    const trim = node => node.data.replace(/^[ \n\t]+|[ \n\t]+$/g, '') // 保留全角空格
+    const getNextSibling = node => {
+      while (1) {
+        while (node && !node.nextSibling) {
+          node = node.parentElement
+        }
+        node = node && node.nextSibling
+        if (node && node.nodeType === Node.TEXT_NODE && !trim(node)) {
+          continue
+        }
+        break
+      }
+      return node
+    }
+
+    for (let node = treeWalker.firstChild(); node; node = treeWalker.nextNode()) {
+      if (node.tagName === 'BR') {
+        content.push('\n')
+      } else if (node.nodeType === Node.TEXT_NODE) {
+        const text = trim(node)
+        if (text) {
+          content.push(text)
+          const next = getNextSibling(node)
+          if (!next || next.tagName === 'P' || reBlock.test(next.className || '')) {
+            content.push('\n')
+          }
+        }
+      }
+    }
+    return content
+  }
+
+  const rePu = /[，、；：。！？‘’“”·…《》（）「」『』—()〔〕]/
+  const rePuBr = /^([，、；：。！？‘’“”·…《》（）「」『』—()〔〕]|<br\/?>)+$/
+  const reBlock = /lg( |$)|lg-row|div-xu|div-other|div-jing|byline|juan|head|row|div-commentary/
+  const $content = $('.content'), $origin = $('#origin'), $diff = $('.diff-content')
+
+  $content.find(`.cell:not(.cell-{{id}}),.ke-line,.note-tag,sup,a`).remove()
+  $content.find(':hidden').show()
+  $content.prepend($content.find('.cb-no'))
+  $origin.find(':hidden').remove()
+
+  const base = gatherContent([], $origin[0]).join('').split('')
+  const curr = gatherContent([], $content[0]).join('').split('')
+  const sm = new difflib.SequenceMatcher(base, curr)
+  const opcodes = sm.get_opcodes()
+
+  opcodes.forEach((c, i) => {
+    c.push(base.slice(c[1], c[2]).join('').replace(/\n/g, '<br/>'))
+    if (c[0] !== 'equal') {
+      c.push(curr.slice(c[3], c[4]).join('').replace(/\n/g, '<br/>'))
+    }
+    c.splice(1, 4)
+    if (c[0] === 'replace' && c[1] === '。' && rePuBr.test(c[2])) {
+      c[0] = 'replace_pu'
+    }
+    if (c[1] === '　' && (c[0] === 'delete' || c[0] === 'replace' && c[2] === '。')) {
+      return
+    }
+
+    const $s = $('<span/>').appendTo($diff).addClass(c[0]).attr('data-index', '' + i);
+
+    if (c[0] === 'equal') {
+      $s.html(c[1])
+    } else {
+      const len1 = c[1].replace(/<br\/>/g, '↩').length
+      const len2 = c[2].replace(/<br\/>/g, '↩').length
+
+      c[1] = c[1].replace(/<br\/>/g, '↩<br/>')
+      c[2] = c[2].replace(/<br\/>/g, '↩<br/>')
+      if (len2 < 4 && c[0] !== 'replace_pu') {
+        $s.addClass('bold')
+      }
+      $s.attr('title', ({replace: '原为', replace_pu: '原标点为', delete: '删除'}[c[0]] || c[0])
+        + ' ' + c[1].replace(/<br\/>/g, ''))
+
+      if (c[0] === 'delete') {
+        $s.html(c[1].replace(/<br\/>/g, '').substr(0, 3))
+      } else if (c[0] === 'insert') {
+        $s.html(c[2]).toggleClass('long', len2 > 20).toggleClass('insert_br', c[2][0] === '↩')
+        $s.attr('title', '插入 ' + c[2].replace(/<br\/>/g, '').substr(0, 10))
+      } else {
+        $s.html(c[2])
+        if (c[0] !== 'replace_pu') {
+          $('<del/>').insertBefore($s).html(c[1].replace(/<br\/>/g, '').substr(0, 3))
+            .attr('title', $s.attr('title'))
+        }
+      }
+    }
+  })
+
+  $content.addClass('fold')
+  $origin.addClass('fold')
+</script>
+</body>
+</html>
