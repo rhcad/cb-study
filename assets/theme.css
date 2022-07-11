@@ -15,6 +15,8 @@
     [data-theme="warm"] footer,
     [data-theme="warm"] nav {background-color: #eef6f0;}
     [data-theme="warm"] #content:not(.single-article) .row {border: transparent;}
+    [data-theme="warm"] #content:not(.single-article) .row > div:not(.cell-0) {border-color: #ddd;}
+    [data-theme="warm"] .ke-line { background-color: rgba(200, 200, 230, .15)}
 
     [data-theme="dark"] body,
     [data-theme="dark"] .form-control,
@@ -174,7 +176,7 @@
     [data-theme="dark"] .form-control {
         border-color: rgba(250, 250, 250, 0.15);
     }
-    [data-theme="dark"] .ke-line[data-path] {background-color: rgba(0, 100, 0, .2);}
+    [data-theme="dark"] .ke-line {background-color: rgba(0, 100, 0, .2);}
     [data-theme="dark"] .ke-line > span {color: #999;}
     [data-theme="dark"] #content:not(.single-article) .row {border-color: rgba(100, 100, 100, .15);}
 
@@ -233,10 +235,10 @@
     }
 
     [data-theme="dark"] ::-webkit-scrollbar-thumb {
-        background: rgba(200, 200, 200, .1);
+        background: rgba(200, 200, 200, .15);
     }
     [data-theme="warm"] ::-webkit-scrollbar-thumb {
-        background: rgba(100, 100, 100, .1);
+        background: rgba(100, 100, 100, .15);
     }
 
     ::-webkit-scrollbar-thumb:hover {

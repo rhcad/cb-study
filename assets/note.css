@@ -11,6 +11,9 @@
   box-shadow: 1px 1px 1px #aaa;
   transition: background-color 200ms ease-out,display 200ms ease-out;
 }
+@media print {
+  .note-p {padding: .2em;}
+}
 .note-p + .note-p { margin-top: 4px; }
 .org-text {
   margin-right: .5em;

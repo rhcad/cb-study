@@ -73,7 +73,7 @@ p {
 html, body {
   margin: 0;
   padding: 0;
-  font-size: 14px;
+  font-size: 17px;
 }
 html { overflow-x: hidden; }
 body {
@@ -81,13 +81,16 @@ body {
   -moz-osx-font-smoothing:grayscale;
   font-family: BlinkMacSystemFont, Helvetica, 'PingFang SC', '微軟正黑體', 'Microsoft YaHei', arial, sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
 }
-#content, #merged {
+#content, #merged, .left-nav {
   font-family: Helvetica,STSong,NSimSun,SimSun,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
   padding-right: 0;
 }
+#content, #merged {font-weight: 600;}
 .ke-line, .note-p, .note-tag, .lg {
   font-family: STKaiti,BiauKai,KaiTi,"楷体","楷体_GB2312",cursive,Helvetica,sans-serif, "Hanazono Mincho B", "Hanazono Mincho C", "Hanazono Mincho A";
 }
+.xu-more, .div-xu, sup, .cb-no, .byline, .note-tag {font-weight: normal;}
+.ke-line, .note-p {font-weight: 300;}
 
 .no-print, nav, footer, .note-tag, .task-step,
 .note-raw .org-text, .note-p .p-close, .no-select {
@@ -144,25 +147,31 @@ body {
 }
 
 #content, #merged {
-  font-size: 20px;
+  font-size: 22px;
 }
-[data-col-count="4"] #content,
-[data-col-count="5"] #content,
-[data-col-count="6"] #content {
-  font-size: 18px;
+[data-visible-cols="3"] #content {
+  font-size: 21px;
 }
-[data-col-count="7"] #content,
-[data-col-count="8"] #content,
-[data-col-count="9"] #content {
+[data-visible-cols="4"] #content,
+[data-visible-cols="5"] #content,
+[data-visible-cols="6"] #content {
+  font-size: 19px;
+}
+[data-visible-cols="7"] #content,
+[data-visible-cols="8"] #content,
+[data-visible-cols="9"] #content {
   font-size: 17px;
 }
-[data-col-count="10"] #content,
-[data-col-count="11"] #content,
-[data-col-count="12"] #content {
+[data-visible-cols="10"] #content,
+[data-visible-cols="11"] #content,
+[data-visible-cols="12"] #content {
   font-size: 15px;
 }
 #content:not(.single-article) .row > div {
   padding: 0 6px 0 8px;
+}
+@media print {
+  #content:not(.single-article) .row > div {padding: 0 2px;}
 }
 #content:not(.single-article) .row > div:not(.cell-0) {
   border-left: 1px solid #eee;
@@ -397,8 +406,8 @@ span[ke-pan] > .ke-pan-text {
 }
 @media screen and (max-width: 767px) {
   body:not([data-col-count]) .phone-bar,
-  [data-col-count="2"] .phone-bar,
-  [data-col-count="3"] .phone-bar {
+  [data-visible-cols="2"] .phone-bar,
+  [data-visible-cols="3"] .phone-bar {
     position: fixed;
     top: 10px;
     left: 90px;

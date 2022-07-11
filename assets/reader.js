@@ -18,16 +18,16 @@
  */
 
 try {
-  window.cbOptions0 = JSON.parse(localStorage.getItem('cbPageOptions'))
+  window.cbOptions0 = JSON.parse(localStorage.getItem('cbsOptions'))
 } catch (e) {}
 if (!window.cbOptions0 || typeof window.cbOptions0 !== 'object') {
   window.cbOptions0 = {theme: 'warm'};
 }
 try {
-  window.cbOptions = JSON.parse(localStorage.getItem('cbOptions' + window.pageName))
+  window.cbOptions = JSON.parse(localStorage.getItem('cbsOptions' + window.pageName))
 } catch (e) {}
 if (!window.cbOptions || typeof window.cbOptions !== 'object') {
-  window.cbOptions = {};
+  window.cbOptions = {hideXu: true};
 }
 
 function getQueryString(name) {
@@ -35,7 +35,7 @@ function getQueryString(name) {
   const r = window.location.search.match(reg);
   return r ? unescape(r[2]) : '';
 }
-'theme,hideXu,hideInlineKePan,kePanWidth,kePanType,kePanId,tags,cols'.split(',').forEach(name => {
+'theme,hideXu,hideInlineKePan,kePanWidth,kePanType,kePanId,tags,cols,hideTag'.split(',').forEach(name => {
   const value = getQueryString(name);
   if (value) {
     window[/theme/.test(name) ? 'cbOptions0' : 'cbOptions'][name] = value;
@@ -47,9 +47,9 @@ function getQueryString(name) {
  */
 function saveCbOptions() {
   if (typeof window.pageName === 'string') {
-    localStorage.setItem('cbOptions' + window.pageName, JSON.stringify(cbOptions));
+    localStorage.setItem('cbsOptions' + window.pageName, JSON.stringify(cbOptions));
   }
-  localStorage.setItem('cbPageOptions', JSON.stringify(cbOptions0));
+  localStorage.setItem('cbsOptions', JSON.stringify(cbOptions0));
 }
 
 /**
@@ -188,6 +188,7 @@ function updateColumnStatus() {
         $btn.attr('title', $col.find('[id][title]').attr('title'));
       }
     });
+    $('body').attr('data-visible-cols', getVisibleColumns().length);
 
     $('#show-notes').closest('li').toggleClass('disabled', $('.note-tag').length < 1);
     $('#show-hide-txt').closest('li').toggleClass('disabled', $('.hide-txt').length < 1);
@@ -267,6 +268,14 @@ function reduceFont() {
     cbOptions.fontSize = fontSize;
     saveCbOptions();
   }
+}
+
+function resetFontSize() {
+  $('#content,#merged').css('font-size', '');
+  $('#judgments').css('font-size', '');
+  delete cbOptions.fontSize;
+  delete cbOptions.keFontSize;
+  saveCbOptions();
 }
 
 if (cbOptions.fontSize) {
@@ -537,10 +546,17 @@ function _initKePanLinePath() {
       highlightKePan(parseInt(cbOptions.kePanId), true);
       delete cbOptions.kePanId;
     }
+    const onlyShowTags = cbOptions.tags && /^[\w,]+$/.test(cbOptions.tags) && cbOptions.hideTag;
+    if (cbOptions.hideTag) {
+      delete cbOptions.hideTag;
+      $('#hide-tag').click();
+    }
     if (cbOptions.tags && /^[\w,]+$/.test(cbOptions.tags)) {
-      cbOptions.tags.split(',').forEach(tag => {
-        _clickShowNotes($(`.show-notes[data-jin="${tag}"]`), true);
-      });
+      if (!onlyShowTags) {
+        cbOptions.tags.split(',').forEach(tag => {
+          _clickShowNotes($(`.show-notes[data-jin="${tag}"]`), true);
+        });
+      }
       delete cbOptions.tags;
     }
   }, 50);
@@ -1041,6 +1057,7 @@ $('#show-left').click(showLeftColumn);
 $('#show-right').click(showRightColumn);
 $('#show-both').click(showTwoColumns);
 
+$('#reset-font-size').click(resetFontSize);
 $('#enlarge-font').click(enlargeFont);
 $('#reduce-font').click(reduceFont);
 $('#enlarge-ke-pan-font').click(enlargeKePanFont);
@@ -1166,12 +1183,21 @@ $(document).on('click', 'sup[title]:not([class])', e => {
   e.target.innerText = e.target.innerText.length > 1 ? '*' : e.target.getAttribute('title');
 });
 
-$(document).on('click', '.hide-div-xu .xu-more', () => toggleXu(true));
+$(document).on('click', '.hide-div-xu .xu-more', () => toggleXu(false));
 
 $('#hide-tag').click(() => {
   const hide = !$('body').hasClass('hide-note-tag');
   $('body').toggleClass('hide-note-tag', hide);
   $('.note-tag:not(.note-expanded)').toggle(!hide);
+
+  if (cbOptions.tags && /^[\w,]+$/.test(cbOptions.tags)) {
+    cbOptions.tags.split(',').forEach(tag => {
+      $(`.show-notes[data-jin="${tag}"]`).each((_, li) => {
+        const tag = li.getAttribute('data-tag');
+        $(`.note-tag[data-tag="${tag}"]`).show();
+      })
+    });
+  }
 });
 $('[id^="theme-"]').click(e => {
   const value = e.target.getAttribute('id').replace('theme-', ''),
