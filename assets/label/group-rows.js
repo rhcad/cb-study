@@ -586,8 +586,9 @@ $('#set-ke-pan-type').click(() => {
         });
 
         if (!error) {
-          showRowPairs(rows.join('') + rowPairs.filter(r => !/^:ke-type/.test(r)).join('||'));
-          applyRowPairs();
+          const val = rows.join('') + rowPairs.filter(r => !/^:ke-type/.test(r)).join('||');
+          showRowPairs(val);
+          applyRowPairs(val);
         }
       }
     });

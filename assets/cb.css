@@ -1,3 +1,7 @@
+:root {
+  --border-color: #aaa;
+}
+
 #cbeta-copyright {
   display: none;
 }
@@ -202,7 +206,7 @@ body {
 }
 
 .show-box .row {
-  border-bottom: 1px solid #aaa;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .show-box .row p {
@@ -347,11 +351,11 @@ span[ke-pan] > .ke-pan-text {
   font-size: .95em;
 }
 .ke-line:not(.has-next-ke) {
-  border-bottom: 1px solid #aaa;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: -1px;
 }
 .ke-line.first-ke, .ke-line[data-path] {
-  border-top: 1px solid #aaa;
+  border-top: 1px solid var(--border-color);
   margin-top: -1px;
 }
 @media print {

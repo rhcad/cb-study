@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang=zh-CN>
+<head>
+  <meta charset="UTF-8">
+  <title>物不遷論</title>
+  <meta name="keywords" content="物不遷論,肇論,T1858"/>
+  <meta name="description" content="物不遷論(科判+4种注解)"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/img/favicon.ico"/>
+  <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/jstree/jstree.min.css"/>
+  <link href="assets/cb.css?v=418" rel="stylesheet"/>
+  <link href="assets/note.css?v=418" rel="stylesheet"/>
+  <link href="assets/theme.css?v=418" rel="stylesheet"/>
+  <style>
+      @media screen {
+          body {padding-bottom: 50px;}
+      }
+
+      .phone-bar {
+          text-align: center;
+          margin-bottom: 10px;
+      }
+
+      @media (min-width: 768px) {
+          .phone-bar {display: none;}
+      }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">原典</a>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="javascript:"><b>物不遷論</b></a></li>
+        <li class="dropdown">
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">显示 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:" class="hide-xu" title="切换序言是否隐藏">隐藏序言</a></li>
+            <li><a href="javascript:" id="hide-navbar" title="切换是否隐藏顶部导航栏">导航栏</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="enlarge-font" title="增加正文字号">增加字号</a></li>
+            <li><a href="javascript:" id="reduce-font" title="减少正文字号">减少字号</a></li>
+            <li><a href="javascript:" id="reset-font-size" title="恢复默认的正文字号">重置字号</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="theme-warm" title="切换为浅色外观、护眼色">护眼色</a></li>
+            <li><a href="javascript:" id="theme-dark" title="切换为深色外观">深色外观</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="show-line-no" title="切换是否显示行号">行号</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">注解 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:" id="show-notes" title="切换是否显示全部注解">全部注解</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="hide-tag" title="切换是否隐藏注解标记">隐藏标记</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">科判 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="ke-pan-ratio"><a>隐藏</a></li>
+            <li class="ke-pan-ratio"><a>10%</a></li>
+            <li class="ke-pan-ratio"><a>15%</a></li>
+            <li class="ke-pan-ratio"><a>20%</a></li>
+            <li class="ke-pan-ratio"><a>25%</a></li>
+            <li class="ke-pan-ratio"><a>33%</a></li>
+            <li class="ke-pan-ratio"><a>50%</a></li>
+            <li class="ke-pan-ratio"><a>100%</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" class="show-inline-ke-pan-btn" title="切换是否显示正文中的科判条目">显示文中科判</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="javascript:" id="enlarge-ke-pan-font" title="增加科判字号">增加字号</a></li>
+            <li><a href="javascript:" id="reduce-ke-pan-font" title="减少科判字号">减少字号</a></li>
+          </ul>
+        </li>
+
+      </ul>
+
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default btn-sm navbar-btn" title="增加正文字号" onclick="enlargeFont()">+
+        </button>
+        <button type="button" class="btn btn-default btn-sm navbar-btn" title="减少正文字号" onclick="reduceFont()">-</button>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="phone-bar no-print">
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-default btn-sm" title="增加正文字号" onclick="enlargeFont()">+</button>
+    <button type="button" class="btn btn-default btn-sm" title="减少正文字号" onclick="reduceFont()">-</button>
+  </div>
+</div>
+
+<div class="left-nav no-print">
+  <div id="judgments"></div>
+</div>
+
+<div id="content" class="container-fluid  original">
+<div id="body0">
+	<p id="p1" data-head-level="2" class="head"><note data-nid="592"><note data-nid="410">物不遷論第一</note></note><sup class="note-tag" data-tag="[憨]" data-nid="592"></sup><sup class="note-tag" data-tag="[惠]" data-nid="410"></sup></p>
+<div ke-pan="1" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="0">序</div>
+<div ke-pan="2" data-ke-type="1" class="ke-line" data-indent="1"><span ke-pan="1">序 » </span> 常情</div>
+	<p id="p2"><note data-nid="593"><note data-nid="16"><note data-nid="531"><note data-nid="411">夫生死交謝，寒暑迭遷，有物流動，人之常情。</note></note></note><sup class="note-tag" data-tag="[康]" data-nid="16"></sup><sup class="note-tag" data-tag="[界]" data-nid="531"></sup><sup class="note-tag" data-tag="[惠]" data-nid="411"></sup><note data-nid="642">余則<sup title="《肇論疏》中为“今即”">*</sup>謂之不然。</note><sup class="note-tag" data-tag="[惠]" data-nid="642"></sup></note><sup class="note-tag" data-tag="[憨]" data-nid="593"></sup></p>
+<div ke-pan="3" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="1"><span ke-pan="1">序 » </span> 明真解(立宗)</div>
+	<p id="p2a"><note data-nid="17"><note data-nid="594"><note data-nid="532"><note data-nid="642">何者？《放光》云：「法無去來，無動轉者。」</note></note></note><sup class="note-tag" data-tag="[界]" data-nid="532"></sup><sup class="note-tag" data-tag="[惠]" data-nid="642"></sup><note data-nid="595"><sup class="note-tag" data-tag="[憨]" data-nid="594"></sup></note><note data-nid="533"><note data-nid="654"><note data-nid="595">尋夫不動之作，豈釋動以求靜？必求靜於諸動。</note><note data-nid="596"><sup class="note-tag" data-tag="[憨]" data-nid="595"></sup>必求靜於諸動，故雖動而常靜；不釋動以求靜，故雖靜而不離動。</note></note><sup class="note-tag" data-tag="[惠]" data-nid="654"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="533"></sup><sup class="note-tag" data-tag="[憨]" data-nid="596"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="17"></sup></p>
+<div ke-pan="6" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="1"><span ke-pan="1">序 » </span> 述異同</div>
+	<p id="p2c"><note data-nid="18"><note data-nid="597"><note data-nid="534"><note data-nid="650">然則動靜未始異，</note><sup class="note-tag" data-tag="[惠]" data-nid="650"></sup><note data-nid="414">而惑者不同，緣使真言滯於競辯，宗途屈於好異。所以靜躁之極，未易言也。</note><sup class="note-tag" data-tag="[惠]" data-nid="414"></sup></note></note></note><sup class="note-tag" data-tag="[康]" data-nid="18"></sup><sup class="note-tag" data-tag="[憨]" data-nid="597"></sup><sup class="note-tag" data-tag="[界]" data-nid="534"></sup></p>
+	<p id="p2b"><note data-nid="18"><note data-nid="535"><note data-nid="598"><note data-nid="657">何者？夫談真則逆俗，順俗則違真。違真故迷性而莫返，逆俗故言淡而無味。</note></note><sup class="note-tag" data-tag="[惠]" data-nid="657"></sup><note data-nid="599"><sup class="note-tag" data-tag="[憨]" data-nid="598"></sup><note data-nid="659">緣使中人未分於存亡，下士撫掌而弗顧</note></note><sup class="note-tag" data-tag="[憨]" data-nid="599"></sup><sup class="note-tag" data-tag="[惠]" data-nid="659"></sup>，<note data-nid="600">近而不可知者，其唯物性乎！</note></note><sup class="note-tag" data-tag="[界]" data-nid="535"></sup><sup class="note-tag" data-tag="[憨]" data-nid="600"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="18"></sup></p>
+<div ke-pan="8" data-ke-type="1" class="ke-line first-ke" data-indent="1"><span ke-pan="1">序 » </span> 申論意</div>
+	<p id="p2d"><note data-nid="601"><note data-nid="19"><note data-nid="535"><note data-nid="661">然不能自已，聊復寄心於動靜之際，豈曰必然！</note></note></note><sup class="note-tag" data-tag="[康]" data-nid="19"></sup><sup class="note-tag" data-tag="[界]" data-nid="535"></sup><sup class="note-tag" data-tag="[惠]" data-nid="661"></sup>試論之曰：</note><sup class="note-tag" data-tag="[憨]" data-nid="601"></sup></p>
+<div ke-pan="9" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="0">論</div>
+<div ke-pan="10" data-ke-type="1" class="ke-line has-next-ke" data-indent="1"><span ke-pan="9">論 » </span> 引經明不遷</div>
+	<p id="p3"><note data-nid="20"><note data-nid="536"><note data-nid="415">《<note data-nid="602">道行》云：「諸法本無所從來，去亦無所至。」《中觀》云：「觀方知彼去，去者不至方。</note><sup class="note-tag" data-tag="[憨]" data-nid="602"></sup>」<note data-nid="603">斯皆即動而求靜，以知物不遷，明矣。</note></note><sup class="note-tag" data-tag="[惠]" data-nid="415"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="536"></sup><sup class="note-tag" data-tag="[憨]" data-nid="603"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="20"></sup></p>
+<div ke-pan="13" data-ke-type="1" class="ke-line first-ke" data-indent="1"><span ke-pan="9">論 » </span> 指物明不遷</div>
+	<p id="p3a"><note data-nid="21"><note data-nid="604"><note data-nid="537"><note data-nid="666">夫人之所謂動者，</note><sup class="note-tag" data-tag="[惠]" data-nid="666"></sup><note data-nid="665">以昔物不至今，故曰動而非靜。</note><sup class="note-tag" data-tag="[惠]" data-nid="665"></sup><note data-nid="667">我之所謂靜者，亦以昔物不至今，故曰靜而非動。動而非靜，以其不來；靜而非動。以其不去。</note><sup class="note-tag" data-tag="[惠]" data-nid="667"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="537"></sup><note data-nid="538"><note data-nid="669">然則所造未嘗異，所見未嘗同。逆之所謂塞，順之所謂通。苟得其道，復何滯哉！</note></note><sup class="note-tag" data-tag="[界]" data-nid="538"></sup><sup class="note-tag" data-tag="[惠]" data-nid="669"></sup></note></note><sup class="note-tag" data-tag="[康]" data-nid="21"></sup><sup class="note-tag" data-tag="[憨]" data-nid="604"></sup></p>
+<div ke-pan="14" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="1"><span ke-pan="9">論 » </span> 遣惑明不遷</div>
+	<p id="p3b"><note data-nid="22"><note data-nid="539"><note data-nid="604"><note data-nid="416">傷夫人情之惑也久矣，目對真而莫覺。</note></note><sup class="note-tag" data-tag="[憨]" data-nid="604"></sup><sup class="note-tag" data-tag="[惠]" data-nid="416"></sup><note data-nid="605"><note data-nid="671">既知往物而不來，而謂今物而可往。往物既不來，今物何所往？</note></note><sup class="note-tag" data-tag="[惠]" data-nid="671"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="539"></sup><sup class="note-tag" data-tag="[憨]" data-nid="605"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="22"></sup></p>
+	<p id="p3c"><note data-nid="22"><note data-nid="606"><note data-nid="539"><note data-nid="676">何則？求向物於向，於向未甞無；責向物於今，於今未甞有。於今未嘗有，以明物不來；於向未甞無，故知物不去。</note><sup class="note-tag" data-tag="[惠]" data-nid="676"></sup></note><note data-nid="672"><note data-nid="539">覆而求今，今亦不往。</note><sup class="note-tag" data-tag="[界]" data-nid="539"></sup><note data-nid="540">是謂昔物自在昔，不從今以至昔；今物自在今，不從昔以至今。</note></note><sup class="note-tag" data-tag="[惠]" data-nid="672"></sup><sup class="note-tag" data-tag="[界]" data-nid="540"></sup></note><note data-nid="607"><sup class="note-tag" data-tag="[憨]" data-nid="606"></sup><note data-nid="541"><note data-nid="673">故仲尼曰：「回也見新，交臂非故。」</note></note><sup class="note-tag" data-tag="[界]" data-nid="541"></sup></note><sup class="note-tag" data-tag="[惠]" data-nid="673"></sup><note data-nid="542"><note data-nid="607">如此，則物不相往來，明矣。</note><note data-nid="608"><sup class="note-tag" data-tag="[憨]" data-nid="607"></sup>既無往返之微朕，<note data-nid="674">有何物而可動</note><sup class="note-tag" data-tag="[惠]" data-nid="674"></sup>乎？</note></note><sup class="note-tag" data-tag="[界]" data-nid="542"></sup><note data-nid="609"><sup class="note-tag" data-tag="[憨]" data-nid="608"></sup><note data-nid="543"><note data-nid="675">然則旋嵐偃嶽而常靜，江河兢注而不流，野馬飄鼓而不動，日月歷天而不周。復何怪哉！</note></note></note><sup class="note-tag" data-tag="[憨]" data-nid="609"></sup><sup class="note-tag" data-tag="[界]" data-nid="543"></sup><sup class="note-tag" data-tag="[惠]" data-nid="675"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="22"></sup></p>
+<div ke-pan="16" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="1"> 會教明不遷</div>
+<div ke-pan="17" data-ke-type="1" class="ke-line has-next-ke" data-indent="2"><span ke-pan="9">論 » </span><span ke-pan="16">會教明不遷 » </span> 廣會教明不遷</div>
+	<p id="p3d"><note data-nid="23"><note data-nid="610"><note data-nid="544"><note data-nid="417">噫！聖人有言曰：「人命逝速，速於川流。」</note><sup class="note-tag" data-tag="[惠]" data-nid="417"></sup><note data-nid="678">是以聲聞悟非常以成道，緣覺覺緣離以即真。</note><sup class="note-tag" data-tag="[惠]" data-nid="678"></sup><note data-nid="679">苟萬動而非化，豈尋化以階道？</note><sup class="note-tag" data-tag="[惠]" data-nid="679"></sup><note data-nid="680">覆尋聖言，微隱難測。若動而靜，似去而留。可以神會，難以事求。</note><sup class="note-tag" data-tag="[惠]" data-nid="680"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="544"></sup><note data-nid="545"><note data-nid="681">是以言去不必去，閑人之常想；</note><sup class="note-tag" data-tag="[惠]" data-nid="681"></sup><note data-nid="683">稱住不必住，釋人之所謂往耳。豈曰去而可遣、住而可留也。</note><sup class="note-tag" data-tag="[惠]" data-nid="683"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="545"></sup></note></note><sup class="note-tag" data-tag="[康]" data-nid="23"></sup><sup class="note-tag" data-tag="[憨]" data-nid="610"></sup></p>
+	<p id="p3e"><note data-nid="23"><note data-nid="611"><note data-nid="546"><note data-nid="685">故《成具》云：「菩薩處計常之中，而演非常之教。」《摩訶衍論》云：「諸法不動，無去來處。」</note><sup class="note-tag" data-tag="[惠]" data-nid="685"></sup><note data-nid="686">斯皆導達群方，兩言一會，豈曰文殊而乖其致哉？</note><sup class="note-tag" data-tag="[惠]" data-nid="686"></sup></note></note><sup class="note-tag" data-tag="[憨]" data-nid="611"></sup><sup class="note-tag" data-tag="[界]" data-nid="546"></sup><note data-nid="612"><note data-nid="547"><note data-nid="687">是以言常而不住，稱去而不遷。不遷，故雖往而常靜；不住，故雖靜而常往。雖靜而常往，故往而弗遷；雖往而常靜，故靜而弗留矣。</note></note><sup class="note-tag" data-tag="[界]" data-nid="547"></sup><sup class="note-tag" data-tag="[惠]" data-nid="687"></sup><note data-nid="548"><note data-nid="690">然則莊生之所以藏山，仲尼之所以臨川，斯皆感往者之難留，豈曰排今而可往？</note><sup class="note-tag" data-tag="[惠]" data-nid="690"></sup><note data-nid="418">是以觀聖人心者，不同人之所見，得也。</note><sup class="note-tag" data-tag="[惠]" data-nid="418"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="548"></sup></note><sup class="note-tag" data-tag="[憨]" data-nid="612"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="23"></sup></p>
+	<p id="p3f"><note data-nid="23"><note data-nid="613"><note data-nid="549"><note data-nid="693">何者？人則謂少壯同體、百齡一質，徒知年往，不覺形隨。是以梵志出家，白首而歸。隣人見之曰：「昔人尚存乎？」梵志曰：「吾猶昔人，非昔人也。」隣人皆愕然，非其言也。所謂有力者負之而趨，昧者不覺。其斯之謂歟！</note></note></note></note><sup class="note-tag" data-tag="[康]" data-nid="23"></sup><sup class="note-tag" data-tag="[憨]" data-nid="613"></sup><sup class="note-tag" data-tag="[界]" data-nid="549"></sup><sup class="note-tag" data-tag="[惠]" data-nid="693"></sup></p>
+<div ke-pan="19" data-ke-type="1" class="ke-line first-ke has-next-ke" data-indent="2"><span ke-pan="9">論 » </span><span ke-pan="16">會教明不遷 » </span> 略會教明不遷</div>
+	<p id="p3g"><note data-nid="24"><note data-nid="614"><note data-nid="550"><note data-nid="696">是以如來因群情之所滯，則方言以辯惑，乘莫二之真心，吐不一之殊教，乖而不可異者，其唯聖言乎！</note></note></note></note><sup class="note-tag" data-tag="[康]" data-nid="24"></sup><sup class="note-tag" data-tag="[憨]" data-nid="614"></sup><sup class="note-tag" data-tag="[界]" data-nid="550"></sup><sup class="note-tag" data-tag="[惠]" data-nid="696"></sup></p>
+	<p id="p3h"><note data-nid="24"><note data-nid="615"><note data-nid="550"><note data-nid="698">故談真有不遷之稱，導俗有流動之說。雖復千途異唱，會歸同致矣。</note></note></note><sup class="note-tag" data-tag="[憨]" data-nid="615"></sup><sup class="note-tag" data-tag="[界]" data-nid="550"></sup><sup class="note-tag" data-tag="[惠]" data-nid="698"></sup><note data-nid="551"><note data-nid="616"><note data-nid="699">而徵文者聞不遷，則謂昔物不至今；聆流動者，而謂今物可至昔。既曰古今，而欲遷之者，何也？</note></note><sup class="note-tag" data-tag="[憨]" data-nid="616"></sup><sup class="note-tag" data-tag="[惠]" data-nid="699"></sup><note data-nid="617"><note data-nid="701">是以言往不必往，古今常存，以其不動；稱去不必去，謂不從今至古，以其不來。</note></note><sup class="note-tag" data-tag="[憨]" data-nid="617"></sup><sup class="note-tag" data-tag="[惠]" data-nid="701"></sup><note data-nid="618"><note data-nid="710">不來，故不馳騁於古今；不動，故各性住於一世。</note></note><sup class="note-tag" data-tag="[憨]" data-nid="618"></sup><sup class="note-tag" data-tag="[惠]" data-nid="710"></sup><note data-nid="619"><note data-nid="711">然則群籍殊文、百家異說，苟得其會，豈殊文之能惑哉？</note></note><sup class="note-tag" data-tag="[惠]" data-nid="711"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="551"></sup><sup class="note-tag" data-tag="[憨]" data-nid="619"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="24"></sup></p>
+<div ke-pan="21" data-ke-type="1" class="ke-line first-ke" data-indent="1"><span ke-pan="9">論 » </span> 反常明不遷</div>
+	<p id="p3i"><note data-nid="25"><note data-nid="620"><note data-nid="552"><note data-nid="712">是以人之所謂住，我則言其去；人之所謂去，我則言其住。然則去住雖殊，其致一也。故經云：「正言似反。誰當信者？」斯言有由矣。</note></note></note></note><sup class="note-tag" data-tag="[康]" data-nid="25"></sup><sup class="note-tag" data-tag="[憨]" data-nid="620"></sup><sup class="note-tag" data-tag="[界]" data-nid="552"></sup><sup class="note-tag" data-tag="[惠]" data-nid="712"></sup></p>
+	<p id="p3j"><note data-nid="25"><note data-nid="621"><note data-nid="553"><note data-nid="714">何者？人則求古於今，謂其不住。吾則求今於古，知其不去。今若至古，古應有今；古若至今，今應有古。今而無古，以知不來；古而無今，以知不去。若古不至今，今亦不至古，事各性住於一世，有何物而可去來？</note></note><sup class="note-tag" data-tag="[界]" data-nid="553"></sup><sup class="note-tag" data-tag="[惠]" data-nid="714"></sup><note data-nid="554"><note data-nid="715">然則四象風馳、璇璣電捲，得意毫微，雖速而不轉。</note></note><sup class="note-tag" data-tag="[界]" data-nid="554"></sup><sup class="note-tag" data-tag="[惠]" data-nid="715"></sup></note></note><sup class="note-tag" data-tag="[康]" data-nid="25"></sup><sup class="note-tag" data-tag="[憨]" data-nid="621"></sup></p>
+<div ke-pan="22" data-ke-type="1" class="ke-line first-ke" data-indent="1"><span ke-pan="9">論 » </span> 結會明不遷</div>
+	<p id="p3l"><note data-nid="26"><note data-nid="555"><note data-nid="419"><note data-nid="622">是以如來，功流萬世而常存，道通百劫而彌固。</note><sup class="note-tag" data-tag="[憨]" data-nid="622"></sup><note data-nid="623">成山假就於始簣，修途託至於初步，果以功業不可朽故也。</note><sup class="note-tag" data-tag="[憨]" data-nid="623"></sup><note data-nid="624">功業不可朽，故雖在昔而不化，不化故不遷。不遷故，則湛然明矣。故經云：「三災彌綸而行業湛然。」信其言也。</note></note><sup class="note-tag" data-tag="[惠]" data-nid="419"></sup></note><sup class="note-tag" data-tag="[界]" data-nid="555"></sup><sup class="note-tag" data-tag="[憨]" data-nid="624"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="26"></sup></p>
+	<p id="p3k"><note data-nid="26"><note data-nid="625"><note data-nid="556"><note data-nid="652">何者？果不俱因，因因而果。因因而果，因不昔滅；果不俱因，因不來今。不滅不來，則不遷之致明矣！</note><sup class="note-tag" data-tag="[惠]" data-nid="652"></sup></note></note><note data-nid="653"><note data-nid="625"><note data-nid="556">復何惑於去留，踟蹰於動靜之間哉？</note></note><sup class="note-tag" data-tag="[憨]" data-nid="625"></sup><sup class="note-tag" data-tag="[界]" data-nid="556"></sup><note data-nid="626"><note data-nid="557">然則乾坤倒覆，無謂不靜；洪流滔天，無謂其動。苟能契神於即物，斯不遠而可知矣！</note></note></note><sup class="note-tag" data-tag="[惠]" data-nid="653"></sup><sup class="note-tag" data-tag="[憨]" data-nid="626"></sup><sup class="note-tag" data-tag="[界]" data-nid="557"></sup></note><sup class="note-tag" data-tag="[康]" data-nid="26"></sup></p>
+	<p id="p4" class="juan-end"><span class="lineInfo" line="0151c29"></span><note data-nid="627">物不遷論<span class="doube-line-note">終</span></note><sup class="note-tag" data-tag="[憨]" data-nid="627"></sup></p>
+</div>
+</div>
+
+<footer><p></p></footer>
+
+<script>
+  window.pageName = 'T1858A';
+  window.kePanTypes = [
+    '1 肇論疏·元康 ',
+  ].map(s => s.split(' '));
+</script>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script src="assets/jstree/jstree.min.js"></script>
+<script src="assets/reader.js?v=418"></script>
+<script src="data/T1858A-T1859.json.js"></script>
+<script src="data/T1858A-X0866.json.js"></script>
+<script src="data/T1858A-X0873.json.js"></script>
+<script src="data/T1858A-X0880.json.js"></script>
+<script>
+  insertNotes(null, T1859Notes, 'T1859 肇論疏·唐·元康', '康');
+  insertNotes(null, X0866Notes, 'X0866 肇論疏·晉·惠達', '惠');
+  insertNotes(null, X0873Notes, 'X0873 肇論略注·明·德清', '憨');
+  insertNotes(null, X0880Notes, 'X0880 物不遷論辯解·明·真界', '界');
+
+  $(document).on('mouseenter', '[data-nid]', function (e) {
+    const id = e.target.closest('[data-nid]').getAttribute('data-nid'),
+      p = $(`.note-tag[data-nid=${id}]`), title = p.attr('title');
+    $('footer > p').text(`${p.attr('data-tag')}: ${title}`);
+  });
+
+</script>
+</body>
+</html>

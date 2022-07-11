@@ -381,7 +381,9 @@ class HtmlDownloadHandler(CbBaseHandler):
                     if html:
                         content.append(html)
 
-                if not content or len(content) > 12:
+                if not content:
+                    return self.send_error(505, reason='Fail to get content')
+                if len(content) > 12:
                     return self.send_error(505, reason='only support 1~12 columns')
 
                 page['info'].update(dict(step=1, cols=len(content), cb_ids=cb_ids))
@@ -425,7 +427,7 @@ class RowPairsHandler(CbBaseHandler):
                             index = self.find_ke_pan_index(rows, pid)
                         else:  # 在一个段落前加科判
                             index = self.find_html_index(rows, pid)[0]
-                        t = "<div ke-pan='0' data-ke-type=='{0}' class='ke-line' data-indent='{1}'>{2}</div>".format(
+                        t = "<div ke-pan='0' data-ke-type='{0}' class='ke-line' data-indent='{1}'>{2}</div>".format(
                             ke_type, len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text))
                         if index >= 0:
                             ret = True
@@ -439,11 +441,12 @@ class RowPairsHandler(CbBaseHandler):
                         del rows[index]
 
                 self.fill_ke(rows)
+                page['html'] = rows
             else:
                 ret = True
                 page['rowPairs'] = pairs
             if ret:
-                self.save_page(page)
+                self.save_page(page, True)
             self.write(dict(success=ret))
         except Exception as e:
             self.on_error(e)
@@ -603,6 +606,7 @@ class FetchHtmlHandler(CbBaseHandler):
                     name = parts[0] + '_' + juan
                     html = yield self.fetch_cb(name)
                     if html:
+                        html = re.sub('<a [^>]+>[^<]+</a>', '', html)  # 去掉脚注
                         content.append(html)
 
             if not self._finished:

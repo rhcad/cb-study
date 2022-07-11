@@ -7,8 +7,8 @@
   margin-bottom: 6px;
   text-indent: 0;
   font-size: .9em;
-  -moz-box-shadow: 1px 1px 1px #aaa;
-  box-shadow: 1px 1px 1px #aaa;
+  -moz-box-shadow: 1px 1px 1px var(--border-color);
+  box-shadow: 1px 1px 1px var(--border-color);
   transition: background-color 200ms ease-out,display 200ms ease-out;
 }
 @media print {
@@ -63,7 +63,7 @@
   text-indent: 0;
 }
 .note-tag {
-  color: #aaa;
+  color: var(--border-color);
   cursor: pointer;
   font-size: .7em;
 }

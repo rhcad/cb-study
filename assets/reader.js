@@ -339,7 +339,7 @@ function _setKePanWidth(ratio) {
 }
 
 if (document.getElementById('judgments')) {
-  _setKePanWidth(cbOptions.kePanWidth !== undefined ? cbOptions.kePanWidth : window.innerWidth < 768 ? '' : '15%');
+  _setKePanWidth(cbOptions.kePanWidth !== undefined ? cbOptions.kePanWidth : window.innerWidth < 768 ? '' : '12%');
 }
 
 /**
@@ -853,13 +853,12 @@ function getNoteContent(note, title, rows, rawNote, desc, tag) {
             `<span class="more" data-more="${note1.substring(3, note1.length - 1)}">…</span>` + note1[note1.length - 1] : title_;
     let noteText = `<span class="note-text">${text[0]}</span>`,
       nextText = text.slice(1).map(t => `<p class="note-text note-text2">${t}</p>`).join('');
+    const head = `<div data-id="${note[i]}" data-line-no="${line}" data-tag="${tag}" class="note-item${rawNote ? ' note-raw' : ''}">`;
+    const orgT = `<span class="org-text${autoMore ? ' bold' : ''}">${orgText}</span>${noteText}${nextText} `;
+    const from = `<span class="note-from" title="单击此处隐藏"><span>${desc}</span> <span class="p-close">×</span></span>`;
 
     title.push(title_.replace(/\d{4}\w*|^[!-]/, ''));
-    rows.push((`<div data-id="${note[i]}" data-line-no="${line}" data-tag="${tag}" class="note-item${rawNote ? ' note-raw' : ''}">` +
-        `<span class="org-text${autoMore ? ' bold' : ''}">${orgText}</span>${noteText}${nextText} ` +
-        (!desc || i + 5 < note.length ? '' :
-            `<span class="note-from" title="单击此处隐藏"><span>${desc}</span> <span class="p-close">×</span></span>`)
-        + '</div>').replace(/ data-line-no=""/g, ''));
+    rows.push((head + orgT + (!desc || i + 5 < note.length ? '' : from) + '</div>').replace(/ data-line-no=""/g, ''));
   }
   if (rawNote) {
     title[0] += ' ' + note[2] + '\n' + desc;

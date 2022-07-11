@@ -54,11 +54,15 @@ def convert_cb_html(content: str, html: str, name: str) -> str:
 
         return text
 
+    html = re.sub('<a [^>]+>[^<]+</a>', '', html)  # 去掉脚注
     if not content:
-        m = re.search(r"(<div id='body'>(.|\n)+)<div id='cbeta-copyright'>", html, re.M)
-        html = m and m.group(1)  # 取 #body 内容，忽略 copyright
-        if html:
-            content = re.sub('^<div', '<div class="original"', fix_juan(html))
+        if "<div id='cbeta-copyright'>" not in html:
+            content = html
+        else:
+            m = re.search(r"(<div id='body'>(.|\n)+)<div id='cbeta-copyright'>", html, re.M)
+            html = m and m.group(1)  # 取 #body 内容，忽略 copyright
+            if html:
+                content = re.sub('^<div', '<div class="original"', fix_juan(html))
     else:
         m = re.search(r"<div id='body'>((.|\n)+)<div id='cbeta-copyright'>", html, re.M)
         html = m and m.group(1)  # 取 #body 内容，忽略其元素的开头标签，因先前已有开头标签

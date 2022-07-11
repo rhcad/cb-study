@@ -397,7 +397,7 @@ function _addNote(nid, useNote) {
     }
     if (!$exist.length) {
       $(`<p class="note-p" data-nid="${nid}">${rows.join('')}</p>`)
-          .insertAfter(el.closest('p,.lg'));
+          .insertAfter(el.closest('p,.lg')[0]);
     }
 
     return el;
@@ -511,7 +511,7 @@ function _splitNote($p) {
     if (!result || result.indexOf('@') < 1) {
       return;
     }
-    if (result.replace(/@/g, '') !== text0) {
+    if (result.replace(/@/g, '') !== text0.replace(/\n/g, '')) {
       return showError('拆分段落', '不能改动内容。');
     }
     $.post('/cb/page/note/' + pageId, {

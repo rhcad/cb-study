@@ -412,8 +412,8 @@
   }
 
   // 应用段落分组数据
-  function applyRowPairs() {
-    const pairs = $('#row-pairs-area').val().replace(/(^|\n)-(\|-)+($|\n)/g, '').replace(/\n+/g, '||')
+  function applyRowPairs(val) {
+    const pairs = ($('#row-pairs-area').val() || val).replace(/(^|\n)-(\|-)+($|\n)/g, '').replace(/\n+/g, '||')
     $.post('/cb/page/pairs/{{id}}', {'pairs': pairs}, reload)
             .error(ajaxError('保存失败'))
   }
@@ -490,7 +490,7 @@
     const $content = $($src[0] || '#content').clone().appendTo($('body'))
 
     $content.find('.div-xu,.cell:hidden,.hide-txt,.ke-line,.note-tag').show()
-    $content.find(':hidden,.note-p').remove()
+    $content.find(':hidden,.note-p,.note-item').remove()
     $content.find('.note-tag').removeAttr('title')
     $content.find('[cur-tag]').removeAttr('cur-tag')
     $content.find('[data-path]').removeAttr('data-path')
