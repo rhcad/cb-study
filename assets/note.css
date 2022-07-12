@@ -55,8 +55,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.note-from:hover {color: #55f;}
-.note-from:hover .p-close {font-weight: bold;}
+@media (pointer: coarse) {
+  .note-from:hover {color: #55f;}
+  .note-from:hover {font-weight: bold;}
+}
+.p-close {font-weight: bold;}
 .note-raw .note-from {
   text-align: right;
   font-weight: 300;
@@ -74,8 +77,10 @@
   color: #f00;
   font-weight: bold;
 }
-.note-tag:hover {
-  color: #00f;
+@media (pointer: coarse) {
+  .note-tag:hover {
+    color: #00f;
+  }
 }
 .more {
   cursor: pointer;

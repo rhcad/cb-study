@@ -192,8 +192,10 @@ body {
     color: #999;
   }
 
-  .show-line-no [data-line-no]:not(.note-item):hover::before {
-    color: #00f;
+  @media (pointer: coarse) {
+    .show-line-no [data-line-no]:not(.note-item):hover::before {
+      color: #00f;
+    }
   }
 }
 .show-line-no div.lg {
@@ -234,9 +236,11 @@ footer {
   white-space: nowrap;
 }
 
-footer a:hover {
-  text-decoration: none;
-  cursor: pointer;
+@media (pointer: coarse) {
+  footer a:hover {
+    text-decoration: none;
+    cursor: pointer;
+  }
 }
 
 footer .col-title,
@@ -280,7 +284,7 @@ span[ke-pan] > .ke-pan-text {
 }
 
 @media screen {
-  [ke-pan].active, [ke-pan]:hover, .highlight {
+  [ke-pan].active, .highlight {
     color: green;
   }
 
@@ -288,8 +292,14 @@ span[ke-pan] > .ke-pan-text {
     font-weight: 700;
   }
 
-  [ke-pan].hover {
-    color: #008000;
+  @media (pointer: coarse) {
+    [ke-pan]:hover {
+      color: green;
+    }
+
+    [ke-pan].hover {
+      color: #008000;
+    }
   }
 }
 .show-inline-ke-pan .row p:not(.xu-more):not(.byline):not(.head) {
@@ -373,7 +383,9 @@ span[ke-pan] > .ke-pan-text {
   background-color: red;
   border-color: red;
 }
-.ke-line:hover {color: #2b669a}
+@media (pointer: coarse) {
+  .ke-line:hover {color: #2b669a}
+}
 .ke-line.highlight {background-color: rgba(0, 0, 255, .07);}
 
 .ke-line[data-indent="0"] {text-indent: 0;}
@@ -393,7 +405,9 @@ span[ke-pan] > .ke-pan-text {
   margin: 0;
   font-size: .8em;
 }
-.ke-line > span:hover { color: #00f; }
+@media (pointer: coarse) {
+  .ke-line > span:hover { color: #00f; }
+}
 .ke-line[data-path] {text-indent: 0;}
 
 #ke-pan-select {

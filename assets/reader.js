@@ -1076,9 +1076,10 @@ $('.show-inline-ke-pan-btn').click(function () {
 
 // 切换展开注解段落
 function toggleNoteTag($tag, excludeText) {
-  const id = $tag.attr('data-nid'),
-      $p = $(`.note-p[data-nid="${id}"]`),
-      show = !$tag.hasClass('note-expanded');
+  const id = $tag.attr('data-nid');
+  const $p = $(`.note-p[data-nid="${id}"]`);
+  const show = !$tag.hasClass('note-expanded');
+  const $note = $(`note[data-nid="${id}"]`);
 
   if (!$p.length) {
     console.warn(id + ' note-p not exist');
@@ -1086,9 +1087,11 @@ function toggleNoteTag($tag, excludeText) {
   $p.toggle(100, null, show);
   if (show) {
     setTimeout(() => scrollToVisible($p[0]), 100);
+  } else {
+    $note.removeClass('tag-highlight');
   }
   $(`.note-tag[data-nid="${id}"]`).toggleClass('note-expanded', show);
-  $(`note[data-nid="${id}"]`).toggleClass('note-expanded', show && !excludeText);
+  $note.toggleClass('note-expanded', show && !excludeText);
 }
 
 // 单击注解锚点标记则展开注解段落
