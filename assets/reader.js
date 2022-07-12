@@ -765,11 +765,13 @@ function scrollToVisible(element) {
         r = element.getBoundingClientRect();
       }
       if (r && r.height) {
-        if (r.top < 60) {
-          window.scrollBy(0, r.top - 60);
-        }
+        let off = 0;
         if (r.bottom > window.innerHeight - 100) {
-          window.scrollBy(0, r.bottom - window.innerHeight + 100);
+          off = r.bottom - window.innerHeight + 100;
+          window.scrollBy(0, off);
+        }
+        if (r.top - off < 80) {
+          window.scrollBy(0, r.top - off - 80);
         }
       }
     }, 50);
@@ -1082,6 +1084,9 @@ function toggleNoteTag($tag, excludeText) {
     console.warn(id + ' note-p not exist');
   }
   $p.toggle(100, null, show);
+  if (show) {
+    setTimeout(() => scrollToVisible($p[0]), 100);
+  }
   $(`.note-tag[data-nid="${id}"]`).toggleClass('note-expanded', show);
   $(`note[data-nid="${id}"]`).toggleClass('note-expanded', show && !excludeText);
 }
