@@ -4,26 +4,27 @@
 import re
 import sys
 import json
+import shutil
 import logging
 import traceback
 from os import path
 from glob import glob
-import shutil
 import fix_util as fix
 from tornado import ioloop, gen
 from tornado.web import Application, RequestHandler
 from tornado.options import define, options
 from tornado.escape import to_basestring, json_decode
-from tornado.httpclient import AsyncHTTPClient
-from tornado.httpclient import HTTPError
+from tornado.httpclient import AsyncHTTPClient, HTTPError
 
 THIS_PATH = path.abspath(path.dirname(__file__))
 BASE_DIR = path.dirname(THIS_PATH)
 DATA_DIR = path.join(THIS_PATH, 'data')
+
+# 去掉注解行的行首标记字符、空白字符、末尾的CB行号、上下移动标记(cmd:num)
 pat_note_inv = re.compile(r'^[!-]+|[　\s\n]|\d{4}\w*$|\([a-z]+:\w+\)')
-ignore_nums = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⓪ⓞ⓵⓶⓷⓸⓹⓺⓻⓼⓽⓾' \
-              '⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽⑾⑿⒀⒁⒂⒃⒄⒅⒆⒇➊➋➌➍➎➏➐➑➒➓⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴' \
-              '⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛㊀㊁㊂㊃㊄㊅㊆㊇㊈㊉㈠㈡㈢㈣㈤㈥㈦㈧㈨㈩'
+# 忽略全角编号字符
+ignore_nums = '①-⑳⓪ⓞ⓵-⓾⑴-⒇➊-➓⓫-⓴⒈-⒛㊀-㊉㈠-㈩'
+# 忽略全角标点符号和编号字符
 pat_puncture = re.compile('[，、；：。！？‘’“”·…《》（）「」『』—()〔〕' + ignore_nums + ']')
 
 define('port', default=8003, help='run port', type=int)
@@ -31,10 +32,14 @@ define('debug', default=True, help='the debug mode', type=bool)
 
 
 class CbBaseHandler(RequestHandler):
+    def data_received(self, chunk):
+        """Called as data is available"""
+        pass
+
     def on_error(self, e):
+        """Handle exception for subclass"""
         if isinstance(e, AssertionError):
             _, _, tb = sys.exc_info()
-            # traceback.print_tb(tb)  # Fixed format
             tb_info = traceback.extract_tb(tb)
             filename, line, func, text = tb_info[-1]
             logging.error('{0} {1}, in {2}: {3}'.format(path.basename(filename), line, func, str(e)))
@@ -44,27 +49,29 @@ class CbBaseHandler(RequestHandler):
 
     @staticmethod
     def load_page(page_id):
-        filename = path.join(DATA_DIR, page_id + '.json')
+        json_file = path.join(DATA_DIR, page_id + '.json')
         html_file = path.join(DATA_DIR, page_id + '.html')
-        assert path.exists(filename), 'page {} not exists'.format(page_id)
-        with open(filename) as f:
+        assert path.exists(json_file), 'page {} not exists'.format(page_id)
+        with open(json_file) as f:
             page = json.load(f)
-        if not page.get('html_end') and path.exists(html_file):
+
+        # html_end: 最终HTML，即完成制作或后续合并注解后的HTML
+        if path.exists(html_file):
             with open(html_file) as f:
                 page['html_end'] = f.read().split('\n')
         return page
 
     @staticmethod
     def save_page(page, save_html=False):
-        filename = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
+        json_file = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
         html_file = path.join(DATA_DIR, '{}.html'.format(page['info']['id']))
         html = page.get('html_end')
         if html and save_html:
-            page['info']['note_count'] = len([1 for r in (html or []) if 'note-tag' in r])
+            page['info']['note_count'] = len([1 for r in (html or []) if 'note-tag' in r])  # 有注解的行数
             with open(html_file, 'w') as f:
                 f.write('\n'.join(html))
-        with open(filename, 'w') as f:
-            page.pop('html_end', 0)
+        with open(json_file, 'w') as f:
+            page.pop('html_end', 0)  # 最终HTML保存在html文件
             json.dump(page, f, ensure_ascii=False, indent=2, sort_keys=True)
         page['html_end'] = html
 
@@ -76,17 +83,20 @@ class CbBaseHandler(RequestHandler):
 
     @staticmethod
     def extract_commentary(html):
-        """从注解网页中提取段落中的原文与注解"""
+        """从注解网页中提取段落中的原文与注解(原为全角空格分隔)，分别移入span以供前端解析"""
         if 'div-commentary' not in html and len(re.findall(r'<p .+?</span>[^　]{2,60}　.{10,999}</p>', html)) > 5:
-            pat = "<span class='div-orig'>%s</span>", "<span class='div-commentary'>%s</span>"
+            pat_orig, pat_comm = "<span class='div-orig'>%s</span>", "<span class='div-commentary'>%s</span>"
             rows = [re.sub(r'<p .+?</span>([^　]+)　(.+?)</p>',
-                           lambda m: m.group().replace(m.group(1), pat[0] % m.group(1), 1)
-                           .replace(m.group(2), pat[1] % m.group(2)), t) for t in html.split('\n')]
+                           lambda m: (m.group()
+                                      .replace(m.group(1), pat_orig % m.group(1), 1)  # 1: 避免在注解中替换
+                                      .replace(m.group(2), pat_comm % m.group(2))), t)
+                    for t in html.split('\n')]
             return '\n'.join(rows).replace('div.div-orig', '.div-orig')
         return html
 
     @gen.coroutine
     def fetch_cb(self, name):
+        """下载CBeta页面原文，已下载则从缓存文件读取"""
         cache_file = path.join(DATA_DIR, 'cache', name + '.html')
         if path.exists(cache_file):
             return open(cache_file).read()
@@ -107,14 +117,78 @@ class CbBaseHandler(RequestHandler):
 
     @staticmethod
     def find_html_index(rows, pid):
+        """
+        查找指定的段落编号所在的HTML行序号
+        :param rows: HTML行数组
+        :param pid: 段落或偈颂的编号
+        :return: (行序号, 正则对象)，行序号小于0表示找不到
+        """
         rex = re.compile(r"<(p|div) id=['\"]{0}['\"]".format(pid))
         for (i, s) in enumerate(rows):
             if rex.search(s):
                 return i, rex
         return -1, rex
 
+
+def auto_try(func):
+    """Decorator for get or post function"""
+
+    def wrapper(self, *args, **kwargs):
+        try:
+            func(self, *args, **kwargs)
+        except Exception as e:
+            CbBaseHandler.on_error(self, e)
+
+    return wrapper
+
+
+class PageRollback:
+    """页面回滚实现类"""
+
     @staticmethod
-    def _find_index(html, index, li, log, page, pid):
+    def rollback(page):
+        """根据原始HTML和改动记录，重置页面的HTML内容"""
+        CbBaseHandler.reset_html(page)
+        if page.get('html_org') and page.get('log'):
+            id_map = {}
+            html = page['html']
+            count = [0, 0]
+            for (li, log) in enumerate(page['log']):
+                # 改动记录行的例子： Split paragraph #p139 at 173 as result #p139a,p139b: 東方虛空可思量不？@須菩提言：@不也
+                # 段落编号 pid=p139，行序号 index=173，新段的编号 new_ids=...#p139a,p139b，段落内容 text=東方...
+                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+)( as result #[^:]+)?: (.+@.*)$', log)
+                if m:
+                    pid, new_ids, text = m.group(1), m.group(3), m.group(4)
+                    index = PageRollback._find_index_by_log(html, int(m.group(2)), li, log, page, pid)
+                    if index >= 0:
+                        PageRollback._split_p_in_rollback(id_map, index, new_ids, page, pid, text)
+                        count[0] += 1
+                elif re.match(r'^Split paragraph', log):
+                    logging.warning('invalid log: ' + log)
+
+                m = not m and re.search(r'^Merge paragraph #(p\d+\w*) with #(p\d+\w*) at (\d+)(: .+)?$', log)
+                if m:
+                    pid, id2, text = m.group(1), m.group(2), m.group(4)
+                    index = PageRollback._find_index_by_log(html, int(m.group(3)), li, log, page, pid)
+                    if index >= 0:
+                        SplitParagraphHandler.merge_p(index, page, pid, id2)
+                        count[1] += 1
+                elif re.match(r'^Merge paragraph', log):
+                    logging.warning('invalid log: ' + log)
+            return True
+
+    @staticmethod
+    def _find_index_by_log(html, index, li, log, page, pid):
+        """
+        根据一条改动记录中的段落编号和行序号，检查和修正此改动记录的行序号
+        :param html: HTML行数组
+        :param index: HTML行序号
+        :param li: 改动记录的序号
+        :param log: 一条改动记录的内容
+        :param page: 页面对象
+        :param pid: 段落或偈颂的编号
+        :return: HTML行序号
+        """
         ri, rex = CbBaseHandler.find_html_index(html[index: index + 1], pid)
         if ri < 0:
             ri = CbBaseHandler.find_html_index(html, pid)[0]
@@ -127,41 +201,24 @@ class CbBaseHandler(RequestHandler):
         return index
 
     @staticmethod
-    def rollback(page):
-        CbBaseHandler.reset_html(page)
-        if page.get('html_org') and page.get('log'):
-            id_map = {}
-            html = page['html']
-            for (li, log) in enumerate(page['log']):
-                m = re.search(r'^Split paragraph #(p\d+\w*) at (\d+)( as result #[^:]+)?: (.+@.*)$', log)
-                if m:
-                    pid, new_ids, text = m.group(1), m.group(3), m.group(4)
-                    index = CbBaseHandler._find_index(html, int(m.group(2)), li, log, page, pid)
-                    if index >= 0:
-                        CbBaseHandler._split_p_in_rollback(id_map, index, new_ids, page, pid, text)
-                elif re.match(r'^Split paragraph', log):
-                    logging.warning('invalid log: ' + log)
-
-                m = not m and re.search(r'^Merge paragraph #(p\d+\w*) with #(p\d+\w*) at (\d+)(: .+)?$', log)
-                if m:
-                    pid, id2, text = m.group(1), m.group(2), m.group(4)
-                    index = CbBaseHandler._find_index(html, int(m.group(3)), li, log, page, pid)
-                    if index >= 0:
-                        SplitParagraphHandler.merge_p(index, page, pid, id2)
-                elif re.match(r'^Merge paragraph', log):
-                    logging.warning('invalid log: ' + log)
-            return True
-
-    @staticmethod
     def _split_p_in_rollback(ids, index, new_ids, page, pid, text):
+        """
+        :param ids: 原始段落编号对应的下一个新段落序号，用于生成新段落的编号
+        :param index: 要拆分段落的行序号
+        :param new_ids: 新段的编号，将从#后拆分出一个或多个编号
+        :param page: 页面对象
+        :param pid: 待拆分段落的编号
+        :param text: 段落内容，每个@对应一个新段
+        :return: None
+        """
         new_ids = new_ids and new_ids.split('#')[1].split(',')
-        bid = re.sub(r'\d[a-z].*$', lambda _: _.group(0)[0], pid)
+        bid = re.sub(r'\d[a-z].*$', lambda _: _.group(0)[0], pid)  # 新编号的前缀
         texts = text.split('@')
         r = [{'text': texts[0]}]
         for (i, text) in enumerate(texts[1:]):
-            if new_ids:
+            if new_ids:  # 重用以前的子段号
                 r.append({'id': new_ids[i], 'text': text})
-            else:
+            else:  # 首次拆分此段，新生成每个段号
                 ids[bid] = ids.get(bid, -1) + 1
                 assert ids[bid] < 26 * 9, 'id out of range'
                 char = chr(ord('a') + ids[bid] % 26) + ('' if ids[bid] < 26 else chr(ord('0') + ids[bid] // 26))
@@ -173,118 +230,115 @@ class CbBaseHandler(RequestHandler):
 class CbHomeHandler(CbBaseHandler):
     URL = '/cb'
 
+    @auto_try
     def get(self):
         """原典首页"""
-        try:
-            for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
-                if not path.exists(path.join(DATA_DIR, path.basename(fn))):
-                    shutil.copy(fn, DATA_DIR)
+        for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
+            if not path.exists(path.join(DATA_DIR, path.basename(fn))):
+                shutil.copy(fn, DATA_DIR)
 
-            files = sorted(glob(path.join(DATA_DIR, '*.json')))
-            pages = [json.load(open(fn)) for fn in files]
-            self.render('cb_home.html', pages=[(p['info'], dict(
-                id=p['info']['id'], url='/cb/page/' + p['info']['id'],
-                ke_pan_type_count=len([1 for r in p.get('rowPairs', []) if re.match(r'^:ke-type \d [^\s]+', r)])
-                                  or (1 if [1 for s in p.get('html', []) if '<div ke-pan=' in s] or
-                                           [1 for r in p.get('rowPairs', []) if re.match(r':ke', r)] else 0)
-            )) for p in pages])
-
-        except Exception as e:
-            self.on_error(e)
+        files = sorted(glob(path.join(DATA_DIR, '*.json')))
+        pages = [json.load(open(fn)) for fn in files]
+        self.render('cb_home.html', pages=[(p['info'], dict(
+            id=p['info']['id'],
+            url='/cb/page/' + p['info']['id'],
+            # 统计 :ke-type 个数，html里有 ke-pan 元素（未作段落分组故无 rowPairs）或有科判条目（':ke '开头）则为一个科判类型
+            ke_pan_type_count=(len([1 for r in p.get('rowPairs', []) if re.match(r'^:ke-type \d [^\s]+', r)])
+                               or (1 if [1 for s in p.get('html', []) if '<div ke-pan=' in s] or
+                                        [1 for r in p.get('rowPairs', []) if re.match(r':ke\d? ', r)] else 0))
+        )) for p in pages])
 
 
 class PageNewHandler(CbBaseHandler):
     URL = '/cb/page/new'
 
+    @auto_try
     def post(self):
         """创建原典页面"""
-        try:
-            page_id = to_basestring(self.get_argument('id', ''))
-            caption = to_basestring(self.get_argument('caption', '')).strip()
-            if not re.match(r'^[A-Za-z0-9_]{2,8}$', page_id):
-                return self.send_error(501, reason='invalid id')
-            if not caption or len(caption) > 20:
-                return self.send_error(502, reason='invalid caption')
+        page_id = to_basestring(self.get_argument('id', ''))
+        caption = to_basestring(self.get_argument('caption', '')).strip()
+        if not re.match(r'^\w{2,8}(_\d{1,3})?$', page_id):  # 页面编号为 经号 或 经号_卷号，经号由2~8位字母数字组成
+            return self.send_error(501, reason='invalid id')
+        if not caption or len(caption) > 20:
+            return self.send_error(502, reason='invalid caption')
 
-            filename = path.join(DATA_DIR, page_id + '.json')
-            if path.exists(filename):
-                return self.send_error(503, reason='file exists')
+        filename = path.join(DATA_DIR, page_id + '.json')
+        if path.exists(filename):
+            return self.send_error(503, reason='file exists')
 
-            self.save_page({'info': dict(id=page_id, caption=caption), 'log': []})
-            self.write({'url': '/cb/page/' + page_id})
-        except Exception as e:
-            self.on_error(e)
+        self.save_page({'info': dict(id=page_id, caption=caption), 'log': []})
+        self.write({'url': '/cb/page/' + page_id})
 
 
 class PageHandler(CbBaseHandler):
     URL = r'/cb/page/([\w_]+)'
 
+    @auto_try
     def get(self, page_id):
         """显示原典页面"""
-        try:
-            page = self.load_page(page_id)
-            info = page['info']
-            step = int(self.get_argument('step', 0))
-            if step > 0:
-                info['step'] = step - 1
-                self.save_page(page)
-                return self.redirect('/cb/page/' + page_id)
+        page = self.load_page(page_id)
+        info = page['info']
+        step = int(self.get_argument('step', 0))
+        if step > 0:  # URL中指定了第几步(1起)，则强制显示此步骤的页面，否则为上次的步骤
+            info['step'] = step - 1
+            self.save_page(page)
+            return self.redirect('/cb/page/' + page_id)
 
-            step = info.get('step', 0)
-            if step > 1:  # 完成制作，或后续步骤
-                if page.get('html_end'):
-                    page['html'] = page['html_end'][:]
-                else:
-                    step = 1  # 段落分组
-            if step > 0 and not page.get('html'):
-                step = 0
+        step = info.get('step', 0)  # 上次的步骤，0:获取原文，1:段落分组，2:完成制作，3:合并注解
+        if step > 1:  # 完成制作，或后续步骤
+            if page.get('html_end'):
+                page['html'] = page['html_end'][:]
+            else:
+                step = 1  # 段落分组
+        if step > 0 and not page.get('html'):
+            step = 0  # 退回到获取原文步骤
 
-            name = page_id.split('_')[0]
-            juan = int((page_id.split('_')[1:] or [1])[0])
-            cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)
-            has_ke_pan = bool(step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
-                                        [1 for s in page['html'] if '<div ke-pan=' in s]))
-            ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
-                                     if re.match(r'^:ke-type \d [^\s]+', r)] or []  # 'num name desc'
-            note_tags = [s.split('|')[1] for s in info.get('notes', [])]
-            cmp_txt = step == 3 and '\n'.join(self.get_cmp_txt()) or ''
+        name = page_id.split('_')[0]  # 经号
+        juan = int((page_id.split('_')[1:] or [1])[0])  # 卷号
+        cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)  # 卷号用0补足为3位，例如 001、012
 
-            if self.get_argument('export', 0):
-                json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
-                              for tag, v in (page.get('notes') or {}).items()]
-                note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])),
-                               v.get('col', 0), v.get('desc', v['name']), tag]
-                              for tag, v in (page.get('notes') or {}).items()]
-                html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
-                                          json_files=json_files, note_names=note_names,
-                                          has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types)
-                return self.write(dict(html=to_basestring(html)))
+        # html里有 ke-pan 元素，或段落分组信息里有科判条目（':ke '开头），则有科判条目
+        has_ke_pan = bool(step and (re.search(r':ke\d? ', ''.join(page.get('rowPairs', []))) or
+                                    [1 for s in page['html'] if '<div ke-pan=' in s]))
+        # 科判类型格式 'num name desc'，desc 可缺省
+        ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
+                                 if re.match(r'^:ke-type \d [^\s]+', r)] or []
 
-            self.render('cb_page.html', page=page, info=info, step=step, id=page_id,
-                        has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types,
-                        rowPairs='||'.join(page.get('rowPairs', [])),
-                        paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
-                        notes=[(tag, page['notes'][tag]) for tag in note_tags if tag in page.get('notes', {})],
-                        cb_ids=cb_ids, cmp_txt=cmp_txt)
-        except Exception as e:
-            self.on_error(e)
+        note_tags = [s.split('|')[1] for s in info.get('notes', [])]  # notes：栏序号|标记字|注解的经号_卷号|可选的注解名称
+        cmp_txt = step == 3 and '\n'.join(self.get_cmp_txt()) or ''  # 读取有标点的文本文件，以便校对合并标点
 
+        if self.get_argument('export', 0):  # 下载合并后的网页内容
+            json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
+                          for tag, v in (page.get('notes') or {}).items()]
+            note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])),
+                           v.get('col', 0), v.get('desc', v['name']), tag]
+                          for tag, v in (page.get('notes') or {}).items()]
+            html = self.render_string('cb_export.html', page=page, info=info, id=page_id,
+                                      json_files=json_files, note_names=note_names,
+                                      has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types)
+            return self.write(dict(html=to_basestring(html)))  # html返回给前端以便下载文本
+
+        self.render('cb_page.html', page=page, info=info, step=step, id=page_id,
+                    has_ke_pan=has_ke_pan, ke_pan_types=ke_pan_types,
+                    rowPairs='||'.join(page.get('rowPairs', [])),
+                    paragraph_ids=','.join(ParagraphOrderHandler.get_ids(page)),
+                    notes=[(tag, page['notes'][tag]) for tag in note_tags if tag in page.get('notes', {})],
+                    cb_ids=cb_ids, cmp_txt=cmp_txt)
+
+    @auto_try
     def post(self, page_id):
         """保存网页内容"""
-        try:
-            page = self.load_page(page_id)
-            html = to_basestring(self.get_argument('html', '')).strip()
-            step = int(self.get_argument('step', page['info']['step']))
-            field = 'html_end' if step > 1 and page.get('html_end') else 'html'
-            changed = re.search('<p id', html) and html != '\n'.join(page[field])
+        page = self.load_page(page_id)
+        html = to_basestring(self.get_argument('html', '')).strip()
+        step = int(self.get_argument('step', page['info']['step']))
+        field = 'html_end' if step > 1 and page.get('html_end') else 'html'
+        changed = re.search('<p id', html) and html != '\n'.join(page[field])
 
-            if changed:
-                logging.info('save html')
-                page[field] = html.split('\n')
-                self.save_page(page, field == 'html_end')
-            self.write(dict(changed=bool(changed)))
-        except Exception as e:
-            self.on_error(e)
+        if changed:
+            logging.info('save html')
+            page[field] = html.split('\n')
+            self.save_page(page, field == 'html_end')
+        self.write(dict(changed=bool(changed)))
 
     @staticmethod
     def get_cmp_txt():
@@ -294,14 +348,16 @@ class PageHandler(CbBaseHandler):
         if path.exists(filename):
             with open(filename) as f:
                 text = re.sub('[' + ignore_nums + ']', '', f.read().strip())
-                rows = re.split(r'[\s\n]*\n+[\s\n]*', text)
+                rows = re.split(r'[\s\n]*\n+[\s\n]*', text)  # 分段，忽略多个连续空行
         return [re.sub(r'\s+', '', r) for r in rows]
 
 
 class PageDiffHandler(CbBaseHandler):
     URL = r'/cb/page/([\w_]+)/diff/(\w+)'
 
+    @auto_try
     def get(self, page_id, aid):
+        """将合并结果页面或注解内容与CBeta原始页面内容作对比"""
         page = self.load_page(page_id)
         ret = {'id': aid, 'org_files': [], 'is_note': not re.match(r'^\d+$', aid)}
 
@@ -309,7 +365,7 @@ class PageDiffHandler(CbBaseHandler):
             note = [r for r in page['notes'].values() if r['name'].startswith(aid)][0]
             parts = note['name'].split('_')
             ret['notes'] = []
-            pat_note = re.compile(r'^[!-]+|\d{4}\w*$')
+            pat_note = re.compile(r'^[!-]+|\d{4}\w*$')  # 去掉行首标记字符、末尾的CB行号
             moves = []
             id_notes = {}
 
@@ -318,7 +374,7 @@ class PageDiffHandler(CbBaseHandler):
                     orig = pat_note.sub('', t[j * 3 + 1])
                     text = pat_note.sub('', t[j * 3 + 2]).replace("'", '"').replace('\n', '<br/>')
                     r = dict(id=t[j * 3], orig=re.sub(r'\([a-z]+:\w+\)', '', orig), text=text)
-                    m = re.search(r'\(([a-z]+):(\w+)\)', orig)
+                    m = re.search(r'\(([a-z]+):(\w+)\)', orig)  # 上下移动标记(cmd:num)
                     if m:
                         cmd, num = m.group(1), int(m.group(2))
                         moves.append(dict(cmd=cmd, num=num, r=r))
@@ -326,6 +382,7 @@ class PageDiffHandler(CbBaseHandler):
                         id_notes[r['id']] = r
                         ret['notes'].append(r)
 
+            # 有上下移动标记，则按最初的顺序插入到已用注解，以便对比注解内容是否改动
             for m in moves:
                 r = id_notes[m['num']]
                 idx = ret['notes'].index(r)
@@ -353,103 +410,99 @@ class HtmlDownloadHandler(CbBaseHandler):
     URL = r'/cb/page/fetch/([\w_]+)'
 
     @gen.coroutine
+    @auto_try
     def post(self, page_id):
         """从CBeta获取原文HTML"""
-        try:
-            page = self.load_page(page_id)
-            cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
-            force = self.get_argument('reset', 0)
+        page = self.load_page(page_id)
+        cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
+        force = self.get_argument('reset', 0)
 
-            urls = cb_ids.split('|') if cb_ids else []  # 多栏
-            if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
-                page['info']['step'] = 1  # 不重新导入
-            else:
-                content = []
-                for col in urls:
-                    html = ''
-                    name_desc = re.split(r'\s+', col.strip())  # 经文简要描述用空格与前隔开
-                    col, desc = name_desc[0].split('_'), len(name_desc) > 1 and ' ' + name_desc[-1] or ''
-                    jin = col[0]  # 经卷号中的经号，例如 T1667_001_002 中的 T1667
-                    for juan in (col[1:] or ['']):
-                        name = jin + ('_' + juan if juan else '')
-                        r = yield self.fetch_cb(name)
-                        if not r:
-                            return
-                        if len(name_desc[0].split('_')) > 2:
-                            name = name.split('_')[0]
-                        html = fix.convert_cb_html(html, r, name + desc)
-                    if html:
-                        content.append(html)
+        urls = cb_ids.split('|') if cb_ids else []  # 多栏
+        if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
+            page['info']['step'] = 1  # 不重新导入
+        else:
+            content = []
+            for col in urls:
+                html = ''
+                name_desc = re.split(r'\s+', col.strip())  # 经文简要描述用空格与前隔开
+                col, desc = name_desc[0].split('_'), len(name_desc) > 1 and ' ' + name_desc[-1] or ''
+                jin = col[0]  # 经卷号中的经号，例如 T1667_001_002 中的 T1667
+                for juan in (col[1:] or ['']):
+                    name = jin + ('_' + juan if juan else '')
+                    r = yield self.fetch_cb(name)
+                    if not r:
+                        return
+                    if len(name_desc[0].split('_')) > 2:
+                        name = name.split('_')[0]
+                    html = fix.convert_cb_html(html, r, name + desc)
+                if html:
+                    content.append(html)
 
-                if not content:
-                    return self.send_error(505, reason='Fail to get content')
-                if len(content) > 12:
-                    return self.send_error(505, reason='only support 1~12 columns')
+            if not content:
+                return self.send_error(505, reason='Fail to get content')
+            if len(content) > 12:
+                return self.send_error(505, reason='only support 1~12 columns')
 
-                page['info'].update(dict(step=1, cols=len(content), cb_ids=cb_ids))
-                fix.merge_cb_html(content)
-                page['html_org'] = [html.split('\n') for html in content]
+            page['info'].update(dict(step=1, cols=len(content), cb_ids=cb_ids))
+            fix.merge_cb_html(content)
+            page['html_org'] = [html.split('\n') for html in content]
 
-            self.rollback(page)
-            self.save_page(page)
-            self.write({})
-            self.finish()
-        except Exception as e:
-            self.on_error(e)
+        PageRollback.rollback(page)
+        self.save_page(page)
+        self.write({})
+        self.finish()
 
 
 class RowPairsHandler(CbBaseHandler):
     URL = r'/cb/page/pairs/([\w_]+)'
 
+    @auto_try
     def post(self, page_id):
         """保存段落分组及科判条目数据"""
-        try:
-            pairs = self.get_argument('pairs').split('||')
-            ke_type = self.get_argument('kePanType', '1')
-            page = self.load_page(page_id)
-            rows = page['html']
-            ret = False
+        pairs = self.get_argument('pairs').split('||')
+        ke_type = self.get_argument('kePanType', '1')
+        page = self.load_page(page_id)
+        rows = page['html']
+        ret = False
 
-            if len(pairs) == 1 and re.match('^:ke-(add|del|set) ', pairs[0]):
-                m = re.search(r':ke-(add|append|set) ([pg]\d[a-z0-9_-]*|ke\d+) (.+)$', pairs[0])
-                if m:
-                    op, pid, text = m.group(1), m.group(2), m.group(3)
-                    text = re.sub('[><\'"]', '', text)
-                    if op == 'set':
+        if len(pairs) == 1 and re.match('^:ke-(add|del|set) ', pairs[0]):
+            m = re.search(r':ke-(add|append|set) ([pg]\d[a-z0-9_-]*|ke\d+) (.+)$', pairs[0])
+            if m:
+                op, pid, text = m.group(1), m.group(2), m.group(3)
+                text = re.sub('[><\'"]', '', text)
+                if op == 'set':
+                    index = self.find_ke_pan_index(rows, pid)
+                    if index >= 0:
+                        rows[index] = re.sub(r'data-indent=[\'"]\w*[\'"]', "data-indent='{}'".format(
+                            len(re.sub('[^-].*$', '', text))), rows[index])
+                        rows[index] = re.sub(r'>.*<', '>' + re.sub('^-*', '', text) + '<', rows[index])
+                        ret = True
+                else:
+                    if pid.startswith('ke'):  # 在一个科判前加科判
                         index = self.find_ke_pan_index(rows, pid)
-                        if index >= 0:
-                            rows[index] = re.sub(r'data-indent=[\'"]\w*[\'"]', "data-indent='{}'".format(
-                                len(re.sub('[^-].*$', '', text))), rows[index])
-                            rows[index] = re.sub(r'>.*<', '>' + re.sub('^-*', '', text) + '<', rows[index])
-                            ret = True
-                    else:
-                        if pid.startswith('ke'):  # 在一个科判前加科判
-                            index = self.find_ke_pan_index(rows, pid)
-                        else:  # 在一个段落前加科判
-                            index = self.find_html_index(rows, pid)[0]
-                        t = "<div ke-pan='0' data-ke-type='{0}' class='ke-line' data-indent='{1}'>{2}</div>".format(
-                            ke_type, len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text))
-                        if index >= 0:
-                            ret = True
-                            rows.insert(index + 1 if op == 'append' else index, t)
-
-                m = not m and re.search(r':ke-del (ke[0-9]+)$', pairs[0])
-                if m:
-                    index = self.find_ke_pan_index(rows, m.group(1))
+                    else:  # 在一个段落前加科判
+                        index = self.find_html_index(rows, pid)[0]
+                    t = "<div ke-pan='0' data-ke-type='{0}' class='ke-line' data-indent='{1}'>{2}</div>".format(
+                        ke_type, len(re.sub('[^-].*$', '', text)), re.sub('^-*', '', text))
                     if index >= 0:
                         ret = True
-                        del rows[index]
+                        rows.insert(index + 1 if op == 'append' else index, t)
 
-                self.fill_ke(rows)
-                page['html'] = rows
-            else:
-                ret = True
-                page['rowPairs'] = pairs
-            if ret:
-                self.save_page(page, True)
-            self.write(dict(success=ret))
-        except Exception as e:
-            self.on_error(e)
+            m = not m and re.search(r':ke-del (ke[0-9]+)$', pairs[0])
+            if m:
+                index = self.find_ke_pan_index(rows, m.group(1))
+                if index >= 0:
+                    ret = True
+                    del rows[index]
+
+            self.fill_ke(rows)
+            page['html'] = rows
+        else:
+            ret = True
+            page['rowPairs'] = pairs
+        if ret:
+            self.save_page(page, True)
+        self.write(dict(success=ret))
 
     @staticmethod
     def find_ke_pan_index(rows, ke_pan):
@@ -475,13 +528,11 @@ class RowPairsHandler(CbBaseHandler):
 class ParagraphOrderHandler(CbBaseHandler):
     URL = r'/cb/page/p/order/([\w_]+)'
 
+    @auto_try
     def get(self, page_id):
         """获取所有段落编号"""
-        try:
-            page = self.load_page(page_id)
-            self.write(dict(ids=self.get_ids(page)))
-        except Exception as e:
-            self.on_error(e)
+        page = self.load_page(page_id)
+        self.write(dict(ids=self.get_ids(page)))
 
     @staticmethod
     def get_ids(page):
@@ -492,51 +543,49 @@ class ParagraphOrderHandler(CbBaseHandler):
 class SplitParagraphHandler(CbBaseHandler):
     URL = r'/cb/page/p/split/([\w_]+)'
 
+    @auto_try
     def post(self, page_id):
         """保存段落拆分或合并的信息"""
-        try:
-            data = json_decode(self.get_argument('data'))
-            result = data.get('result')
-            id1, id2 = data.get('id'), data.get('id2')
-            page = self.load_page(page_id)
-            assert id1 and re.match(r'p\d', id1), 'need id'
+        data = json_decode(self.get_argument('data'))
+        result = data.get('result')
+        id1, id2 = data.get('id'), data.get('id2')
+        page = self.load_page(page_id)
+        assert id1 and re.match(r'p\d', id1), 'need id'
 
-            index, log, new_ids = -1, None, []
-            for (i, text) in enumerate(page['html']):
-                prefix = "<p id='{}'".format(id1)
-                if prefix in text:
-                    index = i  # 文本行序号
-                    if not result:
-                        assert "<p id='{}'".format(data.get('id2')) in page['html'][i + 1], 'fail to merge'
-                        log = 'Merge paragraph #{0} with #{1} at {2}: {3}'.format(
-                            id1, id2, i, re.sub('^<p[^>]+>|</p>', '', page['html'][i + 1][:20]))
-                        logging.info(log)
-                        self.merge_p(i, page, id1, id2)
-                    else:
-                        new_ids = [r['id'] for r in result[1:]]
-                        log = 'Split paragraph #{0} at {1} as result #{2}: {3}'.format(
-                            id1, i, ','.join(new_ids), data['text'])
-                        logging.info(log)
-                        assert text.index(prefix) == 0
-                        self.split_p(i, result, page)
-                    break
+        index, log, new_ids = -1, None, []
+        for (i, text) in enumerate(page['html']):
+            prefix = "<p id='{}'".format(id1)
+            if prefix in text:
+                index = i  # 文本行序号
+                if not result:
+                    assert "<p id='{}'".format(data.get('id2')) in page['html'][i + 1], 'fail to merge'
+                    log = 'Merge paragraph #{0} with #{1} at {2}: {3}'.format(
+                        id1, id2, i, re.sub('^<p[^>]+>|</p>', '', page['html'][i + 1][:20]))
+                    logging.info(log)
+                    self.merge_p(i, page, id1, id2)
+                else:
+                    new_ids = [r['id'] for r in result[1:]]
+                    log = 'Split paragraph #{0} at {1} as result #{2}: {3}'.format(
+                        id1, i, ','.join(new_ids), data['text'])
+                    logging.info(log)
+                    assert text.index(prefix) == 0
+                    self.split_p(i, result, page)
+                break
 
-            assert index >= 0, 'html not found'
-            page['log'].append(log)
-            ret = dict(index=index, id=id1)
-            if data.get('merged'):  # 在已合并区域，就更新段落分组数据
-                pairs = page['rowPairs']
-                pat = re.compile('(^|[ |])' + id1 + '([ |]|$)' if result else id1 + r'\s+' + id2)
-                idx = [i for (i, r) in enumerate(pairs) if pat.search(r)]
-                assert idx, 'not in rowPairs'
-                pairs[idx[0]] = pat.sub(lambda m: id1 if not result else m.group().replace(
-                    id1, ' '.join([id1] + new_ids)), pairs[idx[0]])
-                ret['rowPairs'] = '||'.join(pairs)
+        assert index >= 0, 'html not found'
+        page['log'].append(log)
+        ret = dict(index=index, id=id1)
+        if data.get('merged'):  # 在已合并区域，就更新段落分组数据
+            pairs = page['rowPairs']
+            pat = re.compile('(^|[ |])' + id1 + '([ |]|$)' if result else id1 + r'\s+' + id2)
+            idx = [i for (i, r) in enumerate(pairs) if pat.search(r)]
+            assert idx, 'not in rowPairs'
+            pairs[idx[0]] = pat.sub(lambda m: id1 if not result else m.group().replace(
+                id1, ' '.join([id1] + new_ids)), pairs[idx[0]])
+            ret['rowPairs'] = '||'.join(pairs)
 
-            self.save_page(page)
-            self.write(ret)
-        except Exception as e:
-            self.on_error(e)
+        self.save_page(page)
+        self.write(ret)
 
     @staticmethod
     def split_p(i, result, page):
@@ -556,106 +605,98 @@ class SplitParagraphHandler(CbBaseHandler):
 class EndMergeHandler(CbBaseHandler):
     URL = r'/cb/page/merge/end/([\w_]+)'
 
+    @auto_try
     def post(self, page_id):
         """段落分组完成"""
-        try:
-            html = self.get_argument('html', '').strip()
-            page = self.load_page(page_id)
-            old_html = page.get('html_end', [])
-            html_end = page['html_end'] = html.split('\n') if html else page['html']
-            page['info'].update(step=2)
+        html = self.get_argument('html', '').strip()
+        page = self.load_page(page_id)
+        old_html = page.get('html_end', [])
+        html_end = page['html_end'] = html.split('\n') if html else page['html']
+        page['info'].update(step=2)
 
-            r_note = re.compile(r'<note|note-tag|data-nid')
-            re_p = re.compile(r"^\s*<(p|div) id=['\"]([\w-]+)['\"]")
-            update_count, miss_ids = 0, []
-            for (i, html) in enumerate(old_html):
-                if r_note.search(html):
-                    r = re_p.search(html)
-                    pid, tag = r and r.group(2) or str(i), r and r.group(1)
-                    if r and html.endswith('</{}>'.format(tag)):
-                        idx = self.find_html_index(html_end, pid)[0]
-                        if idx >= 0 and re.match(r"^\s*<{0} id=['\"]{1}['\"].+</{0}>$".format(tag, pid), html_end[idx]):
-                            html_end[idx] = html
-                            update_count += 1
-                            continue
-                    miss_ids.append(pid)
-                    logging.info('miss {0}: {1}'.format(pid, html))
+        r_note = re.compile(r'<note|note-tag|data-nid')
+        re_p = re.compile(r"^\s*<(p|div) id=['\"]([\w-]+)['\"]")
+        update_count, miss_ids = 0, []
+        for (i, html) in enumerate(old_html):
+            if r_note.search(html):
+                r = re_p.search(html)
+                pid, tag = r and r.group(2) or str(i), r and r.group(1)
+                if r and html.endswith('</{}>'.format(tag)):
+                    idx = self.find_html_index(html_end, pid)[0]
+                    if idx >= 0 and re.match(r"^\s*<{0} id=['\"]{1}['\"].+</{0}>$".format(tag, pid), html_end[idx]):
+                        html_end[idx] = html
+                        update_count += 1
+                        continue
+                miss_ids.append(pid)
+                logging.info('miss {0}: {1}'.format(pid, html))
 
-            if not self.get_argument('test', ''):
-                logging.info('end merge {0}: update={1}, miss={2}'.format(page_id, update_count, miss_ids))
-                self.save_page(page, True)
-            self.write(dict(update_count=update_count, miss_count=len(miss_ids), miss_ids=','.join(miss_ids)[:60]))
-        except Exception as e:
-            self.on_error(e)
+        if not self.get_argument('test', ''):
+            logging.info('end merge {0}: update={1}, miss={2}'.format(page_id, update_count, miss_ids))
+            self.save_page(page, True)
+        self.write(dict(update_count=update_count, miss_count=len(miss_ids), miss_ids=','.join(miss_ids)[:60]))
 
 
 class FetchHtmlHandler(CbBaseHandler):
     URL = r'/cb/html/([\w_]+)'
 
     @gen.coroutine
+    @auto_try
     def get(self, name):
         """从CBeta获取原文HTML"""
         parts, content = name.split('_'), []
-        try:
-            if len(parts) == 1:
+        if len(parts) == 1:
+            html = yield self.fetch_cb(name)
+            if html:
+                content.append(html)
+        else:
+            for juan in parts[1:]:
+                name = parts[0] + '_' + juan
                 html = yield self.fetch_cb(name)
                 if html:
+                    html = re.sub('<a [^>]+>[^<]+</a>', '', html)  # 去掉脚注
                     content.append(html)
-            else:
-                for juan in parts[1:]:
-                    name = parts[0] + '_' + juan
-                    html = yield self.fetch_cb(name)
-                    if html:
-                        html = re.sub('<a [^>]+>[^<]+</a>', '', html)  # 去掉脚注
-                        content.append(html)
 
-            if not self._finished:
-                self.write(dict(html='\n'.join(content)))
-                self.finish()
-        except Exception as e:
-            self.on_error(e)
+        if not self._finished:
+            self.write(dict(html='\n'.join(content)))
+            self.finish()
 
 
 class PageNoteHandler(CbBaseHandler):
     URL = r'/cb/page/note/([\w_]+)'
 
+    @auto_try
     def get(self, page_id):
         """获取注解数据"""
-        try:
-            tag = self.get_argument('tag')
-            page = self.load_page(page_id)
-            notes = page.get('notes', {}).get(tag, {})
-            self.write(notes)
-        except Exception as e:
-            self.on_error(e)
+        tag = self.get_argument('tag')
+        page = self.load_page(page_id)
+        notes = page.get('notes', {}).get(tag, {})
+        self.write(notes)
 
+    @auto_try
     def post(self, page_id):
         """保存注解数据"""
-        try:
-            tag = to_basestring(self.get_argument('tag'))
-            nid = int(self.get_argument('nid', 0))
+        tag = to_basestring(self.get_argument('tag'))
+        nid = int(self.get_argument('nid', 0))
 
-            page = self.load_page(page_id)
-            page['notes'] = page.get('notes', {})
+        page = self.load_page(page_id)
+        page['notes'] = page.get('notes', {})
 
-            if nid and self.get_argument('remove', None) is not None:
-                return self.link_note(page, tag, nid)
+        if nid and self.get_argument('remove', None) is not None:
+            return self.link_note(page, tag, nid)
 
-            if nid and self.get_argument('split', 0):
-                return self.split_note(self, page, tag, nid, to_basestring(self.get_argument('split')))
+        if nid and self.get_argument('split', 0):
+            return self.split_note(self, page, tag, nid, to_basestring(self.get_argument('split')))
 
-            if nid and self.get_argument('merge', 0):
-                return self.merge_text(page, tag, nid,
-                                       new_text=to_basestring(self.get_argument('merge')),
-                                       old_text=to_basestring(self.get_argument('oldText')),
-                                       is_content=self.get_argument('isContent', 0) == '1')
+        if nid and self.get_argument('merge', 0):
+            return self.merge_text(page, tag, nid,
+                                   new_text=to_basestring(self.get_argument('merge')),
+                                   old_text=to_basestring(self.get_argument('oldText')),
+                                   is_content=self.get_argument('isContent', 0) == '1')
 
-            if self.get_argument('ignore', 0):
-                return self.ignore_note(page, tag)
+        if self.get_argument('ignore', 0):
+            return self.ignore_note(page, tag)
 
-            self.add_notes(page, tag)
-        except Exception as e:
-            self.on_error(e)
+        self.add_notes(page, tag)
 
     @staticmethod
     def find_note(notes, line_no, text):
@@ -723,7 +764,7 @@ class PageNoteHandler(CbBaseHandler):
                 if m:
                     nid, new_ids, line_no, text = m.group(1), m.group(3), m.group(2), m.group(4)
                     nid, new_ids = int(nid), [int(t) for t in new_ids.split(',')]
-                    r = PageNoteHandler.find_note(raw, None, text.replace('@', ''))
+                    r = PageNoteHandler.find_note(raw, '', text.replace('@', ''))
                     if not r:
                         logging.warning('{0} {1} not found: {2}'.format(nid, line_no, text))
                         continue
@@ -738,7 +779,6 @@ class PageNoteHandler(CbBaseHandler):
                         logging.warning('not found: ' + log)
             if split_count[0]:
                 logging.info('{0}: split {1} notes, {2} added'.format(tag, split_count[0], split_count[1]))
-                new_id = int((new_id + 19) / 10) * 10
 
         if 'end' in reset and page['old_notes']:
             self.apply_notes(page)
@@ -746,7 +786,8 @@ class PageNoteHandler(CbBaseHandler):
         CbBaseHandler.save_page(page)
         self.write(dict(tag=tag, count=len(raw or notes), split=split_count[1]))
 
-    def apply_notes(self, page):
+    @staticmethod
+    def apply_notes(page):
         old_notes = page.get('old_notes')
         for tag, v in page['notes'].items():
             tmp_r, tmp_s = v.get('raw', []), v['notes']
@@ -767,7 +808,6 @@ class PageNoteHandler(CbBaseHandler):
                     old_ts.append(r[j * 3: j * 3 + 3] + [i, j * 3])
 
             old2new, new2old = {}, {}
-            print([t[2] for t in tmp_ts])
             for (i, old_t) in enumerate(old_ts):
                 text = old_t[1] + pat_note_inv.sub('', old_t[2])
                 if text in texts1:
@@ -913,7 +953,7 @@ handlers = [CbHomeHandler, PageNewHandler, PageHandler, PageDiffHandler, HtmlDow
 
 def make_app():
     return Application(
-        [(c.URL, c) for c in handlers],
+        handlers=[(c.URL, c) for c in handlers],
         default_handler_class=CbHomeHandler,
         debug=options.debug,
         compiled_template_cache=False,
