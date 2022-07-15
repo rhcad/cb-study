@@ -381,7 +381,7 @@
   $('#cb-download').click(() => {
     const down = () => {
       const urls = $('#cb_ids').val()
-      $.post('/cb/page/fetch/{{id}}', {urls: urls}, reload).error(ajaxError('获取原文失败'))
+      $.post('/cb/page/fetch/{{id}}', {urls: urls}, res => res.count && reload()).error(ajaxError('获取原文失败'))
     }
     if ($('#content').text().trim()) {
       swal({

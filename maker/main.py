@@ -84,6 +84,8 @@ class CbBaseHandler(RequestHandler):
     @staticmethod
     def extract_commentary(html):
         """从注解网页中提取段落中的原文与注解(原为全角空格分隔)，分别移入span以供前端解析"""
+        html = re.sub(r"<div id='back'>(.|\n)+<div id='cb", "<div id='cb", html, re.M)  # 去掉校注
+        html = html.replace("'doube-line-note'>(終)<", "'doube-line-note'>終<")
         if 'div-commentary' not in html and len(re.findall(r'<p .+?</span>[^　]{2,60}　.{10,999}</p>', html)) > 5:
             pat_orig, pat_comm = "<span class='div-orig'>%s</span>", "<span class='div-commentary'>%s</span>"
             rows = [re.sub(r'<p .+?</span>([^　]+)　(.+?)</p>',
@@ -99,7 +101,7 @@ class CbBaseHandler(RequestHandler):
         """下载CBeta页面原文，已下载则从缓存文件读取"""
         cache_file = path.join(DATA_DIR, 'cache', name + '.html')
         if path.exists(cache_file):
-            return open(cache_file).read()
+            return self.extract_commentary(open(cache_file).read())
 
         url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
         client = AsyncHTTPClient()
@@ -135,7 +137,7 @@ def auto_try(func):
 
     def wrapper(self, *args, **kwargs):
         try:
-            func(self, *args, **kwargs)
+            return func(self, *args, **kwargs)
         except Exception as e:
             CbBaseHandler.on_error(self, e)
 
@@ -449,7 +451,7 @@ class HtmlDownloadHandler(CbBaseHandler):
 
         PageRollback.rollback(page)
         self.save_page(page)
-        self.write({})
+        self.write(dict(count=len(page['html'])))
         self.finish()
 
 
