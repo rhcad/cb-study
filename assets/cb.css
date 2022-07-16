@@ -224,6 +224,8 @@ body:not(.show-hide-txt) .hide-txt {
   display: none;
 }
 
+.row s { opacity: 0.3; }
+
 
 footer {
   position: fixed;

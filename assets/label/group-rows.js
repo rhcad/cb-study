@@ -101,6 +101,11 @@ $.contextMenu({
       callback: function() { _extractRow(this, false); },
       disabled: function() { return !this.closest('#merged').length || !_extractRow(this, true)},
     },
+    markDel: {
+      name: '标记为删除',
+      callback: function() { _markDel(this, false); },
+      disabled: function() { return !_markDel(this, true)},
+    },
     sep2: {name: '--'},
     addKePan: {
       name: '前加科判条目...',
@@ -335,6 +340,25 @@ function _extractRow($p, test) {
     }
     return true;
   }
+}
+
+// 标记为删除
+function _markDel($p, test) {
+  const sel = window.getSelection();
+  const range = sel.rangeCount && sel.getRangeAt(0);
+  const anchorEl = sel.anchorNode.closest ? sel.anchorNode : sel.anchorNode.parentElement;
+
+  if (!range || !$p[0].contains(sel.anchorNode) || !$p[0].contains(sel.focusNode) || anchorEl.closest('s')) {
+    return false;
+  }
+  if (!test) {
+    const el = document.createElement('s');
+
+    el.appendChild(range.extractContents());
+    range.insertNode(el);
+    saveHtml();
+  }
+  return true;
 }
 
 /**
