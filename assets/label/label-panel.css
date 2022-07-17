@@ -206,7 +206,7 @@ body:not(.no-content) #merged {
 
 .highlight { color: #0000a0}
 
-.gray-linked note[cur-tag]:not(.note-expanded) {
+.gray-linked note[cur-tag]:not(.note-expanded):not(.tag-highlight) {
   color: gray;
 }
 .gray-linked .tag-highlight note[cur-tag]:not(.note-expanded) { color: #00a; }

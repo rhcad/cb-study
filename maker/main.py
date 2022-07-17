@@ -689,6 +689,9 @@ class PageNoteHandler(CbBaseHandler):
         if nid and self.get_argument('split', 0):
             return self.split_note(self, page, tag, nid, to_basestring(self.get_argument('split')))
 
+        if nid and self.get_argument('extract', 0):
+            return self.extract_notes(self, page, tag, nid, to_basestring(self.get_argument('extract')))
+
         if nid and self.get_argument('merge', 0):
             return self.merge_text(page, tag, nid,
                                    new_text=to_basestring(self.get_argument('merge')),
@@ -885,10 +888,12 @@ class PageNoteHandler(CbBaseHandler):
         item = page['notes'].get(tag)
         assert item, 'tag not exists'
         raw = item['raw']
+
         upd = [(i, r) for (i, r) in enumerate(raw) if r[0] == nid]
         assert len(upd) == 1, 'raw {0} not exists: {1}'.format(nid, json.dumps(upd, ensure_ascii=False))
         index, upd = upd[0]
         assert len(upd) == 3, 'raw {0} not simple parameter'.format(nid)
+
         if not split[0] or pat_note_inv.sub('', upd[2]) != pat_note_inv.sub('', ''.join(split)):
             logging.warning('{0} text mismatch: {1} != {2}'.format(nid, upd[2], ''.join(split)))
             assert 0, '{0} text mismatch'.format(nid)
@@ -916,6 +921,49 @@ class PageNoteHandler(CbBaseHandler):
                 page['log'].append(log)
             self.save_page(page)
             self.write(dict(ids=','.join(new_ids), raw=raw))
+
+    @staticmethod
+    def extract_notes(self, page, tag, nid, texts):
+        item = page['notes'].get(tag)
+        assert item, 'tag not exists'
+        notes = item['notes']
+
+        upd = [(i, r) for (i, r) in enumerate(notes) if r[0] == nid]
+        assert len(upd) == 1, 'note {0} not exists'.format(nid)
+        index, upd = upd[0]
+        assert len(upd) == 3, 'note {0} has {1} items'.format(nid, len(upd[0]))
+        texts = texts.replace('"', "'")
+        if texts not in upd[2]:
+            for text in texts.split('\n'):
+                assert text in upd[2], 'text mismatch: ' + text
+            assert 0, 'text mismatch: ' + text
+
+        new_ids = []
+        new_id = page['info']['note_id']
+        pat_num = re.compile(r'\d{4}\w*$')
+        pat_title = re.compile(r'^[^。：；！？]+?[者下][，。]')
+
+        for text in reversed(texts.split('\n')):
+            upd[2] = upd[2].replace('\n' + text, '', 1)
+            new_id += 1
+            new_ids.append(str(new_id))
+            title = upd[1] if pat_num.search(upd[1]) else ''
+            if pat_title.match(text):
+                title = re.sub('，$', '。', pat_title.search(text)[0])
+                text = pat_title.sub('', text)
+            notes.insert(index + 1, [
+                new_id, title,
+                text + (pat_num.search(upd[2])[0] if pat_num.search(upd[2]) else '')
+            ])
+            text += ''
+
+        page['info']['note_id'] = new_id
+        log = 'Extract note #{0} of {1} with #{2}: {3}'.format(nid, tag, ','.join(new_ids), texts.split('\n')[0][:10])
+
+        if item.get('log', 1):
+            page['log'].append(log)
+        self.save_page(page)
+        self.write(dict(ids=','.join(new_ids)))
 
     def link_note(self, page, tag, nid):
         ids = [int(r) for r in self.get_argument('remove').split(',') if r]

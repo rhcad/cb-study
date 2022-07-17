@@ -599,7 +599,39 @@ const _noteTagMenu = {
     },
   },
 };
+const _noteParaMenu = {
+  selector: '.note-text2',
+  items: {
+    extract: {
+      name: '分离注解',
+      callback: function () {
+        const $note = this.closest('.note-p'),
+          id = $note.attr('data-nid'),
+          items = [];
+
+        for (let p = this; p.hasClass('note-text2'); p = p.next()) {
+          items.push(p);
+        }
+
+        $.post('/cb/page/note/' + pageId, {
+          tag: $note.find('[data-tag]').attr('data-tag'),
+          nid: id, extract: items.map(p => p.html()).join('\n')
+        }, r => {
+          if (r.ids) {
+            items.forEach(p => p.remove());
+
+            $(`note[data-nid="${id}"]`).each((i, p) => $(p).replaceWith(p.innerHTML));
+            $(`.note-tag[data-nid="${id}"], .note-p[data-nid="${id}"]`).remove();
+            saveHtml();
+          }
+        }).error(ajaxError('分离失败'));
+      },
+    },
+  },
+};
+
 $.contextMenu(_noteTagMenu);
+$.contextMenu(_noteParaMenu);
 
 // 从TXT文件合并注解行的标点
 function _pageTxtLoaded(rows) {

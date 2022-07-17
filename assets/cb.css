@@ -97,7 +97,7 @@ body {
 .ke-line, .note-p {font-weight: 300;}
 
 .no-print, nav, footer, .note-tag, .task-step,
-.note-raw .org-text, .note-p .p-close, .no-select {
+.org-text, .note-p .p-close, .no-select {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
@@ -105,7 +105,7 @@ body {
 
 @media print {
   .no-print, nav, footer, .note-tag,
-  .note-raw .org-text, .note-p .p-close {
+  .org-text, .note-p .p-close {
     display: none;
   }
 }
@@ -224,7 +224,7 @@ body:not(.show-hide-txt) .hide-txt {
   display: none;
 }
 
-.row s { opacity: 0.3; }
+#content s { opacity: 0.3; }
 
 
 footer {

@@ -1120,11 +1120,20 @@ $(document).on('click', '.more', function (e) {
 
 // 显隐全部注解
 $('#show-notes').click(function() {
-  const $tag = $('.note-tag'), expanded = $('.note-tag.note-expanded').length;
+  const cond = cbOptions.curNoteTag ? `[data-tag="[${cbOptions.curNoteTag}]"]` : '';
+  const $tag = $('.note-tag' + cond);
+  const expanded = $('.note-tag.note-expanded' + cond).length;
+
   if ($tag.length) {
-    $('.note-p').toggle(!expanded);
+    if (cond) {
+      $(`.note-p ${cond.replace(/"\[|]"/g, '"')}`).each((_, p) => $(p).closest('.note-p').toggle(!expanded));
+    } else {
+      $('.note-p [data-tag]').toggle(!expanded);
+    }
+
+    $('.note-expanded').removeClass('note-expanded');
     $tag.toggleClass('note-expanded', !expanded);
-    $('.note-expanded').toggleClass('note-expanded', !expanded);
+
     $(this).closest('li').toggleClass('active', !expanded);
     $('li.show-notes').toggleClass('active', !expanded);
   }
@@ -1180,11 +1189,11 @@ $('#to-table').click(() => {
 _initCbLiStatus();
 
 // 在注解标签上划过时让正文高亮
-$(document).on('mouseenter', '.note-tag', e => {
+$(document).on('mouseenter', '.note-tag,.note-p', e => {
   $('note').removeClass('tag-highlight');
   $(`note[data-nid="${e.target.getAttribute('data-nid')}"]`).addClass('tag-highlight');
 });
-$(document).on('mouseleave', '.note-tag', () => $('note').removeClass('tag-highlight'));
+$(document).on('mouseleave', '.note-tag,.note-p', () => $('note').removeClass('tag-highlight'));
 
 $(document).on('click', 'sup[title]:not([class])', e => {
   e.target.innerText = e.target.innerText.length > 1 ? '*' : e.target.getAttribute('title');
