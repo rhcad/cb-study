@@ -1128,7 +1128,7 @@ $('#show-notes').click(function() {
     if (cond) {
       $(`.note-p ${cond.replace(/"\[|]"/g, '"')}`).each((_, p) => $(p).closest('.note-p').toggle(!expanded));
     } else {
-      $('.note-p [data-tag]').toggle(!expanded);
+      $('.note-p').toggle(!expanded);
     }
 
     $('.note-expanded').removeClass('note-expanded');
