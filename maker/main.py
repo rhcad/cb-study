@@ -1016,5 +1016,8 @@ if __name__ == '__main__':
     options.parse_command_line()
     app = make_app()
     app.listen(options.port)
-    logging.info('Start the service on http://localhost:%d' % (options.port,))
-    ioloop.IOLoop.current().start()
+    logging.info('Start the maker on http://localhost:%d' % (options.port,))
+    try:
+        ioloop.IOLoop.current().start()
+    except KeyboardInterrupt:
+        logging.info('Stop the maker')

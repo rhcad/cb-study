@@ -851,8 +851,9 @@ function getNoteContent(note, title, rows, rawNote, desc, tag) {
         autoMore = /^!/.test(note[i + 1]),
         title_ = note1.replace(/^[!-]/, ''),
         text = note[i + 2].replace(/\d{4}\w*$/, '').split(/\n/g),
+        moreText = note1.substring(3, note1.length - 1),
         orgText = !rawNote && note1.length > 5 && !autoMore? note1.substring(0, 3) +
-            `<span class="more" data-more="${note1.substring(3, note1.length - 1)}">…</span>` + note1[note1.length - 1] : title_;
+            `<span class="more" data-more="${moreText}">${moreText.indexOf('(') > 0 ? moreText : '…'}</span>` + note1[note1.length - 1] : title_;
     let noteText = `<span class="note-text">${text[0]}</span>`,
       nextText = text.slice(1).map(t => `<p class="note-text note-text2">${t}</p>`).join('');
     const head = `<div data-id="${note[i]}" data-line-no="${line}" data-tag="${tag}" class="note-item${rawNote ? ' note-raw' : ''}">`;
