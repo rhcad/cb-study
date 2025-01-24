@@ -1,0 +1,73 @@
+<div id="importTextModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="importTextModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form onsubmit="onSubmitImportText($('#importTextModal'));event.preventDefault();return false;">
+        <div class="modal-header"><h4 class="modal-title">导入原文</h4></div>
+        <div class="modal-body">
+          <div class="row">
+            <h4 class="col-sm-2 control-label">编码 *</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="code" required maxlength="10"
+                     pattern="[A-Za-z][A-Za-z0-9_]+" placeholder="2~10个字母或数字，字母开头，可含_，导入后不可修改"
+                     oninvalid="setCustomValidity('请输入2~10个字母或数字，字母开头，可含_')">
+            </div>
+          </div>
+          <div class="row">
+            <h4 class="col-sm-2 control-label">名称</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="col_name" required
+                     minlength="2" maxlength="10" placeholder="2~10个汉字，分栏对读区分用">
+            </div>
+          </div>
+          <div class="row">
+            <h4 class="col-sm-2 control-label">原文 *</h4>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="content" rows="10" required placeholder="输入纯文本的原文内容"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+          <button type="submit" class="btn btn-primary modal-confirm">导入</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="appendTextModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="appendTextModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form onsubmit="onSubmitAppendText($('#appendTextModal'));event.preventDefault();return false;">
+        <div class="modal-header"><h4 class="modal-title">追加导入原文</h4></div>
+        <div class="modal-body">
+          <div class="row">
+            <h4 class="col-sm-2 control-label">编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="code" required maxlength="10"
+                     pattern="[A-Za-z][A-Za-z0-9_]+" placeholder="3~10个字母或数字，字母开头，可含_，导入后不可修改"
+                     oninvalid="setCustomValidity('请输入3~10个字母或数字，字母开头，可含_')">
+            </div>
+          </div>
+          <div class="row">
+            <h4 class="col-sm-2 control-label">名称</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="name" required autocomplete="off"
+                     minlength="2" maxlength="30" placeholder="2~30字，可有汉字、字母、数字、标点">
+            </div>
+          </div>
+          <div class="row">
+            <h4 class="col-sm-2 control-label">原文</h4>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="content" rows="10" required placeholder="输入纯文本的原文内容"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+          <button type="submit" class="btn btn-primary modal-confirm">导入</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

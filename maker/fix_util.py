@@ -99,7 +99,7 @@ def merge_cb_html(content: list) -> None:
             return m.group().replace('<div', "<div id='g{0}-{1}-{2}'".format(ids['gid'], ids['rid'], ids['cid']))
         return m.group()
 
-    ids = dict(pid=0, gid=0, rid=0, cid=0)
+    ids = dict(pid=0, gid=0, rid=0, cid=0)  # 段落ID、偈颂ID、颂行id、颂单元格id
     for (i, html) in enumerate(content):
         html = re.sub("<div ([^<>]*)id='body'>", lambda m: "<div {0}id='body{1}'>".format(m.group(1), i), html)
         html = re.sub(r' style=\"[^"\'<>]+\"', '', html)
@@ -109,3 +109,18 @@ def merge_cb_html(content: list) -> None:
         html = re.sub(r'<div (class="lg[ "])', sub_g, html)
         html = re.sub(r'<div( id=\'g\d+\')? class=[\'"](lg|lg-row|lg-cell)[ \'"]', sub_lg_row, html)
         content[i] = re.sub(r'\n{2,5}', '\n', html).strip()
+
+
+def text_to_html(text, col, html_org):
+    old_html = ''.join(''.join(c) for c in html_org)
+    ids = re.findall(r"'p(\d+)([a-z]+)?'", old_html)
+    ids = sorted([int(s[0]) for s in ids])
+    pid = ids[-1] if ids else 1
+    new_rows = [f"<div class='original' id='body{col}'>"]
+
+    text = re.sub(r'(\s*\n)+', '\n', text)
+    text = re.sub(r'<[^<>]*>|[@|"]', '', text).strip()
+    for i, r in enumerate(text.split('\n')):
+        new_rows.append(f"<p id='p{pid + i}'>{r}</p>")
+    new_rows.append('</div>')
+    return new_rows

@@ -261,3 +261,5 @@ body:not([data-step="1"]) #content:not(.single-article) .row > div::-webkit-scro
 }
 .cmp-modal span:not(.same) {cursor: pointer;}
 .cmp-modal {width: calc(100% - 40px);}
+
+.wide-modal { width: 650px; }

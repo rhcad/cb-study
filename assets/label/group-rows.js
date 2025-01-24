@@ -160,10 +160,11 @@ function _splitParagraph($p) {
   swal({
     title: `拆分段落 #${$p.attr('id')}`,
     text: '在要拆分处插入分隔符“@”或回车换行。',
+    className: 'wide-modal',
     content: {
       element: 'textarea',
       attributes: {
-        rows: 8,
+        rows: 14,
         value: text0,
       }
     },

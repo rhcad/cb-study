@@ -191,6 +191,7 @@
   </div>
 </nav>
 
+{% include import_text.html %}
 <div class="container-fluid task-steps">
   <div class="task-step" data-step="0">
     <p class="step-title"><span>第1步</span>：获取CBeta网页原文</p>
@@ -204,6 +205,9 @@
           <button type="button" class="btn btn-default" id="cb-download">获取原文</button>
         </div>
       </div>
+      <p>或直接导入纯文本格式的经典内容：
+        <button class="btn btn-default" data-toggle="modal" data-target="#importTextModal">导入文本</button>
+      </p>
 
       <p style="margin-top: 20px">在获取原文前可提前导入注解，将在第4步中使用。</p>
       <div class="input-group note-tag-group">
@@ -368,6 +372,8 @@
 {% end %}
 
 <script>
+  $('[oninvalid]').attr('oninput', 'setCustomValidity("")');
+
   // 给当前步骤组设置活动状态
   $(`.task-step[data-step="{{step}}"]`).addClass('active')
 
@@ -393,6 +399,12 @@
       down()
     }
   })
+
+  function onSubmitImportText($modal) {
+    const data = {};
+    ['code', 'col_name', 'content'].forEach(f => data[f] = $modal.find(`[name="${f}"]`).val())
+    $.post('/cb/page/import/{{id}}', data, reload).error(ajaxError('导入失败', reload))
+  }
 
   const reload = () => location.reload()
 

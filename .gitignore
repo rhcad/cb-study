@@ -14,5 +14,8 @@ package-lock.json
 coverage/
 test.db
 
-maker/data/*.*
+maker/data/
 !.keep
+
+pages/
+log/

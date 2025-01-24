@@ -8,7 +8,8 @@ import shutil
 import logging
 import traceback
 from os import path
-from glob import glob
+from os import makedirs
+from glob2 import glob
 import fix_util as fix
 from tornado import ioloop, gen
 from tornado.web import Application, RequestHandler
@@ -49,28 +50,31 @@ class CbBaseHandler(RequestHandler):
 
     @staticmethod
     def load_page(page_id):
-        json_file = path.join(DATA_DIR, page_id + '.json')
-        html_file = path.join(DATA_DIR, page_id + '.html')
+        folder = re.search('^[a-z]*', page_id).group()
+        page_id2 = page_id[len(folder):]
+        json_file = path.join(DATA_DIR, folder, page_id2 + '.json')
+        html_file = path.join(DATA_DIR, folder, page_id2 + '.html')
         assert path.exists(json_file), 'page {} not exists'.format(page_id)
-        with open(json_file) as f:
+        with open(json_file, encoding='utf-8') as f:
             page = json.load(f)
 
         # html_end: 最终HTML，即完成制作或后续合并注解后的HTML
         if path.exists(html_file):
-            with open(html_file) as f:
+            with open(html_file, encoding='utf-8') as f:
                 page['html_end'] = f.read().split('\n')
         return page
 
     @staticmethod
     def save_page(page, save_html=False):
-        json_file = path.join(DATA_DIR, '{}.json'.format(page['info']['id']))
-        html_file = path.join(DATA_DIR, '{}.html'.format(page['info']['id']))
+        folder = page['info'].get('folder', '')
+        json_file = path.join(DATA_DIR, folder, '{}.json'.format(page['info']['id']))
+        html_file = path.join(DATA_DIR, folder, '{}.html'.format(page['info']['id']))
         html = page.get('html_end')
         if html and save_html:
             page['info']['note_count'] = len([1 for r in (html or []) if 'note-tag' in r])  # 有注解的行数
-            with open(html_file, 'w') as f:
+            with open(html_file, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(html))
-        with open(json_file, 'w') as f:
+        with open(json_file, 'w', encoding='utf-8') as f:
             page.pop('html_end', 0)  # 最终HTML保存在html文件
             json.dump(page, f, ensure_ascii=False, indent=2, sort_keys=True)
         page['html_end'] = html
@@ -101,7 +105,7 @@ class CbBaseHandler(RequestHandler):
         """下载CBeta页面原文，已下载则从缓存文件读取"""
         cache_file = path.join(DATA_DIR, 'cache', name + '.html')
         if path.exists(cache_file):
-            return self.extract_commentary(open(cache_file).read())
+            return self.extract_commentary(open(cache_file, encoding='utf-8').read())
 
         url = 'https://api.cbetaonline.cn/download/html/{}.html'.format(name if '_' in name else name + '_001')
         client = AsyncHTTPClient()
@@ -111,7 +115,7 @@ class CbBaseHandler(RequestHandler):
                 return self.send_error(504, reason='fail to fetch {0}: {1}'.format(url, str(r.error)))
 
             html = self.extract_commentary(to_basestring(r.body))
-            with open(cache_file, 'w') as f:
+            with open(cache_file, 'w', encoding='utf-8') as f:
                 f.write(html)
             return html
         except HTTPError as e:
@@ -236,16 +240,20 @@ class CbHomeHandler(CbBaseHandler):
     def get(self):
         """原典首页"""
         for fn in glob(path.join(THIS_PATH, 'example', '*.json')):
-            if not path.exists(path.join(DATA_DIR, path.basename(fn))):
-                shutil.copy(fn, DATA_DIR)
+            folder = 'surangama' if 'T0945_' in path.basename(fn) else 'demo'
+            filename = path.join(DATA_DIR, folder, path.basename(fn))
+            if not path.exists(filename):
+                makedirs(path.dirname(filename), exist_ok=True)
+                shutil.copy(fn, filename)
 
-        files = sorted(glob(path.join(DATA_DIR, '*.json')))
-        pages = [json.load(open(fn)) for fn in files]
+        files = sorted(glob(path.join(DATA_DIR, '**', '*.json')))
+        pages = [json.load(open(fn, encoding='utf-8')) for fn in files]
         self.render('cb_home.html', pages=[(p['info'], dict(
+            folder=p['info'].get('folder', ''),
             id=p['info']['id'],
-            url='/cb/page/' + p['info']['id'],
+            url='/cb/page/' + p['info'].get('folder', '') + p['info']['id'],
             # 统计 :ke-type 个数，html里有 ke-pan 元素（未作段落分组故无 rowPairs）或有科判条目（':ke '开头）则为一个科判类型
-            ke_pan_type_count=(len([1 for r in p.get('rowPairs', []) if re.match(r'^:ke-type \d [^\s]+', r)])
+            ke_pan_type_count=(len([1 for r in p.get('rowPairs', []) if re.match(r'^:ke-type \d \S+', r)])
                                or (1 if [1 for s in p.get('html', []) if '<div ke-pan=' in s] or
                                         [1 for r in p.get('rowPairs', []) if re.match(r':ke\d? ', r)] else 0))
         )) for p in pages])
@@ -257,19 +265,23 @@ class PageNewHandler(CbBaseHandler):
     @auto_try
     def post(self):
         """创建原典页面"""
-        page_id = to_basestring(self.get_argument('id', ''))
+        folder = to_basestring(self.get_argument('folder'))
+        page_id = to_basestring(self.get_argument('id'))
         caption = to_basestring(self.get_argument('caption', '')).strip()
-        if not re.match(r'^\w{2,8}(_\d{1,3})?$', page_id):  # 页面编号为 经号 或 经号_卷号，经号由2~8位字母数字组成
+        m = re.search(r'^([A-Z][A-Za-z0-9]{1,7})(_\d{1,3})?$', page_id)
+        if not m:  # 页面编号为 经号 或 经号_卷号，经号由2~8位字母数字组成
             return self.send_error(501, reason='invalid id')
         if not caption or len(caption) > 20:
             return self.send_error(502, reason='invalid caption')
 
-        filename = path.join(DATA_DIR, page_id + '.json')
+        assert folder not in ['cache', 'admin', 'data'], '分类不能是保留名称'
+        filename = path.join(DATA_DIR, folder, page_id + '.json')
         if path.exists(filename):
             return self.send_error(503, reason='file exists')
+        makedirs(path.dirname(filename), exist_ok=True)
 
-        self.save_page({'info': dict(id=page_id, caption=caption), 'log': []})
-        self.write({'url': '/cb/page/' + page_id})
+        self.save_page({'info': dict(folder=folder, id=page_id, caption=caption), 'log': []})
+        self.write({'url': '/cb/page/' + folder + page_id})
 
 
 class PageHandler(CbBaseHandler):
@@ -280,7 +292,7 @@ class PageHandler(CbBaseHandler):
         """显示原典页面"""
         page = self.load_page(page_id)
         info = page['info']
-        step = int(self.get_argument('step', 0))
+        step = int(self.get_argument('step', '0'))
         if step > 0:  # URL中指定了第几步(1起)，则强制显示此步骤的页面，否则为上次的步骤
             info['step'] = step - 1
             self.save_page(page)
@@ -295,8 +307,10 @@ class PageHandler(CbBaseHandler):
         if step > 0 and not page.get('html'):
             step = 0  # 退回到获取原文步骤
 
-        name = page_id.split('_')[0]  # 经号
-        juan = int((page_id.split('_')[1:] or [1])[0])  # 卷号
+        folder = info.get('folder', '')
+        page_id2 = page_id[len(folder):]
+        name = page_id2.split('_')[0]  # 经号
+        juan = int((page_id2.split('_')[1:] or [1])[0])  # 卷号
         cb_ids = info.get('cb_ids') or '{0}_{1:0>3d}'.format(name, juan)  # 卷号用0补足为3位，例如 001、012
 
         # html里有 ke-pan 元素，或段落分组信息里有科判条目（':ke '开头），则有科判条目
@@ -304,12 +318,12 @@ class PageHandler(CbBaseHandler):
                                     [1 for s in page['html'] if '<div ke-pan=' in s]))
         # 科判类型格式 'num name desc'，desc 可缺省
         ke_pan_types = step and [r[len(':ke-type '):] + ' ' for r in page.get('rowPairs', [])
-                                 if re.match(r'^:ke-type \d [^\s]+', r)] or []
+                                 if re.match(r'^:ke-type \d \S+', r)] or []
 
         note_tags = [s.split('|')[1] for s in info.get('notes', [])]  # notes：栏序号|标记字|注解的经号_卷号|可选的注解名称
         cmp_txt = step == 3 and '\n'.join(self.get_cmp_txt()) or ''  # 读取有标点的文本文件，以便校对合并标点
 
-        if self.get_argument('export', 0):  # 下载合并后的网页内容
+        if self.get_argument('export', ''):  # 下载合并后的网页内容
             json_files = ['{0}-{1}.json.js'.format(page_id, re.sub('_.+$', '', v['name']))
                           for tag, v in (page.get('notes') or {}).items()]
             note_names = [['{0}Notes'.format(re.sub('_.+$', '', v['name'])),
@@ -348,7 +362,7 @@ class PageHandler(CbBaseHandler):
         filename = path.join(DATA_DIR, 'notes.txt')
         rows = []
         if path.exists(filename):
-            with open(filename) as f:
+            with open(filename, encoding='utf-8') as f:
                 text = re.sub('[' + ignore_nums + ']', '', f.read().strip())
                 rows = re.split(r'[\s\n]*\n+[\s\n]*', text)  # 分段，忽略多个连续空行
         return [re.sub(r'\s+', '', r) for r in rows]
@@ -403,9 +417,33 @@ class PageDiffHandler(CbBaseHandler):
 
         for juan in (parts[1:] or ['']):
             cache_file = path.join(DATA_DIR, 'cache', parts[0] + ('_' + juan if juan else '') + '.html')
-            ret['org_files'].append(open(cache_file).read())
+            ret['org_files'].append(open(cache_file, encoding='utf-8').read())
 
         self.render('cb_diff.html', **ret)
+
+
+class ImportTextHandler(CbBaseHandler):
+    URL = r'/cb/page/import/([\w_]+)'
+
+    @auto_try
+    def post(self, page_id):
+        """导入一栏纯文本内容"""
+        page = self.load_page(page_id)
+        code, name = self.get_argument('code'), self.get_argument('col_name')
+
+        cols, cb_ids = page['info'].get('cols', 0), page['info'].get('cb_ids', '')
+        if cols > 12:
+            return self.send_error(505, reason='only support 1~12 columns')
+        cb_ids += ('|' if cb_ids else '') + f'{code} {name}'
+        page['info'].update(dict(step=1, cols=cols + 1, cb_ids=cb_ids))
+
+        rows = fix.text_to_html(self.get_argument('content'), cols, page.get('html_org', []))
+        page['html_org'] = page.get('html_org', []) + rows
+        page['html'] = page.get('html', []) + rows
+
+        logging.info(f"import text {code} {name} {len(rows)} rows")
+        self.save_page(page)
+        self.write(dict(count=len(rows)))
 
 
 class HtmlDownloadHandler(CbBaseHandler):
@@ -417,13 +455,13 @@ class HtmlDownloadHandler(CbBaseHandler):
         """从CBeta获取原文HTML"""
         page = self.load_page(page_id)
         cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
-        force = self.get_argument('reset', 0)
+        force = self.get_argument('reset', '')
 
         urls = cb_ids.split('|') if cb_ids else []  # 多栏
         if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
             page['info']['step'] = 1  # 不重新导入
         else:
-            content = []
+            content = []  # 每栏的html
             for col in urls:
                 html = ''
                 name_desc = re.split(r'\s+', col.strip())  # 经文简要描述用空格与前隔开
@@ -678,7 +716,7 @@ class PageNoteHandler(CbBaseHandler):
     def post(self, page_id):
         """保存注解数据"""
         tag = to_basestring(self.get_argument('tag'))
-        nid = int(self.get_argument('nid', 0))
+        nid = int(self.get_argument('nid', '0'))
 
         page = self.load_page(page_id)
         page['notes'] = page.get('notes', {})
@@ -686,19 +724,19 @@ class PageNoteHandler(CbBaseHandler):
         if nid and self.get_argument('remove', None) is not None:
             return self.link_note(page, tag, nid)
 
-        if nid and self.get_argument('split', 0):
+        if nid and self.get_argument('split', '0'):
             return self.split_note(self, page, tag, nid, to_basestring(self.get_argument('split')))
 
-        if nid and self.get_argument('extract', 0):
+        if nid and self.get_argument('extract', ''):
             return self.extract_notes(self, page, tag, nid, to_basestring(self.get_argument('extract')))
 
-        if nid and self.get_argument('merge', 0):
+        if nid and self.get_argument('merge', ''):
             return self.merge_text(page, tag, nid,
                                    new_text=to_basestring(self.get_argument('merge')),
                                    old_text=to_basestring(self.get_argument('oldText')),
-                                   is_content=self.get_argument('isContent', 0) == '1')
+                                   is_content=self.get_argument('isContent', '') == '1')
 
-        if self.get_argument('ignore', 0):
+        if self.get_argument('ignore', ''):
             return self.ignore_note(page, tag)
 
         self.add_notes(page, tag)
@@ -722,7 +760,7 @@ class PageNoteHandler(CbBaseHandler):
     def add_notes(self, page, tag):
         name = to_basestring(self.get_argument('name', ''))
         desc = to_basestring(self.get_argument('desc', ''))
-        col = int(self.get_argument('col', 0) or 0)
+        col = int(self.get_argument('col', '0') or 0)
         reset = self.get_argument('reset', '')
         lines = json_decode(self.get_argument('lines'))
 
@@ -936,7 +974,6 @@ class PageNoteHandler(CbBaseHandler):
         if texts not in upd[2]:
             for text in texts.split('\n'):
                 assert text in upd[2], 'text mismatch: ' + text
-            assert 0, 'text mismatch: ' + text
 
         new_ids = []
         new_id = page['info']['note_id']
@@ -997,8 +1034,10 @@ class PageNoteHandler(CbBaseHandler):
         self.write(dict(count=len(raw)))
 
 
-handlers = [CbHomeHandler, PageNewHandler, PageHandler, PageDiffHandler, HtmlDownloadHandler, RowPairsHandler,
-            ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler, FetchHtmlHandler, PageNoteHandler]
+handlers = [CbHomeHandler, PageNewHandler, PageHandler, PageDiffHandler,
+            ImportTextHandler, HtmlDownloadHandler, RowPairsHandler,
+            ParagraphOrderHandler, SplitParagraphHandler, EndMergeHandler,
+            FetchHtmlHandler, PageNoteHandler]
 
 
 def make_app():

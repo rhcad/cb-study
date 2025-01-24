@@ -4,6 +4,7 @@
 
 @media screen {
     [data-theme="warm"] body,
+    [data-theme="warm"] .modal-content,
     [data-theme="warm"] .form-control {
         background-color: #ddf0e4;
         color: #464646;
@@ -14,7 +15,7 @@
         color: #3F51B5;
     }
 
-    [data-theme="warm"] .btn {background-color: transparent;}
+    [data-theme="warm"] .btn:not(.btn-primary) {background-color: transparent;}
 
     [data-theme="warm"] footer,
     [data-theme="warm"] nav {background-color: #eef6f0;}
@@ -23,6 +24,7 @@
     [data-theme="warm"] .ke-line { background-color: rgba(200, 200, 230, .15)}
 
     [data-theme="dark"] body,
+    [data-theme="dark"] .modal-content,
     [data-theme="dark"] .form-control,
     [data-theme="dark"] textarea,
     [data-theme="dark"] .swal-modal,
@@ -105,6 +107,10 @@
     [data-theme="dark"] .navbar-default {
         color: #5f7b99;
         background-color: #3b3b3d;
+    }
+    [data-theme="dark"] .modal-header,
+    [data-theme="dark"] .modal-footer,
+    [data-theme="dark"] .navbar-default {
         border-color: #555;
     }
 
