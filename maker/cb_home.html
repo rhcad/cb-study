@@ -55,7 +55,7 @@
 
   <div class="input-group">
     <input type="text" class="form-control" id="page-id"
-           placeholder="分类:经号_卷号:经典名称，分类为1~10个小写字母">
+           placeholder="经号_卷号:经典名称，经号前可加“分类:”，分类为1~10个小写字母">
     <div class="input-group-btn">
       <button type="button" class="btn btn-default" id="new-page">创建页面</button>
     </div>
@@ -71,9 +71,9 @@
 <script>
   $('#new-page').click(() => {
     const v = $('#page-id').val().split(/\s*[:：]\s*/)
-    $.post('/cb/page/new', {folder: v[0], id: v[1], caption: v[2]}, response => {
-      window.location.href = response.url
-    }).error(xhr => showError('创建失败', errors[xhr.status] || xhr.responseText))
+    $.post('/cb/page/new', v.length > 2 ? {folder: v[0], id: v[1], caption: v[2]} : {folder: '', id: v[0], caption: v[1]},
+      response => { window.location.href = response.url })
+      .error(xhr => showError('创建失败', errors[xhr.status] || xhr.responseText))
     return false
   })
 
