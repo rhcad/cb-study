@@ -457,7 +457,7 @@ class HtmlDownloadHandler(CbBaseHandler):
         cb_ids = to_basestring(self.get_argument('urls', '')) or page['info']['cb_ids']
         force = self.get_argument('reset', '')
 
-        urls = cb_ids.split('|') if cb_ids else []  # 多栏
+        urls = cb_ids.strip(' |').split('|') if cb_ids else []  # 多栏
         if not force and urls and cb_ids == page['info'].get('cb_ids') and page.get('html_org'):
             page['info']['step'] = 1  # 不重新导入
         else:
@@ -472,6 +472,8 @@ class HtmlDownloadHandler(CbBaseHandler):
                     r = yield self.fetch_cb(name)
                     if not r:
                         return
+                    if "error" in r:
+                        return self.send_error(505, reason=f'Fail to get content of {name}')
                     if len(name_desc[0].split('_')) > 2:
                         name = name.split('_')[0]
                     html = fix.convert_cb_html(html, r, name + desc)
